@@ -1,0 +1,32 @@
+# TODO
+
+- [x] Initial setup for C++20 development and GitHub Actions
+- [ ] Non-trivial proof-of-concept with documentation:
+  - [ ] Search directory hierarchy for configuration
+  - [ ] Parse YAML configuration
+  - [ ] Strip consecutive newlines
+  - [ ] Indentation (e.g., line continuations, parameter port lists)
+  - [ ] Line breaks after language constructs (e.g. `always`, `initial`)
+  - [ ] Insert `begin` / `end` (e.g. `always`, `initial`, control statements)
+  - [ ] Disable formatting using pragmas and regular expressions
+- [ ] Command-line processing using `slang::CommandLine`
+- [ ] Report version (i.e. `slang-format --version`)
+- [ ] File lists (i.e. `slang-format @<file>` and `slang-format --files=<filename>`)
+- [ ] Ignore patterns (i.e. `.slang-format-ignore` and `slang-format --list-ignored`)
+- [ ] Dump configuration (i.e. `slang-format --dump-config`)
+- [ ] In-place editing (i.e. `slang-format -i`)
+- [ ] Formatting (not exhaustive):
+  - [ ] Line breaks between constructs
+  - [ ] Alignment:
+    - [ ] Types
+    - [ ] Ranges
+    - [ ] Assignments
+    - [ ] Groups (i.e. parameters, signals)
+    - [ ] Delays
+  - [ ] Multiple assignments
+  - [ ] MSB vs. LSB ranges
+  - [ ] Timing control
+    - [ ] Require parenthesis
+    - [ ] Commas vs. `or`
+- [ ] Installation and packaging using CMake
+- [ ] Full releases including packaging

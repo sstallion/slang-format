@@ -1,0 +1,39 @@
+BasedOnStyle: LLVM
+AccessModifierOffset: -4
+AlignEscapedNewlines: Left
+AllowShortFunctionsOnASingleLine: InlineOnly
+BraceWrapping:
+  BeforeCatch: true
+  BeforeElse:  true
+BreakBeforeBraces: Custom
+BreakConstructorInitializers: AfterColon
+BreakTemplateDeclarations: Yes
+ColumnLimit:   100
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:         '^".*'
+    Priority:      0
+    SortPriority:  0
+    CaseSensitive: false
+  - Regex:         '^<(algorithm|any|array|atomic|barrier|bit|bitset|cassert|cctype|cerrno|cfenv|cfloat|charconv|chrono|cinttypes|climits|clocale|cmath|codecvt|compare|complex|concepts|condition_variable|coroutine|csetjmp|csignal|cstdarg|cstddef|cstdint|cstdio|cstdlib|cstring|ctime|cuchar|cwchar|cwctype|deque|exception|execution|filesystem|format|forward_list|fstream|functional|future|initializer_list|iomanip|ios|iosfwd|iostream|istream|iterator|latch|limits|list|locale|map|memory|memory_resource|mutex|new|numbers|numeric|optional|ostream|queue|random|ranges|ratio|regex|scoped_allocator|semaphore|set|shared_mutex|source_location|span|sstream|stack|stacktrace|stdexcept|stop_token|streambuf|string|string_view|strstream|syncstream|system_error|thread|tuple|type_traits|typeindex|typeinfo|unordered_map|unordered_set|utility|valarray|variant|vector|version)>$'
+    Priority:      1
+    SortPriority:  0
+    CaseSensitive: false
+  - Regex:         '.*'
+    Priority:      2
+    SortPriority:  0
+    CaseSensitive: false
+IncludeIsMainRegex: '$'
+IndentCaseLabels: true
+IndentExternBlock: NoIndent
+IndentPPDirectives: AfterHash
+IndentWidth: 4
+LineEnding: LF
+PenaltyBreakAssignment: 50
+PenaltyBreakBeforeFirstCallParameter: 50
+PenaltyReturnTypeOnItsOwnLine: 600
+PointerAlignment: Left
+ReferenceAlignment: Left
+SpaceAfterTemplateKeyword: false
+SpacesInContainerLiterals: false
+TabWidth: 4

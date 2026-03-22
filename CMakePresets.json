@@ -1,0 +1,162 @@
+{
+  "version": 9,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 31,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "Clang",
+      "inherits": "default",
+      "generator": "Ninja Multi-Config",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "GNU",
+      "inherits": "default",
+      "generator": "Ninja Multi-Config",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
+      }
+    },
+    {
+      "name": "MSVC",
+      "inherits": "default",
+      "generator": "Visual Studio 17 2022"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "Debug-Clang",
+      "configurePreset": "Clang",
+      "configuration": "Debug"
+    },
+    {
+      "name": "Debug-GNU",
+      "configurePreset": "GNU",
+      "configuration": "Debug"
+    },
+    {
+      "name": "Debug-MSVC",
+      "configurePreset": "MSVC",
+      "configuration": "Debug"
+    },
+    {
+      "name": "Release-Clang",
+      "configurePreset": "Clang",
+      "configuration": "Release"
+    },
+    {
+      "name": "Release-GNU",
+      "configurePreset": "GNU",
+      "configuration": "Release"
+    },
+    {
+      "name": "Release-MSVC",
+      "configurePreset": "MSVC",
+      "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "hidden": true,
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "Debug-Clang",
+      "inherits": "default",
+      "configurePreset": "Clang"
+    },
+    {
+      "name": "Debug-GNU",
+      "inherits": "default",
+      "configurePreset": "GNU"
+    },
+    {
+      "name": "Debug-MSVC",
+      "inherits": "default",
+      "configurePreset": "MSVC"
+    },
+    {
+      "name": "Release-Clang",
+      "inherits": "default",
+      "configurePreset": "Clang"
+    },
+    {
+      "name": "Release-GNU",
+      "inherits": "default",
+      "configurePreset": "GNU"
+    },
+    {
+      "name": "Release-MSVC",
+      "inherits": "default",
+      "configurePreset": "MSVC"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "Debug-Clang",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "Clang"
+        },
+        {
+          "type": "build",
+          "name": "Debug-Clang"
+        },
+        {
+          "type": "test",
+          "name": "Debug-Clang"
+        }
+      ]
+    },
+    {
+      "name": "Debug-GNU",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "GNU"
+        },
+        {
+          "type": "build",
+          "name": "Debug-GNU"
+        },
+        {
+          "type": "test",
+          "name": "Debug-GNU"
+        }
+      ]
+    },
+    {
+      "name": "Debug-MSVC",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "MSVC"
+        },
+        {
+          "type": "build",
+          "name": "Debug-MSVC"
+        },
+        {
+          "type": "test",
+          "name": "Debug-MSVC"
+        }
+      ]
+    }
+  ]
+}

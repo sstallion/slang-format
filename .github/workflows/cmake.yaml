@@ -1,0 +1,43 @@
+name: CMake
+on:
+  workflow_call:
+    inputs: &inputs
+      os:
+        description: Operating system
+        required: true
+        type: string
+      preset:
+        description: Workflow preset
+        required: true
+        type: string
+      fetch-tags:
+        description: Fetch tags
+        required: false
+        type: boolean
+      upload-artifacts:
+        description: Upload artifacts
+        required: false
+        type: boolean
+      artifacts-path:
+        description: Artifacts path
+        required: false
+        type: string
+  workflow_dispatch:
+    inputs: *inputs
+jobs:
+  cmake:
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-tags: ${{ inputs.fetch-tags }}
+      - name: Run workflow
+        run: cmake --workflow --preset ${{ inputs.preset }}
+      - name: Upload artifacts
+        if: ${{ inputs.upload-artifacts }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: artifacts
+          path: ${{ inputs.artifacts-path }}
+          if-no-files-found: error

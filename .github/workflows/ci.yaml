@@ -1,0 +1,21 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  call-cmake:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            preset: Debug-GNU
+          - os: macos-latest
+            preset: Debug-Clang
+          - os: windows-latest
+            preset: Debug-MSVC
+    uses: ./.github/workflows/cmake.yaml
+    with:
+      os: ${{ matrix.os }}
+      preset: ${{ matrix.preset }}
