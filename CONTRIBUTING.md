@@ -72,6 +72,15 @@ To make a release, perform the following:
    git push origin --tags
    ```
 
+## AI Tool Use Policy
+
+This repository adheres to the [LLVM AI Tool Use Policy][9]:
+
+Contributors may use AI tools, but a human must be in the loop. Submissions must
+be understood, reviewed, and owned by the contributor. Substantial AI-assisted
+content must be attributed using a `Co-authored-by` commit trailer and disclosed
+in pull request descriptions. Use of autonomous agents is not permitted.
+
 ## License
 
 By contributing to this repository, you agree that your contributions will be
