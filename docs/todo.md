@@ -1,14 +1,14 @@
 # TODO
 
 - [x] Initial setup for C++20 development and GitHub Actions
-- [ ] Non-trivial proof-of-concept with documentation:
-  - [ ] Search directory hierarchy for configuration
-  - [ ] Parse YAML configuration
-  - [ ] Strip consecutive newlines
-  - [ ] Indentation (e.g., line continuations, parameter port lists)
-  - [ ] Line breaks after language constructs (e.g. `always`, `initial`)
-  - [ ] Insert `begin` / `end` (e.g. `always`, `initial`, control statements)
-  - [ ] Disable formatting using pragmas and regular expressions
+- [x] Non-trivial proof-of-concept with documentation:
+  - [x] Search directory hierarchy for configuration
+  - [x] Parse YAML configuration
+  - [x] Strip consecutive newlines
+  - [x] Indentation (e.g., line continuations, parameter port lists)
+  - [x] Line breaks after language constructs (e.g. `always`, `initial`)
+  - [x] Insert `begin` / `end` (e.g. `always`, `initial`, control statements)
+  - [x] Disable formatting using pragmas and regular expressions
 - [ ] Command-line processing using `slang::CommandLine`
 - [ ] Report version (i.e. `slang-format --version`)
 - [ ] File lists (i.e. `slang-format @<file>` and `slang-format --files=<filename>`)

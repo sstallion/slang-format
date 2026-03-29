@@ -29,7 +29,9 @@ set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
 include_directories(${SOURCE_DIR})
 
 add_library(${PROJECT_NAME}-object OBJECT
-            ${SOURCE_DIR}/Empty.cpp)
+            ${SOURCE_DIR}/Format.cpp
+            ${SOURCE_DIR}/Rewriter.cpp
+            ${SOURCE_DIR}/Style.cpp)
 
 target_link_libraries(${PROJECT_NAME}-object
                       slang::slang
@@ -45,7 +47,9 @@ if(BUILD_TESTING)
   enable_testing()
 
   add_executable(${PROJECT_NAME}-tests
-                 ${TEST_DIR}/EmptyTest.cpp)
+                 ${TEST_DIR}/FormatTest.cpp
+                 ${TEST_DIR}/RewriterTest.cpp
+                 ${TEST_DIR}/StyleTest.cpp)
 
   target_link_libraries(${PROJECT_NAME}-tests
                         ${PROJECT_NAME}-object
