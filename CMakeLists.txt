@@ -24,7 +24,7 @@ include(Version)
 find_package(ClangTidy)
 
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
-set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
+set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 include_directories(${SOURCE_DIR})
 
@@ -51,10 +51,10 @@ if(BUILD_TESTING)
   enable_testing()
 
   add_executable(${PROJECT_NAME}-tests
-                 ${TEST_DIR}/FormatTest.cpp
-                 ${TEST_DIR}/IgnoreTest.cpp
-                 ${TEST_DIR}/RewriterTest.cpp
-                 ${TEST_DIR}/StyleTest.cpp)
+                 ${TESTS_DIR}/FormatTest.cpp
+                 ${TESTS_DIR}/IgnoreTest.cpp
+                 ${TESTS_DIR}/RewriterTest.cpp
+                 ${TESTS_DIR}/StyleTest.cpp)
 
   target_link_libraries(${PROJECT_NAME}-tests
                         ${PROJECT_NAME}-object
@@ -64,19 +64,6 @@ if(BUILD_TESTING)
   include(GoogleTest)
   gtest_discover_tests(${PROJECT_NAME}-tests)
 
-  set(FIXTURE_DIR ${TEST_DIR}/fixtures)
-
-  add_test(NAME InplaceEdit
-           COMMAND ${CMAKE_COMMAND}
-                   -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
-                   -DFIXTURE_DIR=${FIXTURE_DIR}
-                   -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                   -P ${FIXTURE_DIR}/InplaceEdit.cmake)
-
-  add_test(NAME InplaceEditStdin
-           COMMAND ${CMAKE_COMMAND}
-                   -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
-                   -DFIXTURE_DIR=${FIXTURE_DIR}
-                   -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                   -P ${FIXTURE_DIR}/InplaceEditStdin.cmake)
+  set(FIXTURES_DIR ${TESTS_DIR}/fixtures)
+  add_subdirectory(${FIXTURES_DIR})
 endif()

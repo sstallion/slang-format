@@ -78,32 +78,38 @@
     {
       "name": "Debug-Clang",
       "inherits": "default",
-      "configurePreset": "Clang"
+      "configurePreset": "Clang",
+      "configuration": "Debug"
     },
     {
       "name": "Debug-GNU",
       "inherits": "default",
-      "configurePreset": "GNU"
+      "configurePreset": "GNU",
+      "configuration": "Debug"
     },
     {
       "name": "Debug-MSVC",
       "inherits": "default",
-      "configurePreset": "MSVC"
+      "configurePreset": "MSVC",
+      "configuration": "Debug"
     },
     {
       "name": "Release-Clang",
       "inherits": "default",
-      "configurePreset": "Clang"
+      "configurePreset": "Clang",
+      "configuration": "Release"
     },
     {
       "name": "Release-GNU",
       "inherits": "default",
-      "configurePreset": "GNU"
+      "configurePreset": "GNU",
+      "configuration": "Release"
     },
     {
       "name": "Release-MSVC",
       "inherits": "default",
-      "configurePreset": "MSVC"
+      "configurePreset": "MSVC",
+      "configuration": "Release"
     }
   ],
   "workflowPresets": [

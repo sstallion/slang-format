@@ -20,7 +20,7 @@ slang-format/
 │   ├── Style.h           # Public interface for style configuration
 │   ├── SyntaxHelper.h    # Shared predicates for syntax node classification
 │   └── main.cpp          # Entry point; command-line processing and output
-└── test/
+└── tests/
     ├── FormatTest.cpp    # Formatting and post-processing tests
     ├── IgnoreTest.cpp    # Ignore file lookup and pattern matching tests
     ├── RewriterTest.cpp  # Syntax rewriting tests
@@ -134,7 +134,7 @@ content that is not known until after the walk is complete.
 
 Command-line features that live in `main.cpp` are not part of the object library
 linked by unit tests. These features are tested using CTest integration tests
-driven by CMake scripts under `test/fixtures/`. Each script invokes the built
+driven by CMake scripts under `tests/fixtures/`. Each script invokes the built
 binary, then verifies output using `cmake -E compare_files` or similar checks.
 
 [1]: https://sv-lang.com/

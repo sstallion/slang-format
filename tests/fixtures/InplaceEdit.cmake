@@ -1,7 +1,7 @@
 # Copyright 2026 Steven Stallion
 # SPDX-License-Identifier: MIT
 
-file(COPY ${FIXTURE_DIR}/inplace.sv DESTINATION ${WORK_DIR})
+file(COPY ${FIXTURES_DIR}/inplace.sv DESTINATION ${WORK_DIR})
 
 execute_process(COMMAND ${SLANG_FORMAT} -i ${WORK_DIR}/inplace.sv
                 RESULT_VARIABLE result)
@@ -12,7 +12,7 @@ endif()
 
 execute_process(COMMAND ${CMAKE_COMMAND} -E compare_files
                         ${WORK_DIR}/inplace.sv
-                        ${FIXTURE_DIR}/inplace.sv.expected
+                        ${FIXTURES_DIR}/inplace.sv.expected
                 RESULT_VARIABLE result)
 
 if(NOT result EQUAL 0)
