@@ -1,6 +1,7 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
+#include "Config.h"
 #include "Format.h"
 #include "Ignore.h"
 #include "Style.h"
@@ -174,12 +175,12 @@ int main(int argc, char* argv[]) {
     }
 
     if (help.value_or(false)) {
-        std::cout << cmdLine.getHelpText("SystemVerilog code formatter") << "\n";
+        std::cout << cmdLine.getHelpText(PROJECT_DESCRIPTION) << "\n";
         return EXIT_SUCCESS;
     }
 
     if (version.value_or(false)) {
-        std::cout << "slang-format version " << SLANG_FORMAT_VERSION << "\n";
+        std::cout << PROJECT_NAME << " version " << PROJECT_VERSION << "\n";
         return EXIT_SUCCESS;
     }
 
@@ -192,7 +193,7 @@ int main(int argc, char* argv[]) {
     try {
         auto files = buildFileList(positionalFiles, fileListPaths);
         if (files.empty()) {
-            std::cerr << cmdLine.getHelpText("SystemVerilog code formatter") << "\n";
+            std::cerr << cmdLine.getHelpText(PROJECT_DESCRIPTION) << "\n";
             return EXIT_FAILURE;
         }
 

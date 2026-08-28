@@ -26,7 +26,10 @@ find_package(ClangTidy)
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
 set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
-include_directories(${SOURCE_DIR})
+include_directories(${SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/Config.h)
 
 add_library(${PROJECT_NAME}-object OBJECT
             ${SOURCE_DIR}/Format.cpp
@@ -40,9 +43,6 @@ target_link_libraries(${PROJECT_NAME}-object
 
 add_executable(${PROJECT_NAME}
                ${SOURCE_DIR}/main.cpp)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-                           SLANG_FORMAT_VERSION="${PROJECT_VERSION}")
 
 target_link_libraries(${PROJECT_NAME}
                       ${PROJECT_NAME}-object)
