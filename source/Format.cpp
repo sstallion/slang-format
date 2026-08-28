@@ -71,8 +71,9 @@ bool matchesPragma(std::string_view text, std::string_view pragma) {
     return false;
 }
 
-/// Handles ingle-pass tree walk combining serialization, indentation, break handling, and
-/// empty-line limiting. Structural changes are handled by the SyntaxRewriter before this pass.
+/// Handles ingle-pass tree walk combining serialization, indentation, break
+/// handling, and empty-line limiting. Structural changes are handled by the
+/// SyntaxRewriter before this pass.
 class FormatPrinter : public SyntaxVisitor<FormatPrinter> {
 public:
     explicit FormatPrinter(const Style& style) : style(style) {
@@ -84,15 +85,15 @@ public:
     std::string print(const SyntaxTree& tree) {
         tree.root().visit(*this);
 
-        // The EndOfFile token is not part of the visited subtree when tree.root() returns a member
-        // node (e.g. ModuleDeclarationSyntax). Emit its leading trivia, which carries the final
-        // newlines from the source.
+        // The EndOfFile token is not part of the visited subtree when tree.root()
+        // returns a member node (e.g. ModuleDeclarationSyntax). Emit its
+        // leading trivia, which carries the final newlines from the source.
         emitToken(tree.getMetadata().eofToken);
         return std::move(output);
     }
 
-    // Called by the base-class visitDefault for every token child of an unhandled node.
-    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
+    // Called by the base-class visitDefault for every token child of an
+    // unhandled node. NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
     void visitToken(Token tok) { emitToken(tok); }
 
     void handle(const ModuleDeclarationSyntax& module) {
@@ -466,7 +467,8 @@ private:
             output += raw;
             atLineStart = false; // just emitted text on this line
 
-            // Toggle after emit: off-pragma was indented (format was on); on-pragma was verbatim.
+            // Toggle after emit: off-pragma was indented (format was on);
+            // on-pragma was verbatim.
             if (isOff) {
                 formatEnabled = false;
             }
@@ -479,7 +481,8 @@ private:
         output += raw;
     }
 
-    // Emit computed indentation directly into output (used for comment trivia and raw text).
+    // Emit computed indentation directly into output; used for comment trivia
+    // and raw text.
     void emitIndentRaw() {
         unsigned spaces = depth * style.IndentWidth;
         if (!nextIsPrimary) {
@@ -554,7 +557,8 @@ private:
         }
     }
 
-    // Handle a procedural block body: unwrap timing control, apply forced break, then visitBody.
+    // Handle a procedural block body: unwrap timing control, apply forced
+    // break, then visitBody.
     void visitProceduralBody(const StatementSyntax& stmt, BreakAfterBlockStyle brkStyle) {
         const auto* body = &stmt;
         if (stmt.kind == SyntaxKind::TimingControlStatement) {
@@ -676,8 +680,8 @@ private:
     }
 };
 
-// Apply OneLineFormatOffRegex: lines matching the regex (after stripping leading whitespace) are
-// emitted without any indentation.
+// Apply OneLineFormatOffRegex: lines matching the regex (after stripping
+// leading whitespace) are emitted without any indentation.
 std::string applyOneLineFormatOff(const std::string& output, const std::regex& re) {
     std::string result;
     result.reserve(output.size());

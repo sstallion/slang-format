@@ -13,5 +13,5 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
-[{*.{cmake,json,yaml},CMakeLists.txt}]
+[{*.{cmake,json,yml},CMakeLists.txt}]
 indent_size = 2

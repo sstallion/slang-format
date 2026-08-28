@@ -92,6 +92,6 @@ licensed under its MIT License.
 [4]: https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request
 [5]: https://docs.github.com/en/actions
 [6]: https://github.com/sstallion/slang-format/blob/main/CHANGELOG.md
-[7]: https://github.com/sstallion/slang-format/actions/workflows/ci.yaml
-[8]: https://github.com/sstallion/slang-format/actions/workflows/release.yaml
+[7]: https://github.com/sstallion/slang-format/actions/workflows/ci.yml
+[8]: https://github.com/sstallion/slang-format/actions/workflows/release.yml
 [9]: https://llvm.org/docs/AIToolPolicy.html

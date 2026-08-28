@@ -1,6 +1,6 @@
 # slang-format
 
-[![](https://github.com/sstallion/slang-format/actions/workflows/ci.yaml/badge.svg?branch=main)][1]
+[![](https://github.com/sstallion/slang-format/actions/workflows/ci.yml/badge.svg?branch=main)][1]
 [![](https://img.shields.io/github/v/release/sstallion/slang-format)][2]
 [![](https://img.shields.io/github/license/sstallion/slang-format.svg)][3]
 

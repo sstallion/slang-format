@@ -39,13 +39,15 @@ struct Style {
     /// Number of spaces for each indentation level.
     unsigned IndentWidth = 2;
 
-    /// Number of spaces added for continuation lines relative to the enclosing statement.
+    /// Number of spaces added for continuation lines relative to the
+    /// enclosing statement.
     unsigned ContinuationIndentWidth = 2;
 
     /// Number of spaces for parameter port list items in module declarations.
     unsigned ParameterPortListIndentWidth = 2;
 
-    /// If true, indent statements following a case label when they appear on the next line.
+    /// If true, indent statements following a case label when they appear on
+    /// the next line.
     bool IndentCaseItem = true;
 
     /// Disables formatting for any line matching this pattern.
@@ -78,8 +80,9 @@ void parseConfiguration(const YAML::Node& node, Style& style);
 /// Returns file content, or std::nullopt if the file does not exist.
 using FileLoader = std::function<std::optional<std::string>(const std::filesystem::path&)>;
 
-/// Searches for a configuration file starting from \p searchDir, walking up the directory hierarchy
-/// to the root. Returns the default style if no configuration file is found.
+/// Searches for a configuration file starting from \p searchDir, walking up
+/// the directory hierarchy to the root. Returns the default style if no
+/// configuration file is found.
 Style getStyle(const std::filesystem::path& searchDir, FileLoader loader = {});
 
 } // namespace slang::format

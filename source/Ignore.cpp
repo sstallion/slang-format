@@ -4,11 +4,14 @@
 #include "Ignore.h"
 
 #include <array>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include <slang/text/Glob.h>
@@ -41,7 +44,7 @@ std::string translatePattern(std::string_view sv) {
     std::string result;
     result.reserve(sv.size());
 
-    for (size_t i = 0; i < sv.size(); i++) {
+    for (std::size_t i = 0; i < sv.size(); i++) {
         if (sv[i] == '*' && i + 1 < sv.size() && sv[i + 1] == '*') {
             result += "...";
             i++;

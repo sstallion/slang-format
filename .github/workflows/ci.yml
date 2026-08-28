@@ -15,7 +15,7 @@ jobs:
             preset: Debug-Clang
           - os: windows-latest
             preset: Debug-MSVC
-    uses: ./.github/workflows/cmake.yaml
+    uses: ./.github/workflows/cmake.yml
     with:
       os: ${{ matrix.os }}
       preset: ${{ matrix.preset }}
