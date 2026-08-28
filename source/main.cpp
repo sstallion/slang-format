@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "Format.h"
+#include "Ignore.h"
 #include "Style.h"
 
 #include <cstdlib>
@@ -46,11 +47,13 @@ int main(int argc, char* argv[]) {
     slang::CommandLine cmdLine;
 
     std::optional<bool> help;
+    std::optional<bool> listIgnored;
     std::optional<bool> version;
     std::vector<std::string> fileListPaths;
     std::vector<std::string> positionalFiles;
 
     cmdLine.add("-h,--help", help, "Display available options");
+    cmdLine.add("--list-ignored", listIgnored, "List ignored files");
     cmdLine.add("--version", version, "Display version information and exit");
     cmdLine.add("--files", fileListPaths,
                 "A file containing a list of files to process, one per line.\n"
@@ -98,6 +101,20 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    if (listIgnored.value_or(false)) {
+        for (const auto& file : files) {
+            if (file == "-"sv) {
+                continue;
+            }
+
+            const auto path = std::filesystem::absolute(file);
+            if (isIgnored(path)) {
+                std::cout << file << "\n";
+            }
+        }
+        return EXIT_SUCCESS;
+    }
+
     auto failed = 0;
     for (const auto& file : files) {
         try {
@@ -108,7 +125,11 @@ int main(int argc, char* argv[]) {
                 result = reformat(std::cin, style);
             }
             else {
-                const std::filesystem::path path{file};
+                const auto path = std::filesystem::absolute(file);
+                if (isIgnored(path)) {
+                    continue;
+                }
+
                 std::ifstream stream{path};
                 if (!stream) {
                     const std::error_code ec{errno, std::system_category()};

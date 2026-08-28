@@ -59,9 +59,27 @@ MaxEmptyLinesToKeep: 2
 
 See [Style Options][6] for a complete list of supported options.
 
+### Ignoring Files
+
+slang-format supports `.slang-format-ignore` (or `_slang-format-ignore`) files
+to make the formatter ignore certain files. A `.slang-format-ignore` file
+consists of patterns of file path names. It has the following format:
+
+- A blank line is skipped.
+- Leading and trailing spaces of a line are trimmed.
+- A line starting with a hash (`#`) is a comment.
+- A non-comment line is a single pattern.
+- The slash (`/`) is used as the directory separator.
+- Patterns are relative to the directory of the `.slang-format-ignore` file.
+- Patterns follow the rules specified in [POSIX 2.13.1, 2.13.2, and Rule 1 of
+  2.13.3][7].
+- Both `**` (bash globstar) and `...` (LRM 33.3.1) are supported for recursive
+  directory matching.
+- A pattern is negated if it starts with a bang (`!`).
+
 ## Contributing
 
-Pull requests are welcome! See [Contributing][7] for details.
+Pull requests are welcome! See [Contributing][8] for details.
 
 ## License
 
@@ -74,4 +92,5 @@ Source code in this repository is licensed under the MIT License. See
 [4]: https://sv-lang.com/
 [5]: https://clang.llvm.org/docs/ClangFormat.html
 [6]: https://github.com/sstallion/slang-format/blob/main/docs/style-options.md
-[7]: https://github.com/sstallion/slang-format/blob/main/CONTRIBUTING.md
+[7]: https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_13
+[8]: https://github.com/sstallion/slang-format/blob/main/CONTRIBUTING.md

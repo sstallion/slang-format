@@ -12,7 +12,7 @@
 - [x] Command-line processing using `slang::CommandLine`
 - [x] Report version (i.e. `slang-format --version`)
 - [x] File lists (i.e. `slang-format @<file>` and `slang-format --files=<filename>`)
-- [ ] Ignore patterns (i.e. `.slang-format-ignore` and `slang-format --list-ignored`)
+- [x] Ignore patterns (i.e. `.slang-format-ignore` and `slang-format --list-ignored`)
 - [ ] Dump configuration (i.e. `slang-format --dump-config`)
 - [ ] In-place editing (i.e. `slang-format -i`)
 - [ ] Formatting (not exhaustive):

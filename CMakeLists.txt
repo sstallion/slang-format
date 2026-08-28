@@ -30,6 +30,7 @@ include_directories(${SOURCE_DIR})
 
 add_library(${PROJECT_NAME}-object OBJECT
             ${SOURCE_DIR}/Format.cpp
+            ${SOURCE_DIR}/Ignore.cpp
             ${SOURCE_DIR}/Rewriter.cpp
             ${SOURCE_DIR}/Style.cpp)
 
@@ -51,6 +52,7 @@ if(BUILD_TESTING)
 
   add_executable(${PROJECT_NAME}-tests
                  ${TEST_DIR}/FormatTest.cpp
+                 ${TEST_DIR}/IgnoreTest.cpp
                  ${TEST_DIR}/RewriterTest.cpp
                  ${TEST_DIR}/StyleTest.cpp)
 
