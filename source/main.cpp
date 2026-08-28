@@ -119,12 +119,14 @@ int formatFiles(std::string_view programName, const std::vector<std::string>& fi
 int main(int argc, char* argv[]) {
     slang::CommandLine cmdLine;
 
+    std::optional<bool> dumpConfig;
     std::optional<bool> help;
     std::optional<bool> listIgnored;
     std::optional<bool> version;
     std::vector<std::string> fileListPaths;
     std::vector<std::string> positionalFiles;
 
+    cmdLine.add("--dump-config", dumpConfig, "Dump configuration options to stdout and exit");
     cmdLine.add("-h,--help", help, "Display available options");
     cmdLine.add("--list-ignored", listIgnored, "List ignored files");
     cmdLine.add("--version", version, "Display version information and exit");
@@ -148,6 +150,12 @@ int main(int argc, char* argv[]) {
 
     if (version.value_or(false)) {
         std::cout << "slang-format version " << SLANG_FORMAT_VERSION << "\n";
+        return EXIT_SUCCESS;
+    }
+
+    if (dumpConfig.value_or(false)) {
+        auto style = getStyle(std::filesystem::current_path());
+        std::cout << dumpConfiguration(style) << "\n";
         return EXIT_SUCCESS;
     }
 

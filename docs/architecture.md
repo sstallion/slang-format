@@ -84,6 +84,15 @@ for recursive directory matching. Internally, `**` is translated to `...` before
 delegating to slang's `svGlobMatches`. Negation is supported via the `!` prefix,
 with last-match-wins semantics.
 
+### Configuration Dump
+
+The `--dump-config` option serializes the resolved style to a YAML document on
+stdout, matching the behavior of `clang-format --dump-config`. All fields are
+emitted unconditionally in alphabetical order, wrapped with `---` and `...`
+document markers. When a new configuration option is added, its key must be
+inserted at the correct alphabetical position in `dumpConfiguration()` and a
+corresponding round-trip test added.
+
 ### Separate Structural and Formatting Passes
 
 Structural AST changes (begin/end insertion) are handled by a dedicated rewrite

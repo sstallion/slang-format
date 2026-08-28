@@ -230,6 +230,62 @@ TEST(ParseConfiguration, RejectsSequence) {
     EXPECT_THROW(parseConfiguration(node, style), std::runtime_error);
 }
 
+TEST(DumpConfiguration, DefaultStyle) {
+    auto const result = dumpConfiguration(getDefaultStyle());
+    EXPECT_NE(result.find("---"), std::string::npos);
+    EXPECT_NE(result.find("..."), std::string::npos);
+    EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
+    EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
+    EXPECT_NE(result.find("BreakAfterInitial: OnlyMultiline"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeEnd: true"), std::string::npos);
+    EXPECT_NE(result.find("ContinuationIndentWidth: 2"), std::string::npos);
+    EXPECT_NE(result.find("IndentCaseItem: true"), std::string::npos);
+    EXPECT_NE(result.find("IndentWidth: 2"), std::string::npos);
+    EXPECT_NE(result.find("MaxEmptyLinesToKeep: 1"), std::string::npos);
+    EXPECT_NE(result.find("OneLineFormatOffRegex: \"\""), std::string::npos);
+    EXPECT_NE(result.find("ParameterPortListIndentWidth: 2"), std::string::npos);
+    EXPECT_NE(result.find("Enabled: false"), std::string::npos);
+    EXPECT_NE(result.find("ControlStatements: true"), std::string::npos);
+    EXPECT_NE(result.find("AlwaysStatements: true"), std::string::npos);
+    EXPECT_NE(result.find("InitialStatements: true"), std::string::npos);
+}
+
+TEST(DumpConfiguration, NonDefaultValues) {
+    Style style;
+    style.IndentWidth = 4;
+    style.BreakAfterAlways = BreakAfterBlockStyle::Always;
+    style.InsertBeginEnd.Enabled = true;
+
+    auto const result = dumpConfiguration(style);
+    EXPECT_NE(result.find("IndentWidth: 4"), std::string::npos);
+    EXPECT_NE(result.find("BreakAfterAlways: Always"), std::string::npos);
+    EXPECT_NE(result.find("Enabled: true"), std::string::npos);
+}
+
+TEST(DumpConfiguration, RoundTrip) {
+    Style original;
+    original.IndentWidth = 4;
+    original.ContinuationIndentWidth = 4;
+    original.ParameterPortListIndentWidth = 4;
+    original.MaxEmptyLinesToKeep = 3;
+    original.IndentCaseItem = false;
+    original.BreakAfterAlways = BreakAfterBlockStyle::Never;
+    original.BreakAfterInitial = BreakAfterBlockStyle::Always;
+    original.BreakAfterBegin = false;
+    original.BreakBeforeEnd = false;
+    original.OneLineFormatOffRegex = ".*test.*";
+    original.InsertBeginEnd.Enabled = true;
+    original.InsertBeginEnd.ControlStatements = false;
+    original.InsertBeginEnd.AlwaysStatements = false;
+    original.InsertBeginEnd.InitialStatements = false;
+
+    auto const yaml = dumpConfiguration(original);
+    YAML::Node const node = YAML::Load(yaml);
+    Style parsed;
+    parseConfiguration(node, parsed);
+    EXPECT_EQ(parsed, original);
+}
+
 TEST(Style, DefaultStyle) {
     Style const style = getDefaultStyle();
     EXPECT_EQ(style, Style{});

@@ -11,6 +11,8 @@
 #include <string>
 #include <string_view>
 
+#include <yaml-cpp/emitter.h>
+#include <yaml-cpp/emittermanip.h>
 #include <yaml-cpp/yaml.h>
 
 using namespace slang::format;
@@ -21,6 +23,18 @@ constexpr std::array ConfigFileNames{
     ".slang-format",
     "_slang-format",
 };
+
+constexpr std::string_view toString(BreakAfterBlockStyle style) {
+    switch (style) {
+        case BreakAfterBlockStyle::Always:
+            return "Always";
+        case BreakAfterBlockStyle::Never:
+            return "Never";
+        case BreakAfterBlockStyle::OnlyMultiline:
+            return "OnlyMultiline";
+    }
+    return "Never";
+}
 
 /// Returns the YAML node for \p key within \p node, or null if not present.
 template<typename Key>
@@ -52,6 +66,37 @@ namespace slang::format {
 
 Style getDefaultStyle() {
     return {};
+}
+
+std::string dumpConfiguration(const Style& style) {
+    YAML::Emitter out;
+    out << YAML::BeginDoc;
+    out << YAML::BeginMap;
+    out << YAML::Key << "BreakAfterAlways" << YAML::Value
+        << std::string{toString(style.BreakAfterAlways)};
+    out << YAML::Key << "BreakAfterBegin" << YAML::Value << style.BreakAfterBegin;
+    out << YAML::Key << "BreakAfterInitial" << YAML::Value
+        << std::string{toString(style.BreakAfterInitial)};
+    out << YAML::Key << "BreakBeforeEnd" << YAML::Value << style.BreakBeforeEnd;
+    out << YAML::Key << "ContinuationIndentWidth" << YAML::Value << style.ContinuationIndentWidth;
+    out << YAML::Key << "IndentCaseItem" << YAML::Value << style.IndentCaseItem;
+    out << YAML::Key << "IndentWidth" << YAML::Value << style.IndentWidth;
+    out << YAML::Key << "InsertBeginEnd" << YAML::Value;
+    out << YAML::BeginMap;
+    out << YAML::Key << "AlwaysStatements" << YAML::Value << style.InsertBeginEnd.AlwaysStatements;
+    out << YAML::Key << "ControlStatements" << YAML::Value
+        << style.InsertBeginEnd.ControlStatements;
+    out << YAML::Key << "Enabled" << YAML::Value << style.InsertBeginEnd.Enabled;
+    out << YAML::Key << "InitialStatements" << YAML::Value
+        << style.InsertBeginEnd.InitialStatements;
+    out << YAML::EndMap;
+    out << YAML::Key << "MaxEmptyLinesToKeep" << YAML::Value << style.MaxEmptyLinesToKeep;
+    out << YAML::Key << "OneLineFormatOffRegex" << YAML::Value << style.OneLineFormatOffRegex;
+    out << YAML::Key << "ParameterPortListIndentWidth" << YAML::Value
+        << style.ParameterPortListIndentWidth;
+    out << YAML::EndMap;
+    out << YAML::EndDoc;
+    return out.c_str();
 }
 
 void parseConfiguration(const YAML::Node& node, Style& style) {

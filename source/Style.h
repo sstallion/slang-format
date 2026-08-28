@@ -74,6 +74,9 @@ struct Style {
 /// Returns the default style.
 Style getDefaultStyle();
 
+/// Serializes \p style to a YAML document string.
+std::string dumpConfiguration(const Style& style);
+
 /// Parses a YAML node into \p style. Throws std::runtime_error on error.
 void parseConfiguration(const YAML::Node& node, Style& style);
 
