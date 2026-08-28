@@ -17,7 +17,7 @@ slang-format/
 │   ├── Style.cpp         # Style configuration and YAML parsing
 │   ├── Style.h           # Public interface for style configuration
 │   ├── SyntaxHelper.h    # Shared predicates for syntax node classification
-│   └── main.cpp          # Entry point; writes formatted output
+│   └── main.cpp          # Entry point; command-line processing and output
 └── test/
     ├── FormatTest.cpp    # Formatting and post-processing tests
     ├── RewriterTest.cpp  # Syntax rewriting tests

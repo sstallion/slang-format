@@ -9,8 +9,8 @@
   - [x] Line breaks after language constructs (e.g. `always`, `initial`)
   - [x] Insert `begin` / `end` (e.g. `always`, `initial`, control statements)
   - [x] Disable formatting using pragmas and regular expressions
-- [ ] Command-line processing using `slang::CommandLine`
-- [ ] Report version (i.e. `slang-format --version`)
+- [x] Command-line processing using `slang::CommandLine`
+- [x] Report version (i.e. `slang-format --version`)
 - [ ] File lists (i.e. `slang-format @<file>` and `slang-format --files=<filename>`)
 - [ ] Ignore patterns (i.e. `.slang-format-ignore` and `slang-format --list-ignored`)
 - [ ] Dump configuration (i.e. `slang-format --dump-config`)

@@ -40,6 +40,9 @@ target_link_libraries(${PROJECT_NAME}-object
 add_executable(${PROJECT_NAME}
                ${SOURCE_DIR}/main.cpp)
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+                           SLANG_FORMAT_VERSION="${PROJECT_VERSION}")
+
 target_link_libraries(${PROJECT_NAME}
                       ${PROJECT_NAME}-object)
 
