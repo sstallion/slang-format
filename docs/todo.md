@@ -14,7 +14,7 @@
 - [x] File lists (i.e. `slang-format @<file>` and `slang-format --files=<filename>`)
 - [x] Ignore patterns (i.e. `.slang-format-ignore` and `slang-format --list-ignored`)
 - [x] Dump configuration (i.e. `slang-format --dump-config`)
-- [ ] In-place editing (i.e. `slang-format -i`)
+- [x] In-place editing (i.e. `slang-format -i`)
 - [ ] Formatting (not exhaustive):
   - [ ] Line breaks between constructs
   - [ ] Alignment:

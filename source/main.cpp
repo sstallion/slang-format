@@ -80,31 +80,59 @@ void listIgnoredFiles(const std::vector<std::string>& files) {
     }
 }
 
-int formatFiles(std::string_view programName, const std::vector<std::string>& files) {
+std::string readFile(const std::filesystem::path& path) {
+    std::ifstream stream{path};
+    if (!stream) {
+        const std::error_code ec{errno, std::system_category()};
+        throw std::runtime_error{path.string() + ": " + ec.message()};
+    }
+    return {std::istreambuf_iterator<char>{stream}, std::istreambuf_iterator<char>{}};
+}
+
+void writeFile(const std::filesystem::path& path, const std::string& content) {
+    std::ofstream stream{path, std::ios::trunc};
+    if (!stream) {
+        const std::error_code ec{errno, std::system_category()};
+        throw std::runtime_error{path.string() + ": " + ec.message()};
+    }
+    stream << content;
+}
+
+int formatFiles(std::string_view programName, const std::vector<std::string>& files, bool inplace) {
     auto failed = 0;
     for (const auto& file : files) {
         try {
-            std::string result;
-
             if (file == "-"sv) {
-                auto style = getStyle(std::filesystem::current_path());
-                result = reformat(std::cin, style);
-            }
-            else {
-                const auto path = std::filesystem::absolute(file);
-                if (isIgnored(path)) {
+                if (inplace) {
                     continue;
                 }
+                auto style = getStyle(std::filesystem::current_path());
+                std::cout << reformat(std::cin, style);
+                continue;
+            }
 
+            const auto path = std::filesystem::absolute(file);
+            if (isIgnored(path)) {
+                continue;
+            }
+
+            auto style = getStyle(path.parent_path());
+
+            if (inplace) {
+                auto source = readFile(path);
+                auto result = reformat(std::string_view{source}, style);
+                if (result != source) {
+                    writeFile(path, result);
+                }
+            }
+            else {
                 std::ifstream stream{path};
                 if (!stream) {
                     const std::error_code ec{errno, std::system_category()};
                     throw std::runtime_error{path.string() + ": " + ec.message()};
                 }
-                auto style = getStyle(path.parent_path());
-                result = reformat(stream, style);
+                std::cout << reformat(stream, style);
             }
-            std::cout << result;
         }
         catch (const std::exception& e) {
             std::cerr << programName << ": " << e.what() << "\n";
@@ -121,6 +149,7 @@ int main(int argc, char* argv[]) {
 
     std::optional<bool> dumpConfig;
     std::optional<bool> help;
+    std::optional<bool> inplace;
     std::optional<bool> listIgnored;
     std::optional<bool> version;
     std::vector<std::string> fileListPaths;
@@ -128,6 +157,7 @@ int main(int argc, char* argv[]) {
 
     cmdLine.add("--dump-config", dumpConfig, "Dump configuration options to stdout and exit");
     cmdLine.add("-h,--help", help, "Display available options");
+    cmdLine.add("-i", inplace, "Inplace edit <files>, if specified");
     cmdLine.add("--list-ignored", listIgnored, "List ignored files");
     cmdLine.add("--version", version, "Display version information and exit");
     cmdLine.add("--files", fileListPaths,
@@ -171,7 +201,7 @@ int main(int argc, char* argv[]) {
             return EXIT_SUCCESS;
         }
 
-        auto failed = formatFiles(cmdLine.getProgramName(), files);
+        auto failed = formatFiles(cmdLine.getProgramName(), files, inplace.value_or(false));
         return failed > 0 ? EXIT_FAILURE : EXIT_SUCCESS;
     }
     catch (const std::exception& e) {

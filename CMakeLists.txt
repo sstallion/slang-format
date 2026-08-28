@@ -63,4 +63,20 @@ if(BUILD_TESTING)
 
   include(GoogleTest)
   gtest_discover_tests(${PROJECT_NAME}-tests)
+
+  set(FIXTURE_DIR ${TEST_DIR}/fixtures)
+
+  add_test(NAME InplaceEdit
+           COMMAND ${CMAKE_COMMAND}
+                   -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
+                   -DFIXTURE_DIR=${FIXTURE_DIR}
+                   -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
+                   -P ${FIXTURE_DIR}/InplaceEdit.cmake)
+
+  add_test(NAME InplaceEditStdin
+           COMMAND ${CMAKE_COMMAND}
+                   -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
+                   -DFIXTURE_DIR=${FIXTURE_DIR}
+                   -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
+                   -P ${FIXTURE_DIR}/InplaceEditStdin.cmake)
 endif()

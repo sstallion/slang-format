@@ -130,6 +130,13 @@ regex. This is applied as a second pass over the already-formatted string rather
 than inline during the tree walk, because the regex operates on final output
 content that is not known until after the walk is complete.
 
+### Fixture Tests
+
+Command-line features that live in `main.cpp` are not part of the object library
+linked by unit tests. These features are tested using CTest integration tests
+driven by CMake scripts under `test/fixtures/`. Each script invokes the built
+binary, then verifies output using `cmake -E compare_files` or similar checks.
+
 [1]: https://sv-lang.com/
 [2]: https://clang.llvm.org/docs/ClangFormat.html
 [3]: https://github.com/jbeder/yaml-cpp
