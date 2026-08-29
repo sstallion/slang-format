@@ -14,12 +14,12 @@ on:
         description: Fetch tags
         required: false
         type: boolean
-      upload-artifacts:
-        description: Upload artifacts
+      upload-artifact:
+        description: Upload artifact
         required: false
         type: boolean
-      artifacts-path:
-        description: Artifacts path
+      artifact-path:
+        description: Artifact path
         required: false
         type: string
   workflow_dispatch:
@@ -29,15 +29,15 @@ jobs:
     runs-on: ${{ inputs.os }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-tags: ${{ inputs.fetch-tags }}
       - name: Run workflow
         run: cmake --workflow --preset ${{ inputs.preset }}
-      - name: Upload artifacts
-        if: ${{ inputs.upload-artifacts }}
-        uses: actions/upload-artifact@v6
+      - name: Upload artifact
+        if: ${{ inputs.upload-artifact }}
+        uses: actions/upload-artifact@v7
         with:
-          name: artifacts
-          path: ${{ inputs.artifacts-path }}
+          name: artifact-${{ inputs.os }}
+          path: ${{ inputs.artifact-path }}
           if-no-files-found: error

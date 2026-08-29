@@ -50,6 +50,9 @@ target_link_libraries(${PROJECT_NAME}
 if(BUILD_TESTING)
   enable_testing()
 
+  set(FIXTURES_DIR ${TESTS_DIR}/fixtures)
+  add_subdirectory(${FIXTURES_DIR})
+
   add_executable(${PROJECT_NAME}-tests
                  ${TESTS_DIR}/FormatTest.cpp
                  ${TESTS_DIR}/IgnoreTest.cpp
@@ -63,7 +66,42 @@ if(BUILD_TESTING)
 
   include(GoogleTest)
   gtest_discover_tests(${PROJECT_NAME}-tests)
+endif()
 
-  set(FIXTURES_DIR ${TESTS_DIR}/fixtures)
-  add_subdirectory(${FIXTURES_DIR})
+install(TARGETS ${PROJECT_NAME} DESTINATION .)
+
+if (BUILD_PACKAGING)
+  set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+  set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+
+  # The slang project packages executables using GitHub actions rather than
+  # CPack; naming conventions established upstream are followed below.
+  if(APPLE)
+    set(CPACK_SYSTEM_NAME macos)
+  elseif(WIN32)
+    set(CPACK_SYSTEM_NAME windows)
+  else()
+    string(TOLOWER ${CMAKE_SYSTEM_NAME} CPACK_SYSTEM_NAME)
+  endif()
+
+  string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} CPACK_SYSTEM_PROCESSOR)
+
+  if(CPACK_SYSTEM_PROCESSOR STREQUAL aarch64)
+    set(CPACK_SYSTEM_PROCESSOR arm64)
+  elseif(CPACK_SYSTEM_PROCESSOR STREQUAL amd64)
+    set(CPACK_SYSTEM_PROCESSOR x86_64)
+  endif()
+
+  string(JOIN - CPACK_PACKAGE_FILE_NAME
+                ${CPACK_PACKAGE_NAME}
+                ${CPACK_SYSTEM_NAME}
+                ${CPACK_SYSTEM_PROCESSOR})
+
+  if(WIN32)
+    set(CPACK_GENERATOR "ZIP")
+  else()
+    set(CPACK_GENERATOR "TGZ")
+  endif()
+
+  include(CPack)
 endif()

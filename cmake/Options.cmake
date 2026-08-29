@@ -3,3 +3,4 @@
 
 option(BUILD_SHARED_LIBS "Build shared libraries." OFF)
 option(BUILD_TESTING "Build tests." ON)
+option(BUILD_PACKAGING "Build packages." ON)

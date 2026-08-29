@@ -3,16 +3,43 @@ on:
   push:
     tags: ['v*.*.*']
 jobs:
+  call-cmake:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            preset: Release-GNU
+          - os: macos-latest
+            preset: Release-Clang
+          - os: windows-latest
+            preset: Release-MSVC
+    uses: ./.github/workflows/cmake.yml
+    with:
+      os: ${{ matrix.os }}
+      preset: ${{ matrix.preset }}
+      fetch-tags: true
+      upload-artifact: true
+      artifact-path: |
+        build/*.tar.gz
+        build/*.zip
   release:
+    needs: call-cmake
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: artifact-*
+          merge-multiple: true
       - id: extract-release-notes
         name: Extract release notes
-        uses: ffurrer2/extract-release-notes@v1
+        uses: ffurrer2/extract-release-notes@v3
       - name: Create release
-        uses: softprops/action-gh-release@v1
-        with:
-          body: ${{ steps.extract-release-notes.outputs.release_notes }}
-          draft: true
+        run: |
+          gh release create --draft --title ${{ github.ref_name }} \
+            --notes '${{ steps.extract-release-notes.outputs.release_notes }}' \
+            ${{ github.ref_name }} *.tar.gz *.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

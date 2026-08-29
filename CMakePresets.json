@@ -112,6 +112,28 @@
       "configuration": "Release"
     }
   ],
+  "packagePresets": [
+    {
+      "name": "default",
+      "hidden": true,
+      "configurations": ["Release"]
+    },
+    {
+      "name": "Release-Clang",
+      "inherits": "default",
+      "configurePreset": "Clang"
+    },
+    {
+      "name": "Release-GNU",
+      "inherits": "default",
+      "configurePreset": "GNU"
+    },
+    {
+      "name": "Release-MSVC",
+      "inherits": "default",
+      "configurePreset": "MSVC"
+    }
+  ],
   "workflowPresets": [
     {
       "name": "Debug-Clang",
@@ -161,6 +183,69 @@
         {
           "type": "test",
           "name": "Debug-MSVC"
+        }
+      ]
+    },
+    {
+      "name": "Release-Clang",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "Clang"
+        },
+        {
+          "type": "build",
+          "name": "Release-Clang"
+        },
+        {
+          "type": "test",
+          "name": "Release-Clang"
+        },
+        {
+          "type": "package",
+          "name": "Release-Clang"
+        }
+      ]
+    },
+    {
+      "name": "Release-GNU",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "GNU"
+        },
+        {
+          "type": "build",
+          "name": "Release-GNU"
+        },
+        {
+          "type": "test",
+          "name": "Release-GNU"
+        },
+        {
+          "type": "package",
+          "name": "Release-GNU"
+        }
+      ]
+    },
+    {
+      "name": "Release-MSVC",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "MSVC"
+        },
+        {
+          "type": "build",
+          "name": "Release-MSVC"
+        },
+        {
+          "type": "test",
+          "name": "Release-MSVC"
+        },
+        {
+          "type": "package",
+          "name": "Release-MSVC"
         }
       ]
     }

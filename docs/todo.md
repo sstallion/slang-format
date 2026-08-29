@@ -28,5 +28,5 @@
   - [ ] Timing control
     - [ ] Require parenthesis
     - [ ] Commas vs. `or`
-- [ ] Installation and packaging using CMake
-- [ ] Full releases including packaging
+- [x] Installation and packaging using CMake
+- [x] Full releases including packaging
