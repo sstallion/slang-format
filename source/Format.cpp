@@ -96,8 +96,7 @@ public:
         return std::move(output);
     }
 
-    // Called by the base-class visitDefault for every token child of an
-    // unhandled node. NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
+    // Called by the base-class visitDefault for every token child of an unhandled node.
     void visitToken(Token tok) { emitToken(tok); }
 
     void handle(const ModuleDeclarationSyntax& module) {
@@ -926,20 +925,23 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
             .dimPos = dimPos};
 }
 
-// NOLINTBEGIN(bugprone-easily-swappable-parameters)
+struct GroupRange {
+    size_t start;
+    size_t end;
+};
+
 void alignGroup(std::string& result, const std::vector<std::string_view>& lines,
-                const std::vector<LineInfo>& infos, size_t groupStart, size_t groupEnd) {
-    // NOLINTEND(bugprone-easily-swappable-parameters)
+                const std::vector<LineInfo>& infos, GroupRange range) {
     size_t declCount = 0;
     size_t maxTypeWidth = 0;
-    for (size_t i = groupStart; i < groupEnd; i++) {
+    for (size_t i = range.start; i < range.end; i++) {
         if (infos[i].kind == LineKind::Declaration) {
             declCount++;
             maxTypeWidth = std::max(maxTypeWidth, infos[i].typeWidth);
         }
     }
 
-    for (size_t i = groupStart; i < groupEnd; i++) {
+    for (size_t i = range.start; i < range.end; i++) {
         if (infos[i].kind == LineKind::Declaration && declCount >= 2) {
             auto line = lines[i];
             auto indent = infos[i].indent;
@@ -990,20 +992,18 @@ bool shouldBreakGroup(const LineInfo& info, const AlignState& state, bool across
     return true;
 }
 
-// NOLINTBEGIN(bugprone-easily-swappable-parameters)
 void alignGroupDimensions(std::string& result, const std::vector<std::string_view>& lines,
-                          const std::vector<LineInfo>& infos, size_t groupStart, size_t groupEnd) {
-    // NOLINTEND(bugprone-easily-swappable-parameters)
+                          const std::vector<LineInfo>& infos, GroupRange range) {
     size_t dimCount = 0;
     size_t maxDimCol = 0;
-    for (size_t i = groupStart; i < groupEnd; i++) {
+    for (size_t i = range.start; i < range.end; i++) {
         if (infos[i].kind == LineKind::Declaration && infos[i].dimPos != npos) {
             dimCount++;
             maxDimCol = std::max(maxDimCol, infos[i].dimPos);
         }
     }
 
-    for (size_t i = groupStart; i < groupEnd; i++) {
+    for (size_t i = range.start; i < range.end; i++) {
         if (infos[i].kind == LineKind::Declaration && infos[i].dimPos != npos && dimCount >= 2) {
             auto line = lines[i];
             auto dp = infos[i].dimPos;
@@ -1085,7 +1085,7 @@ std::string applyAlignConsecutivePackedDimensions(const std::string& output,
                                                     acrossIndent);
 
         if (breakGroup && state.inGroup) {
-            alignGroupDimensions(result, lines, infos, state.groupStart, i);
+            alignGroupDimensions(result, lines, infos, {.start = state.groupStart, .end = i});
             state.inGroup = false;
             state.groupIndent.reset();
         }
@@ -1102,7 +1102,8 @@ std::string applyAlignConsecutivePackedDimensions(const std::string& output,
     }
 
     if (state.inGroup) {
-        alignGroupDimensions(result, lines, infos, state.groupStart, lines.size());
+        alignGroupDimensions(result, lines, infos,
+                             {.start = state.groupStart, .end = lines.size()});
     }
 
     if (!result.empty() && result.back() == '\n' && (output.empty() || output.back() != '\n')) {
@@ -1164,7 +1165,7 @@ std::string applyAlignConsecutiveDeclarations(const std::string& output,
                                                  acrossIndent);
 
         if (breakGroup && state.inGroup) {
-            alignGroup(result, lines, infos, state.groupStart, i);
+            alignGroup(result, lines, infos, {.start = state.groupStart, .end = i});
             state.inGroup = false;
             state.groupIndent.reset();
         }
@@ -1181,7 +1182,7 @@ std::string applyAlignConsecutiveDeclarations(const std::string& output,
     }
 
     if (state.inGroup) {
-        alignGroup(result, lines, infos, state.groupStart, lines.size());
+        alignGroup(result, lines, infos, {.start = state.groupStart, .end = lines.size()});
     }
 
     if (!result.empty() && result.back() == '\n' && (output.empty() || output.back() != '\n')) {
@@ -1191,20 +1192,18 @@ std::string applyAlignConsecutiveDeclarations(const std::string& output,
     return result;
 }
 
-// NOLINTBEGIN(bugprone-easily-swappable-parameters)
 void alignGroupEquals(std::string& result, const std::vector<std::string_view>& lines,
-                      const std::vector<LineInfo>& infos, size_t groupStart, size_t groupEnd) {
-    // NOLINTEND(bugprone-easily-swappable-parameters)
+                      const std::vector<LineInfo>& infos, GroupRange range) {
     size_t equalsCount = 0;
     size_t maxEqualsCol = 0;
-    for (size_t i = groupStart; i < groupEnd; i++) {
+    for (size_t i = range.start; i < range.end; i++) {
         if (infos[i].kind == LineKind::Declaration && infos[i].equalsPos != npos) {
             equalsCount++;
             maxEqualsCol = std::max(maxEqualsCol, infos[i].equalsPos);
         }
     }
 
-    for (size_t i = groupStart; i < groupEnd; i++) {
+    for (size_t i = range.start; i < range.end; i++) {
         if (infos[i].kind == LineKind::Declaration && infos[i].equalsPos != npos &&
             equalsCount >= 2) {
             auto line = lines[i];
@@ -1278,7 +1277,7 @@ std::string applyAlignConsecutiveAssignments(const std::string& output,
                                                  acrossIndent);
 
         if (breakGroup && state.inGroup) {
-            alignGroupEquals(result, lines, infos, state.groupStart, i);
+            alignGroupEquals(result, lines, infos, {.start = state.groupStart, .end = i});
             state.inGroup = false;
             state.groupIndent.reset();
         }
@@ -1295,7 +1294,7 @@ std::string applyAlignConsecutiveAssignments(const std::string& output,
     }
 
     if (state.inGroup) {
-        alignGroupEquals(result, lines, infos, state.groupStart, lines.size());
+        alignGroupEquals(result, lines, infos, {.start = state.groupStart, .end = lines.size()});
     }
 
     if (!result.empty() && result.back() == '\n' && (output.empty() || output.back() != '\n')) {

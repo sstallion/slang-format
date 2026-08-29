@@ -1,7 +1,7 @@
 ---
 paths:
   - 'source/**/*.{cpp,h}'
-  - 'test/**/*.{cpp,h}'
+  - 'tests/**/*.{cpp,h}'
 ---
 
 # Source Code Rules

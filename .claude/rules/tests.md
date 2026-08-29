@@ -1,6 +1,6 @@
 ---
 paths:
-  - 'test/**/*.{cpp,h}'
+  - 'tests/**/*.{cpp,h}'
 ---
 
 # Testing Rules
