@@ -45,6 +45,60 @@ for details.
 
 ## Configurable Options
 
+### AlignConsecutiveDeclarations (AlignConsecutiveDeclarationsStyle)
+
+Controls alignment of signal names in consecutive declarations. When enabled,
+identifiers in adjacent declarations are aligned by padding the type specifier
+with trailing spaces. Non-declaration statements always break alignment groups.
+
+**Default:** `Consecutive`
+
+| Value                          | Description                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| `AcrossComments`               | Comments do not break groups; empty lines do.                                      |
+| `AcrossEmptyLines`             | Empty lines do not break groups; comments do.                                      |
+| `AcrossEmptyLinesAndComments`  | Neither empty lines nor comments break groups.                                     |
+| `AcrossParameterPortList`      | Superset of `AcrossEmptyLinesAndComments`; port list boundaries do not break groups. |
+| `Consecutive`                  | Align consecutive declarations; empty lines and comments break groups.             |
+| `None`                         | No alignment applied.                                                              |
+
+`Consecutive` (default):
+
+```sv
+module foo;
+  logic        a;
+  logic [7:0]  b;
+  logic [15:0] c;
+endmodule
+```
+
+`None`:
+
+```sv
+module foo;
+  logic a;
+  logic [7:0] b;
+  logic [15:0] c;
+endmodule
+```
+
+`AcrossParameterPortList`:
+
+```sv
+module foo #(
+  parameter             N = 4,
+  parameter logic [7:0] M = 8
+) (
+  input                 a,
+  input logic [7:0]     b
+);
+  logic                 c;
+  logic [15:0]          d;
+endmodule
+```
+
+---
+
 ### BreakAfterAlways (BreakAfterBlockStyle)
 
 Controls whether a newline is inserted between an `always`, `always_comb`,

@@ -7,13 +7,17 @@
 #include "SyntaxHelper.h"
 
 #include <algorithm>
+#include <array>
+#include <cctype>
 #include <cstddef>
 #include <istream>
 #include <iterator>
 #include <optional>
 #include <regex>
+#include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include <slang/parsing/ParserMetadata.h>
 #include <slang/parsing/Token.h>
@@ -680,8 +684,302 @@ private:
     }
 };
 
-// Apply OneLineFormatOffRegex: lines matching the regex (after stripping
-// leading whitespace) are emitted without any indentation.
+enum class LineKind { Declaration, Comment, Empty, PortListBoundary, Other };
+
+struct LineInfo {
+    LineKind kind;
+    size_t indent;
+    size_t typeWidth; ///< Distance from indent to identifier start.
+    size_t identPos;  ///< Absolute position of identifier in the line.
+};
+
+constexpr std::array TypeKeywords{
+    std::string_view{"bit"},      std::string_view{"byte"},      std::string_view{"int"},
+    std::string_view{"integer"},  std::string_view{"logic"},     std::string_view{"longint"},
+    std::string_view{"real"},     std::string_view{"realtime"},  std::string_view{"reg"},
+    std::string_view{"shortint"}, std::string_view{"shortreal"}, std::string_view{"string"},
+    std::string_view{"time"},     std::string_view{"wire"},
+};
+
+bool isTypeKeyword(std::string_view word) {
+    return std::ranges::any_of(TypeKeywords, [&](auto kw) { return kw == word; });
+}
+
+bool isDirectionKeyword(std::string_view word) {
+    return word == "inout" || word == "input" || word == "output" || word == "ref";
+}
+
+bool isParameterKeyword(std::string_view word) {
+    return word == "localparam" || word == "parameter";
+}
+
+bool isWordChar(char c) {
+    return std::isalnum(static_cast<unsigned char>(c)) != 0 || c == '_';
+}
+
+std::string_view extractWord(std::string_view line, size_t pos) {
+    auto start = pos;
+    while (pos < line.size() && isWordChar(line[pos])) {
+        pos++;
+    }
+    return line.substr(start, pos - start);
+}
+
+size_t skipSpaces(std::string_view line, size_t pos) {
+    while (pos < line.size() && line[pos] == ' ') {
+        pos++;
+    }
+    return pos;
+}
+
+size_t skipDimensions(std::string_view line, size_t pos) {
+    while (pos < line.size()) {
+        pos = skipSpaces(line, pos);
+        if (pos >= line.size() || line[pos] != '[') {
+            break;
+        }
+
+        int depth = 1;
+        pos++;
+        while (pos < line.size() && depth > 0) {
+            if (line[pos] == '[') {
+                depth++;
+            }
+            else if (line[pos] == ']') {
+                depth--;
+            }
+            pos++;
+        }
+    }
+    return pos;
+}
+
+size_t skipSignedness(std::string_view line, size_t pos) {
+    pos = skipSpaces(line, pos);
+    auto word = extractWord(line, pos);
+    if (word == "signed" || word == "unsigned") {
+        pos += word.size();
+    }
+    return pos;
+}
+
+size_t skipTypeQualifiers(std::string_view line, size_t pos) {
+    pos = skipSignedness(line, pos);
+    return skipDimensions(line, pos);
+}
+
+size_t skipDirectionType(std::string_view line, size_t pos) {
+    auto nextWord = extractWord(line, pos);
+    if (isTypeKeyword(nextWord)) {
+        return skipTypeQualifiers(line, pos + nextWord.size());
+    }
+
+    if (nextWord == "signed" || nextWord == "unsigned") {
+        return skipDimensions(line, pos + nextWord.size());
+    }
+
+    if (pos < line.size() && line[pos] == '[') {
+        return skipDimensions(line, pos);
+    }
+    return pos;
+}
+
+LineInfo classifyLine(std::string_view line, bool formatOff) {
+    if (line.empty() || line.find_first_not_of(' ') == std::string_view::npos) {
+        return {.kind = LineKind::Empty, .indent = 0, .typeWidth = 0, .identPos = 0};
+    }
+
+    auto indentEnd = line.find_first_not_of(' ');
+    auto content = line.substr(indentEnd);
+
+    if (content.starts_with("//") || content.starts_with("/*")) {
+        return {.kind = LineKind::Comment, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+    }
+
+    if (content == ") (" || content == ");" || content == ")" || content == "#(") {
+        return {
+            .kind = LineKind::PortListBoundary, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+    }
+
+    if (formatOff) {
+        return {.kind = LineKind::Other, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+    }
+
+    auto firstWord = extractWord(content, 0);
+    if (firstWord.empty()) {
+        return {.kind = LineKind::Other, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+    }
+
+    size_t pos = indentEnd;
+    if (isDirectionKeyword(firstWord) || isParameterKeyword(firstWord)) {
+        pos = skipSpaces(line, pos + firstWord.size());
+        pos = skipDirectionType(line, pos);
+    }
+    else if (isTypeKeyword(firstWord)) {
+        pos = skipTypeQualifiers(line, pos + firstWord.size());
+    }
+    else {
+        return {.kind = LineKind::Other, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+    }
+
+    pos = skipSpaces(line, pos);
+    if (pos >= line.size() ||
+        (std::isalpha(static_cast<unsigned char>(line[pos])) == 0 && line[pos] != '_')) {
+        return {.kind = LineKind::Other, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+    }
+
+    return {.kind = LineKind::Declaration,
+            .indent = indentEnd,
+            .typeWidth = pos - indentEnd,
+            .identPos = pos};
+}
+
+// NOLINTBEGIN(bugprone-easily-swappable-parameters)
+void alignGroup(std::string& result, const std::vector<std::string_view>& lines,
+                const std::vector<LineInfo>& infos, size_t groupStart, size_t groupEnd) {
+    // NOLINTEND(bugprone-easily-swappable-parameters)
+    size_t declCount = 0;
+    size_t maxTypeWidth = 0;
+    for (size_t i = groupStart; i < groupEnd; i++) {
+        if (infos[i].kind == LineKind::Declaration) {
+            declCount++;
+            maxTypeWidth = std::max(maxTypeWidth, infos[i].typeWidth);
+        }
+    }
+
+    for (size_t i = groupStart; i < groupEnd; i++) {
+        if (infos[i].kind == LineKind::Declaration && declCount >= 2) {
+            auto line = lines[i];
+            auto indent = infos[i].indent;
+            auto identPos = infos[i].identPos;
+            auto targetPos = indent + maxTypeWidth;
+
+            size_t typeTextEnd = identPos;
+            while (typeTextEnd > indent && line[typeTextEnd - 1] == ' ') {
+                typeTextEnd--;
+            }
+
+            result.append(line.substr(0, typeTextEnd));
+            result.append(targetPos - (typeTextEnd - indent) - indent, ' ');
+            result.append(line.substr(identPos));
+        }
+        else {
+            result.append(lines[i]);
+        }
+        result += '\n';
+    }
+}
+
+struct AlignState {
+    size_t groupStart = 0;
+    bool inGroup = false;
+    std::optional<size_t> groupIndent;
+};
+
+bool shouldBreakGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
+                      bool acrossComments, bool acrossIndent) {
+    if (info.kind == LineKind::Declaration) {
+        return state.inGroup && !acrossIndent && state.groupIndent &&
+               *state.groupIndent != info.indent;
+    }
+
+    if (info.kind == LineKind::Empty) {
+        return state.inGroup && !acrossEmpty;
+    }
+
+    if (info.kind == LineKind::Comment) {
+        return state.inGroup && !acrossComments;
+    }
+
+    if (info.kind == LineKind::PortListBoundary) {
+        return state.inGroup && !acrossIndent;
+    }
+
+    return true;
+}
+
+std::string applyAlignConsecutiveDeclarations(const std::string& output,
+                                              AlignConsecutiveDeclarationsStyle alignStyle) {
+    if (alignStyle == AlignConsecutiveDeclarationsStyle::None) {
+        return output;
+    }
+
+    bool const acrossEmpty =
+        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossEmptyLines ||
+        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossEmptyLinesAndComments ||
+        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossParameterPortList;
+    bool const acrossComments =
+        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossComments ||
+        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossEmptyLinesAndComments ||
+        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossParameterPortList;
+    bool const acrossIndent = alignStyle ==
+                              AlignConsecutiveDeclarationsStyle::AcrossParameterPortList;
+
+    std::vector<std::string_view> lines;
+    std::string_view remaining{output};
+    while (!remaining.empty()) {
+        auto nl = remaining.find('\n');
+        if (nl == std::string_view::npos) {
+            lines.push_back(remaining);
+            remaining = {};
+        }
+        else {
+            lines.push_back(remaining.substr(0, nl));
+            remaining.remove_prefix(nl + 1);
+        }
+    }
+
+    std::vector<LineInfo> infos;
+    infos.reserve(lines.size());
+    bool formatOff = false;
+    for (auto& line : lines) {
+        if (line.find("slang-format off") != std::string_view::npos) {
+            formatOff = true;
+        }
+        else if (line.find("slang-format on") != std::string_view::npos) {
+            formatOff = false;
+        }
+
+        infos.push_back(classifyLine(line, formatOff));
+    }
+
+    std::string result;
+    result.reserve(output.size());
+    AlignState state;
+
+    for (size_t i = 0; i < lines.size(); i++) {
+        auto& info = infos[i];
+        bool const breakGroup = shouldBreakGroup(info, state, acrossEmpty, acrossComments,
+                                                 acrossIndent);
+
+        if (breakGroup && state.inGroup) {
+            alignGroup(result, lines, infos, state.groupStart, i);
+            state.inGroup = false;
+            state.groupIndent.reset();
+        }
+
+        if (info.kind == LineKind::Declaration && !state.inGroup) {
+            state.groupStart = i;
+            state.inGroup = true;
+            state.groupIndent = info.indent;
+        }
+        else if (!state.inGroup) {
+            result.append(lines[i]);
+            result += '\n';
+        }
+    }
+
+    if (state.inGroup) {
+        alignGroup(result, lines, infos, state.groupStart, lines.size());
+    }
+
+    if (!result.empty() && result.back() == '\n' && (output.empty() || output.back() != '\n')) {
+        result.pop_back();
+    }
+
+    return result;
+}
+
 std::string applyOneLineFormatOff(const std::string& output, const std::regex& re) {
     std::string result;
     result.reserve(output.size());
@@ -720,6 +1018,10 @@ std::string reformat(std::string_view text, const Style& style) {
     FormatPrinter printer(style);
 
     auto result = printer.print(*tree);
+    if (style.AlignConsecutiveDeclarations != AlignConsecutiveDeclarationsStyle::None) {
+        result = applyAlignConsecutiveDeclarations(result, style.AlignConsecutiveDeclarations);
+    }
+
     if (!style.OneLineFormatOffRegex.empty()) {
         std::regex const re(style.OneLineFormatOffRegex);
         result = applyOneLineFormatOff(result, re);

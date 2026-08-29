@@ -974,3 +974,326 @@ TEST(ApplyIndentation, PortListIndented) {
     )"));
     // clang-format on
 }
+
+// clang-format off
+TEST(AlignConsecutiveDeclarations, None) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveDeclarationsStyle::None;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic a;
+          logic [7:0] b;
+          logic [15:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic a;
+          logic [7:0] b;
+          logic [15:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, Consecutive) {
+    Style const style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic a;
+          logic [7:0] b;
+          logic [15:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic        a;
+          logic [7:0]  b;
+          logic [15:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, ConsecutiveEmptyLineBreaksGroup) {
+    Style const style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic a;
+          logic [7:0] b;
+
+          logic [15:0] c;
+          logic d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic       a;
+          logic [7:0] b;
+
+          logic [15:0] c;
+          logic        d;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, ConsecutiveCommentBreaksGroup) {
+    Style const style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic a;
+          logic [7:0] b;
+          // comment
+          logic [15:0] c;
+          logic d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic       a;
+          logic [7:0] b;
+          // comment
+          logic [15:0] c;
+          logic        d;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, ConsecutiveNonDeclarationBreaksGroup) {
+    Style const style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic a;
+          logic [7:0] b;
+          assign x = 1;
+          logic [15:0] c;
+          logic d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic       a;
+          logic [7:0] b;
+          assign x = 1;
+          logic [15:0] c;
+          logic        d;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, AcrossEmptyLines) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveDeclarationsStyle::AcrossEmptyLines;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic a;
+          logic [7:0] b;
+
+          logic [15:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic        a;
+          logic [7:0]  b;
+
+          logic [15:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, AcrossComments) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveDeclarationsStyle::AcrossComments;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic a;
+          logic [7:0] b;
+          // comment
+          logic [15:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic        a;
+          logic [7:0]  b;
+          // comment
+          logic [15:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, AcrossEmptyLinesAndComments) {
+    Style style;
+    style.AlignConsecutiveDeclarations =
+        AlignConsecutiveDeclarationsStyle::AcrossEmptyLinesAndComments;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic a;
+
+          // comment
+          logic [7:0] b;
+          logic [15:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic        a;
+
+          // comment
+          logic [7:0]  b;
+          logic [15:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, AcrossParameterPortList) {
+    Style style;
+    style.AlignConsecutiveDeclarations =
+        AlignConsecutiveDeclarationsStyle::AcrossParameterPortList;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo #(
+          parameter N = 4,
+          parameter logic [7:0] M = 8
+        ) (
+          input a,
+          input logic [7:0] b
+        );
+          logic c;
+          logic [15:0] d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo #(
+          parameter             N = 4,
+          parameter logic [7:0] M = 8
+        ) (
+          input                 a,
+          input logic [7:0]     b
+        );
+          logic                 c;
+          logic [15:0]          d;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, PackedDimensions) {
+    Style const style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:0] b;
+          logic [31:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0]  a;
+          logic [15:0] b;
+          logic [31:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, DirectionKeywords) {
+    Style const style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo(
+          input a,
+          input logic [7:0] b,
+          output c
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo(
+          input             a,
+          input logic [7:0] b,
+          output            c
+        );
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, ParameterDeclarations) {
+    Style const style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo #(
+          parameter N = 4,
+          parameter logic [7:0] M = 8
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo #(
+          parameter             N = 4,
+          parameter logic [7:0] M = 8
+        );
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, SingleDeclarationNotAligned) {
+    Style const style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] a;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, FormatOffRegionSkipped) {
+    Style const style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          // slang-format off
+          logic a;
+          logic [7:0] b;
+          // slang-format on
+          logic c;
+          logic [15:0] d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // slang-format off
+          logic a;
+          logic [7:0] b;
+          // slang-format on
+          logic        c;
+          logic [15:0] d;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveDeclarations, IndentLevelBreaksGroup) {
+    Style const style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo #(
+          parameter N = 4,
+          parameter logic [7:0] M = 8
+        ) (
+          input a,
+          input logic [7:0] b
+        );
+          logic c;
+          logic [15:0] d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo #(
+          parameter             N = 4,
+          parameter logic [7:0] M = 8
+        ) (
+          input             a,
+          input logic [7:0] b
+        );
+          logic        c;
+          logic [15:0] d;
+        endmodule
+    )"));
+}
+// clang-format on

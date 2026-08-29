@@ -68,6 +68,27 @@ TEST(ParseConfiguration, AcceptsEmptyMap) {
     parseConfiguration(node, style);
 }
 
+TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarations) {
+    auto parse = [](const char* yaml) {
+        YAML::Node const node = YAML::Load(yaml);
+        Style style;
+        parseConfiguration(node, style);
+        return style.AlignConsecutiveDeclarations;
+    };
+
+    EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossComments"),
+              AlignConsecutiveDeclarationsStyle::AcrossComments);
+    EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossEmptyLines"),
+              AlignConsecutiveDeclarationsStyle::AcrossEmptyLines);
+    EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossEmptyLinesAndComments"),
+              AlignConsecutiveDeclarationsStyle::AcrossEmptyLinesAndComments);
+    EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossParameterPortList"),
+              AlignConsecutiveDeclarationsStyle::AcrossParameterPortList);
+    EXPECT_EQ(parse("AlignConsecutiveDeclarations: Consecutive"),
+              AlignConsecutiveDeclarationsStyle::Consecutive);
+    EXPECT_EQ(parse("AlignConsecutiveDeclarations: None"), AlignConsecutiveDeclarationsStyle::None);
+}
+
 TEST(ParseConfiguration, ContinuationIndentWidthDefaultsToIndentWidth) {
     YAML::Node const node = YAML::Load("IndentWidth: 6");
     Style style;
@@ -234,6 +255,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     auto const result = dumpConfiguration(getDefaultStyle());
     EXPECT_NE(result.find("---"), std::string::npos);
     EXPECT_NE(result.find("..."), std::string::npos);
+    EXPECT_NE(result.find("AlignConsecutiveDeclarations: Consecutive"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterInitial: OnlyMultiline"), std::string::npos);
@@ -264,6 +286,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
 
 TEST(DumpConfiguration, RoundTrip) {
     Style original;
+    original.AlignConsecutiveDeclarations = AlignConsecutiveDeclarationsStyle::AcrossEmptyLines;
     original.IndentWidth = 4;
     original.ContinuationIndentWidth = 4;
     original.ParameterPortListIndentWidth = 4;

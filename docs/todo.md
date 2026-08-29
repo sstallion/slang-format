@@ -18,7 +18,7 @@
 - [ ] Formatting (not exhaustive):
   - [ ] Line breaks between constructs
   - [ ] Alignment:
-    - [ ] Types
+    - [x] Names
     - [ ] Ranges
     - [ ] Assignments
     - [ ] Groups (i.e. parameters, signals)

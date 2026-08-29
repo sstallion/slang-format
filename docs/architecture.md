@@ -56,6 +56,8 @@ reformat(source, style)
   │   ├─ Limit consecutive empty lines
   │   └─ Honor formatting pragmas
   │
+  ├─ applyAlignConsecutiveDeclarations()   # Optional post-processing
+  │
   └─ applyOneLineFormatOff()               # Optional post-processing
   │
   ▼
@@ -129,6 +131,15 @@ The `OneLineFormatOffRegex` option strips indentation from lines matching a
 regex. This is applied as a second pass over the already-formatted string rather
 than inline during the tree walk, because the regex operates on final output
 content that is not known until after the walk is complete.
+
+### Alignment as Post-Processing
+
+Declaration alignment operates on the already-formatted output string rather than
+during the tree walk. Alignment requires knowledge of multiple adjacent lines to
+compute the maximum column width, which is incompatible with the single-pass tree
+walk where each token is emitted independently. The line-based post-processing
+approach avoids correlating tree structure with output positions and matches the
+existing pattern established by `applyOneLineFormatOff`.
 
 ### Fixture Tests
 

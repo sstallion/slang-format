@@ -24,6 +24,24 @@ constexpr std::array ConfigFileNames{
     "_slang-format",
 };
 
+constexpr std::string_view toString(AlignConsecutiveDeclarationsStyle style) {
+    switch (style) {
+        case AlignConsecutiveDeclarationsStyle::AcrossComments:
+            return "AcrossComments";
+        case AlignConsecutiveDeclarationsStyle::AcrossEmptyLines:
+            return "AcrossEmptyLines";
+        case AlignConsecutiveDeclarationsStyle::AcrossEmptyLinesAndComments:
+            return "AcrossEmptyLinesAndComments";
+        case AlignConsecutiveDeclarationsStyle::AcrossParameterPortList:
+            return "AcrossParameterPortList";
+        case AlignConsecutiveDeclarationsStyle::Consecutive:
+            return "Consecutive";
+        case AlignConsecutiveDeclarationsStyle::None:
+            return "None";
+    }
+    return "None";
+}
+
 constexpr std::string_view toString(BreakAfterBlockStyle style) {
     switch (style) {
         case BreakAfterBlockStyle::Always:
@@ -40,6 +58,30 @@ constexpr std::string_view toString(BreakAfterBlockStyle style) {
 template<typename Key>
 YAML::Node lookup(const YAML::Node& node, Key key) {
     return node[key];
+}
+
+AlignConsecutiveDeclarationsStyle parseAlignConsecutiveDeclarations(std::string_view s) {
+    if (s == "AcrossComments") {
+        return AlignConsecutiveDeclarationsStyle::AcrossComments;
+    }
+
+    if (s == "AcrossEmptyLines") {
+        return AlignConsecutiveDeclarationsStyle::AcrossEmptyLines;
+    }
+
+    if (s == "AcrossEmptyLinesAndComments") {
+        return AlignConsecutiveDeclarationsStyle::AcrossEmptyLinesAndComments;
+    }
+
+    if (s == "AcrossParameterPortList") {
+        return AlignConsecutiveDeclarationsStyle::AcrossParameterPortList;
+    }
+
+    if (s == "Consecutive") {
+        return AlignConsecutiveDeclarationsStyle::Consecutive;
+    }
+
+    return AlignConsecutiveDeclarationsStyle::None;
 }
 
 void parseInsertBeginEnd(const YAML::Node& node, InsertBeginEndStyle& config) {
@@ -72,6 +114,8 @@ std::string dumpConfiguration(const Style& style) {
     YAML::Emitter out;
     out << YAML::BeginDoc;
     out << YAML::BeginMap;
+    out << YAML::Key << "AlignConsecutiveDeclarations" << YAML::Value
+        << std::string{toString(style.AlignConsecutiveDeclarations)};
     out << YAML::Key << "BreakAfterAlways" << YAML::Value
         << std::string{toString(style.BreakAfterAlways)};
     out << YAML::Key << "BreakAfterBegin" << YAML::Value << style.BreakAfterBegin;
@@ -102,6 +146,10 @@ std::string dumpConfiguration(const Style& style) {
 void parseConfiguration(const YAML::Node& node, Style& style) {
     if (!node.IsMap()) {
         throw std::runtime_error("configuration must be a YAML mapping");
+    }
+
+    if (auto v = lookup(node, "AlignConsecutiveDeclarations")) {
+        style.AlignConsecutiveDeclarations = parseAlignConsecutiveDeclarations(v.as<std::string>());
     }
 
     if (auto v = lookup(node, "MaxEmptyLinesToKeep")) {
