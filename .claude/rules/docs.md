@@ -21,9 +21,8 @@ The file contains the following sections, in order:
   remove entries whenever source code and tests are added or removed.
 - **Dependencies** - A bulleted list of third-party libraries with a one-line
   description of what it provides.
-- **Formatting Flow** - An ASCII block diagram tracing the path from input
-  through output Update the diagram whenever a pass is added, removed, or
-  reordered.
+- **Formatting Flow** - A Mermaid flowchart tracing the path from input through
+  output. Update the diagram whenever a pass is added, removed, or reordered.
 - **Architectural Decisions** - Prose sections, one per decision, explaining the
   approach chosen and the rationale behind it. Add a new section whenever a
   non-obvious design decision is made.

@@ -5,6 +5,12 @@ and heavily inspired by [clang-format][2]. Verilog-2005 (IEEE 1364-2005) is
 fully supported as a subset of the SystemVerilog language. All major operating
 systems are supported, including Linux, macOS, and Windows.
 
+## Dependencies
+
+- **[slang][1]** - SystemVerilog compilation, elaboration, and analysis
+- **[yaml-cpp][3]** - Parses configuration files written in YAML
+- **[GoogleTest][4]** - Testing and mocking framework
+
 ## Directory Structure
 
 ```
@@ -21,6 +27,7 @@ slang-format/
 │   ├── SyntaxHelper.h    # Shared predicates for syntax node classification
 │   └── main.cpp          # Entry point; command-line processing and output
 └── tests/
+    ├── fixtures/         # CTest integration test scripts and data
     ├── FormatTest.cpp    # Formatting and post-processing tests
     ├── IgnoreTest.cpp    # Ignore file lookup and pattern matching tests
     ├── RewriterTest.cpp  # Syntax rewriting tests
@@ -28,44 +35,37 @@ slang-format/
     └── TestHelper.h      # Utilities for writing tests
 ```
 
-## Dependencies
-
-- **[slang][1]** - SystemVerilog compilation, elaboration, and analysis
-- **[yaml-cpp][3]** - Parses configuration files written in YAML
-- **[GoogleTest][4]** - Testing and mocking framework
-
 ## Formatting Flow
 
-```
-input
-  │
-  ▼
-getStyle(cwd)                                   # Walks directory hierarchy for configuration
-  │
-  ▼
-reformat(source, style)
-  │
-  ├─ slang::SyntaxTree::fromText(source)        # Parses input
-  │
-  ├─ applyBeginEndInsertion(tree, style)        # Iterative SyntaxRewriter
-  │   └─ Wrap bare statement bodies in begin/end blocks
-  │
-  ├─ FormatPrinter::print(tree)                 # Single-pass tree walk
-  │   ├─ Emit tokens with computed indentation
-  │   ├─ Enforce break rules
-  │   ├─ Limit consecutive empty lines
-  │   └─ Honor formatting pragmas
-  │
-  ├─ applyAlignConsecutivePackedDimensions()    # Optional post-processing
-  │
-  ├─ applyAlignConsecutiveDeclarations()        # Optional post-processing
-  │
-  ├─ applyAlignConsecutiveAssignments()         # Optional post-processing
-  │
-  └─ applyOneLineFormatOff()                    # Optional post-processing
-  │
-  ▼
-output
+```mermaid
+flowchart LR
+    input([Source Text])
+    findStyle --> reformat
+
+    subgraph getStyle [Configuration]
+        findStyle[Walk directory hierarchy\nfor .slang-format]
+    end
+
+    subgraph reformat [reformat]
+        parse[Parse\nSyntaxTree::fromText]
+        rewrite[Rewrite\nbegin/end insertion]
+        converged{Converged?}
+        format[Format\nSingle-pass tree walk]
+
+        subgraph postprocess [Post-process]
+            align[Align consecutive\ndeclarations, dimensions,\nand assignments]
+            formatoff[Apply OneLineFormatOff]
+        end
+
+        parse --> rewrite
+        rewrite --> converged
+        converged -- No --> rewrite
+        converged -- Yes --> format
+        format --> align --> formatoff
+    end
+
+    input --> findStyle
+    formatoff --> output([Formatted Text])
 ```
 
 ## Architectural Decisions
