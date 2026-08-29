@@ -12,13 +12,21 @@
 
 namespace slang::format {
 
-enum class AlignConsecutiveStyle {
-    AcrossComments,
-    AcrossEmptyLines,
-    AcrossEmptyLinesAndComments,
-    AcrossParameterPortList,
-    Consecutive,
-    None,
+/// Controls alignment behavior for consecutive declarations.
+struct AlignConsecutiveStyle {
+    /// If false, disables all alignment regardless of other options.
+    bool Enabled = false;
+
+    /// If true, comments do not break alignment groups.
+    bool AcrossComments = false;
+
+    /// If true, empty lines do not break alignment groups.
+    bool AcrossEmptyLines = false;
+
+    /// If true, port list boundaries do not break alignment groups.
+    bool AcrossParameterPortList = false;
+
+    bool operator==(const AlignConsecutiveStyle&) const = default;
 };
 
 enum class BreakAfterBlockStyle { Never, Always, OnlyMultiline };
@@ -43,13 +51,13 @@ struct InsertBeginEndStyle {
 /// Defines all formatting style options.
 struct Style {
     /// Controls alignment of assignment operators in consecutive declarations.
-    AlignConsecutiveStyle AlignConsecutiveAssignments = AlignConsecutiveStyle::None;
+    AlignConsecutiveStyle AlignConsecutiveAssignments;
 
     /// Controls alignment of signal names in consecutive declarations.
-    AlignConsecutiveStyle AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    AlignConsecutiveStyle AlignConsecutiveDeclarations;
 
     /// Controls alignment of packed dimensions in consecutive declarations.
-    AlignConsecutiveStyle AlignConsecutivePackedDimensions = AlignConsecutiveStyle::None;
+    AlignConsecutiveStyle AlignConsecutivePackedDimensions;
 
     /// Maximum number of consecutive empty lines to keep.
     unsigned MaxEmptyLinesToKeep = 1;

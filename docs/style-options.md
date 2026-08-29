@@ -51,44 +51,61 @@ Controls alignment of assignment operators in consecutive declarations. When
 enabled, the `=` signs in adjacent declaration initializers are aligned by
 padding with trailing spaces. Non-declaration statements are never affected;
 only assignments that are part of a declaration (e.g. `logic a = 1;`) are
-aligned. Standalone assignments (e.g. `assign x = 1;`) are not affected.
+aligned. Standalone assignments (e.g. `assign x = 1;`) are not affected. This
+is a nested mapping with four sub-options. `Enabled` is a master switch; the
+remaining sub-options take effect only when `Enabled` is `true`.
 
-**Default:** `None`
+**Default:**
 
-| Value                          | Description                                                                        |
-| ------------------------------ | ---------------------------------------------------------------------------------- |
-| `AcrossComments`               | Comments do not break groups; empty lines do.                                      |
-| `AcrossEmptyLines`             | Empty lines do not break groups; comments do.                                      |
-| `AcrossEmptyLinesAndComments`  | Neither empty lines nor comments break groups.                                     |
-| `AcrossParameterPortList`      | Superset of `AcrossEmptyLinesAndComments`; port list boundaries do not break groups. |
-| `Consecutive`                  | Align consecutive declarations; empty lines and comments break groups.             |
-| `None`                         | No alignment applied.                                                              |
+```yaml
+AlignConsecutiveAssignments:
+  AcrossComments: false
+  AcrossEmptyLines: false
+  AcrossParameterPortList: false
+  Enabled: false
+```
 
-`Consecutive`:
+#### AcrossComments (bool)
+
+If `true`, comments do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### AcrossEmptyLines (bool)
+
+If `true`, empty lines do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### AcrossParameterPortList (bool)
+
+If `true`, port list boundaries do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### Enabled (bool)
+
+If `false`, disables all alignment regardless of other options.
+
+**Default:** `false`
 
 ```sv
+// Enabled: true
 module foo;
   logic a       = 1;
   logic [7:0] b = 2;
 endmodule
-```
 
-`None` (default):
-
-```sv
+// Enabled: false (default)
 module foo;
   logic a = 1;
   logic [7:0] b = 2;
-endmodule
-```
-
-`Consecutive` with `AlignConsecutiveDeclarations: Consecutive`:
-
-```sv
-module foo;
-  logic        a = 1;
-  logic [7:0]  b = 2;
-  logic [15:0] c = 3;
 endmodule
 ```
 
@@ -99,41 +116,45 @@ endmodule
 Controls alignment of signal names in consecutive declarations. When enabled,
 identifiers in adjacent declarations are aligned by padding the type specifier
 with trailing spaces. Non-declaration statements always break alignment groups.
+This is a nested mapping with four sub-options. `Enabled` is a master switch;
+the remaining sub-options take effect only when `Enabled` is `true`.
 
-**Default:** `None`
+**Default:**
 
-| Value                          | Description                                                                        |
-| ------------------------------ | ---------------------------------------------------------------------------------- |
-| `AcrossComments`               | Comments do not break groups; empty lines do.                                      |
-| `AcrossEmptyLines`             | Empty lines do not break groups; comments do.                                      |
-| `AcrossEmptyLinesAndComments`  | Neither empty lines nor comments break groups.                                     |
-| `AcrossParameterPortList`      | Superset of `AcrossEmptyLinesAndComments`; port list boundaries do not break groups. |
-| `Consecutive`                  | Align consecutive declarations; empty lines and comments break groups.             |
-| `None`                         | No alignment applied.                                                              |
-
-`Consecutive` (default):
-
-```sv
-module foo;
-  logic        a;
-  logic [7:0]  b;
-  logic [15:0] c;
-endmodule
+```yaml
+AlignConsecutiveDeclarations:
+  AcrossComments: false
+  AcrossEmptyLines: false
+  AcrossParameterPortList: false
+  Enabled: false
 ```
 
-`None`:
+#### AcrossComments (bool)
+
+If `true`, comments do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### AcrossEmptyLines (bool)
+
+If `true`, empty lines do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### AcrossParameterPortList (bool)
+
+If `true`, port list boundaries do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
 
 ```sv
-module foo;
-  logic a;
-  logic [7:0] b;
-  logic [15:0] c;
-endmodule
-```
-
-`AcrossParameterPortList`:
-
-```sv
+// AcrossParameterPortList: true
 module foo #(
   parameter             N = 4,
   parameter logic [7:0] M = 8
@@ -146,6 +167,28 @@ module foo #(
 endmodule
 ```
 
+#### Enabled (bool)
+
+If `false`, disables all alignment regardless of other options.
+
+**Default:** `false`
+
+```sv
+// Enabled: true
+module foo;
+  logic        a;
+  logic [7:0]  b;
+  logic [15:0] c;
+endmodule
+
+// Enabled: false (default)
+module foo;
+  logic a;
+  logic [7:0] b;
+  logic [15:0] c;
+endmodule
+```
+
 ---
 
 ### AlignConsecutivePackedDimensions (AlignConsecutiveStyle)
@@ -154,31 +197,58 @@ Controls alignment of packed dimensions in consecutive declarations. When
 enabled, the opening bracket `[` of packed dimensions in adjacent declarations
 is aligned by padding the type specifier with trailing spaces. Only declarations
 that have packed dimensions participate in alignment groups; declarations without
-packed dimensions are skipped.
+packed dimensions are skipped. This is a nested mapping with four sub-options.
+`Enabled` is a master switch; the remaining sub-options take effect only when
+`Enabled` is `true`.
 
-**Default:** `None`
+**Default:**
 
-| Value                          | Description                                                                        |
-| ------------------------------ | ---------------------------------------------------------------------------------- |
-| `AcrossComments`               | Comments do not break groups; empty lines do.                                      |
-| `AcrossEmptyLines`             | Empty lines do not break groups; comments do.                                      |
-| `AcrossEmptyLinesAndComments`  | Neither empty lines nor comments break groups.                                     |
-| `AcrossParameterPortList`      | Superset of `AcrossEmptyLinesAndComments`; port list boundaries do not break groups. |
-| `Consecutive`                  | Align consecutive declarations; empty lines and comments break groups.             |
-| `None`                         | No alignment applied.                                                              |
+```yaml
+AlignConsecutivePackedDimensions:
+  AcrossComments: false
+  AcrossEmptyLines: false
+  AcrossParameterPortList: false
+  Enabled: false
+```
 
-`Consecutive`:
+#### AcrossComments (bool)
+
+If `true`, comments do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### AcrossEmptyLines (bool)
+
+If `true`, empty lines do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### AcrossParameterPortList (bool)
+
+If `true`, port list boundaries do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### Enabled (bool)
+
+If `false`, disables all alignment regardless of other options.
+
+**Default:** `false`
 
 ```sv
+// Enabled: true
 module foo;
   bit   [7:0] a;
   logic [7:0] b;
 endmodule
-```
 
-`None` (default):
-
-```sv
+// Enabled: false (default)
 module foo;
   bit [7:0] a;
   logic [7:0] b;

@@ -1074,19 +1074,16 @@ bool canStartDimGroup(const LineInfo& info) {
 }
 
 template<typename BreakPred, typename StartPred, typename AlignFn>
-std::string applyAlignConsecutive(const std::string& output, AlignConsecutiveStyle alignStyle,
-                                  BreakPred shouldBreak, StartPred canStart, AlignFn alignFn) {
-    if (alignStyle == AlignConsecutiveStyle::None) {
+std::string applyAlignConsecutive(const std::string& output,
+                                  const AlignConsecutiveStyle& alignStyle, BreakPred shouldBreak,
+                                  StartPred canStart, AlignFn alignFn) {
+    if (!alignStyle.Enabled) {
         return output;
     }
 
-    auto const acrossEmpty = alignStyle == AlignConsecutiveStyle::AcrossEmptyLines ||
-                             alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
-                             alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
-    auto const acrossComments = alignStyle == AlignConsecutiveStyle::AcrossComments ||
-                                alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
-                                alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
-    auto const acrossIndent = alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
+    auto const acrossEmpty = alignStyle.AcrossEmptyLines;
+    auto const acrossComments = alignStyle.AcrossComments;
+    auto const acrossIndent = alignStyle.AcrossParameterPortList;
 
     std::vector<std::string_view> lines;
     std::string_view remaining{output};

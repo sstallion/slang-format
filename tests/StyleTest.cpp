@@ -68,67 +68,172 @@ TEST(ParseConfiguration, AcceptsEmptyMap) {
     parseConfiguration(node, style);
 }
 
-TEST(ParseConfiguration, ParsesAlignConsecutiveAssignments) {
-    auto parse = [](const char* yaml) {
-        YAML::Node const node = YAML::Load(yaml);
-        Style style;
-        parseConfiguration(node, style);
-        return style.AlignConsecutiveAssignments;
-    };
+TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsAcrossComments) {
+    Style style;
 
-    EXPECT_EQ(parse("AlignConsecutiveAssignments: AcrossComments"),
-              AlignConsecutiveStyle::AcrossComments);
-    EXPECT_EQ(parse("AlignConsecutiveAssignments: AcrossEmptyLines"),
-              AlignConsecutiveStyle::AcrossEmptyLines);
-    EXPECT_EQ(parse("AlignConsecutiveAssignments: AcrossEmptyLinesAndComments"),
-              AlignConsecutiveStyle::AcrossEmptyLinesAndComments);
-    EXPECT_EQ(parse("AlignConsecutiveAssignments: AcrossParameterPortList"),
-              AlignConsecutiveStyle::AcrossParameterPortList);
-    EXPECT_EQ(parse("AlignConsecutiveAssignments: Consecutive"),
-              AlignConsecutiveStyle::Consecutive);
-    EXPECT_EQ(parse("AlignConsecutiveAssignments: None"), AlignConsecutiveStyle::None);
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveAssignments:
+          AcrossComments: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveAssignments.AcrossComments);
 }
 
-TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarations) {
-    auto parse = [](const char* yaml) {
-        YAML::Node const node = YAML::Load(yaml);
-        Style style;
-        parseConfiguration(node, style);
-        return style.AlignConsecutiveDeclarations;
-    };
+TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsAcrossEmptyLines) {
+    Style style;
 
-    EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossComments"),
-              AlignConsecutiveStyle::AcrossComments);
-    EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossEmptyLines"),
-              AlignConsecutiveStyle::AcrossEmptyLines);
-    EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossEmptyLinesAndComments"),
-              AlignConsecutiveStyle::AcrossEmptyLinesAndComments);
-    EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossParameterPortList"),
-              AlignConsecutiveStyle::AcrossParameterPortList);
-    EXPECT_EQ(parse("AlignConsecutiveDeclarations: Consecutive"),
-              AlignConsecutiveStyle::Consecutive);
-    EXPECT_EQ(parse("AlignConsecutiveDeclarations: None"), AlignConsecutiveStyle::None);
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveAssignments:
+          AcrossEmptyLines: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveAssignments.AcrossEmptyLines);
 }
 
-TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensions) {
-    auto parse = [](const char* yaml) {
-        YAML::Node const node = YAML::Load(yaml);
-        Style style;
-        parseConfiguration(node, style);
-        return style.AlignConsecutivePackedDimensions;
-    };
+TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsAcrossParameterPortList) {
+    Style style;
 
-    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: AcrossComments"),
-              AlignConsecutiveStyle::AcrossComments);
-    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: AcrossEmptyLines"),
-              AlignConsecutiveStyle::AcrossEmptyLines);
-    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: AcrossEmptyLinesAndComments"),
-              AlignConsecutiveStyle::AcrossEmptyLinesAndComments);
-    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: AcrossParameterPortList"),
-              AlignConsecutiveStyle::AcrossParameterPortList);
-    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: Consecutive"),
-              AlignConsecutiveStyle::Consecutive);
-    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: None"), AlignConsecutiveStyle::None);
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveAssignments:
+          AcrossParameterPortList: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveAssignments.AcrossParameterPortList);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsEnabled) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveAssignments:
+          Enabled: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveAssignments.Enabled);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarationsAcrossComments) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveDeclarations:
+          AcrossComments: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveDeclarations.AcrossComments);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarationsAcrossEmptyLines) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveDeclarations:
+          AcrossEmptyLines: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveDeclarations.AcrossEmptyLines);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarationsAcrossParameterPortList) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveDeclarations:
+          AcrossParameterPortList: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveDeclarations.AcrossParameterPortList);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarationsEnabled) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveDeclarations:
+          Enabled: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveDeclarations.Enabled);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensionsAcrossComments) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutivePackedDimensions:
+          AcrossComments: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.AcrossComments);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensionsAcrossEmptyLines) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutivePackedDimensions:
+          AcrossEmptyLines: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.AcrossEmptyLines);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensionsAcrossParameterPortList) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutivePackedDimensions:
+          AcrossParameterPortList: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.AcrossParameterPortList);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensionsEnabled) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutivePackedDimensions:
+          Enabled: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.Enabled);
 }
 
 TEST(ParseConfiguration, ContinuationIndentWidthDefaultsToIndentWidth) {
@@ -297,7 +402,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     auto const result = dumpConfiguration(getDefaultStyle());
     EXPECT_NE(result.find("---"), std::string::npos);
     EXPECT_NE(result.find("..."), std::string::npos);
-    EXPECT_NE(result.find("AlignConsecutiveDeclarations: None"), std::string::npos);
+    EXPECT_NE(result.find("Enabled: false"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterInitial: OnlyMultiline"), std::string::npos);
@@ -328,7 +433,8 @@ TEST(DumpConfiguration, NonDefaultValues) {
 
 TEST(DumpConfiguration, RoundTrip) {
     Style original;
-    original.AlignConsecutiveDeclarations = AlignConsecutiveStyle::AcrossEmptyLines;
+    original.AlignConsecutiveDeclarations.Enabled = true;
+    original.AlignConsecutiveDeclarations.AcrossEmptyLines = true;
     original.IndentWidth = 4;
     original.ContinuationIndentWidth = 4;
     original.ParameterPortListIndentWidth = 4;
