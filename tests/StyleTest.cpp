@@ -68,6 +68,27 @@ TEST(ParseConfiguration, AcceptsEmptyMap) {
     parseConfiguration(node, style);
 }
 
+TEST(ParseConfiguration, ParsesAlignConsecutiveAssignments) {
+    auto parse = [](const char* yaml) {
+        YAML::Node const node = YAML::Load(yaml);
+        Style style;
+        parseConfiguration(node, style);
+        return style.AlignConsecutiveAssignments;
+    };
+
+    EXPECT_EQ(parse("AlignConsecutiveAssignments: AcrossComments"),
+              AlignConsecutiveStyle::AcrossComments);
+    EXPECT_EQ(parse("AlignConsecutiveAssignments: AcrossEmptyLines"),
+              AlignConsecutiveStyle::AcrossEmptyLines);
+    EXPECT_EQ(parse("AlignConsecutiveAssignments: AcrossEmptyLinesAndComments"),
+              AlignConsecutiveStyle::AcrossEmptyLinesAndComments);
+    EXPECT_EQ(parse("AlignConsecutiveAssignments: AcrossParameterPortList"),
+              AlignConsecutiveStyle::AcrossParameterPortList);
+    EXPECT_EQ(parse("AlignConsecutiveAssignments: Consecutive"),
+              AlignConsecutiveStyle::Consecutive);
+    EXPECT_EQ(parse("AlignConsecutiveAssignments: None"), AlignConsecutiveStyle::None);
+}
+
 TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarations) {
     auto parse = [](const char* yaml) {
         YAML::Node const node = YAML::Load(yaml);
@@ -77,16 +98,16 @@ TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarations) {
     };
 
     EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossComments"),
-              AlignConsecutiveDeclarationsStyle::AcrossComments);
+              AlignConsecutiveStyle::AcrossComments);
     EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossEmptyLines"),
-              AlignConsecutiveDeclarationsStyle::AcrossEmptyLines);
+              AlignConsecutiveStyle::AcrossEmptyLines);
     EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossEmptyLinesAndComments"),
-              AlignConsecutiveDeclarationsStyle::AcrossEmptyLinesAndComments);
+              AlignConsecutiveStyle::AcrossEmptyLinesAndComments);
     EXPECT_EQ(parse("AlignConsecutiveDeclarations: AcrossParameterPortList"),
-              AlignConsecutiveDeclarationsStyle::AcrossParameterPortList);
+              AlignConsecutiveStyle::AcrossParameterPortList);
     EXPECT_EQ(parse("AlignConsecutiveDeclarations: Consecutive"),
-              AlignConsecutiveDeclarationsStyle::Consecutive);
-    EXPECT_EQ(parse("AlignConsecutiveDeclarations: None"), AlignConsecutiveDeclarationsStyle::None);
+              AlignConsecutiveStyle::Consecutive);
+    EXPECT_EQ(parse("AlignConsecutiveDeclarations: None"), AlignConsecutiveStyle::None);
 }
 
 TEST(ParseConfiguration, ContinuationIndentWidthDefaultsToIndentWidth) {
@@ -286,7 +307,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
 
 TEST(DumpConfiguration, RoundTrip) {
     Style original;
-    original.AlignConsecutiveDeclarations = AlignConsecutiveDeclarationsStyle::AcrossEmptyLines;
+    original.AlignConsecutiveDeclarations = AlignConsecutiveStyle::AcrossEmptyLines;
     original.IndentWidth = 4;
     original.ContinuationIndentWidth = 4;
     original.ParameterPortListIndentWidth = 4;

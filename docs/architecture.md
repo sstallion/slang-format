@@ -58,6 +58,8 @@ reformat(source, style)
   │
   ├─ applyAlignConsecutiveDeclarations()   # Optional post-processing
   │
+  ├─ applyAlignConsecutiveAssignments()   # Optional post-processing
+  │
   └─ applyOneLineFormatOff()               # Optional post-processing
   │
   ▼

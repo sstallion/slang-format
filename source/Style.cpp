@@ -24,19 +24,19 @@ constexpr std::array ConfigFileNames{
     "_slang-format",
 };
 
-constexpr std::string_view toString(AlignConsecutiveDeclarationsStyle style) {
+constexpr std::string_view toString(AlignConsecutiveStyle style) {
     switch (style) {
-        case AlignConsecutiveDeclarationsStyle::AcrossComments:
+        case AlignConsecutiveStyle::AcrossComments:
             return "AcrossComments";
-        case AlignConsecutiveDeclarationsStyle::AcrossEmptyLines:
+        case AlignConsecutiveStyle::AcrossEmptyLines:
             return "AcrossEmptyLines";
-        case AlignConsecutiveDeclarationsStyle::AcrossEmptyLinesAndComments:
+        case AlignConsecutiveStyle::AcrossEmptyLinesAndComments:
             return "AcrossEmptyLinesAndComments";
-        case AlignConsecutiveDeclarationsStyle::AcrossParameterPortList:
+        case AlignConsecutiveStyle::AcrossParameterPortList:
             return "AcrossParameterPortList";
-        case AlignConsecutiveDeclarationsStyle::Consecutive:
+        case AlignConsecutiveStyle::Consecutive:
             return "Consecutive";
-        case AlignConsecutiveDeclarationsStyle::None:
+        case AlignConsecutiveStyle::None:
             return "None";
     }
     return "None";
@@ -60,28 +60,28 @@ YAML::Node lookup(const YAML::Node& node, Key key) {
     return node[key];
 }
 
-AlignConsecutiveDeclarationsStyle parseAlignConsecutiveDeclarations(std::string_view s) {
+AlignConsecutiveStyle parseAlignConsecutiveStyle(std::string_view s) {
     if (s == "AcrossComments") {
-        return AlignConsecutiveDeclarationsStyle::AcrossComments;
+        return AlignConsecutiveStyle::AcrossComments;
     }
 
     if (s == "AcrossEmptyLines") {
-        return AlignConsecutiveDeclarationsStyle::AcrossEmptyLines;
+        return AlignConsecutiveStyle::AcrossEmptyLines;
     }
 
     if (s == "AcrossEmptyLinesAndComments") {
-        return AlignConsecutiveDeclarationsStyle::AcrossEmptyLinesAndComments;
+        return AlignConsecutiveStyle::AcrossEmptyLinesAndComments;
     }
 
     if (s == "AcrossParameterPortList") {
-        return AlignConsecutiveDeclarationsStyle::AcrossParameterPortList;
+        return AlignConsecutiveStyle::AcrossParameterPortList;
     }
 
     if (s == "Consecutive") {
-        return AlignConsecutiveDeclarationsStyle::Consecutive;
+        return AlignConsecutiveStyle::Consecutive;
     }
 
-    return AlignConsecutiveDeclarationsStyle::None;
+    return AlignConsecutiveStyle::None;
 }
 
 void parseInsertBeginEnd(const YAML::Node& node, InsertBeginEndStyle& config) {
@@ -114,6 +114,8 @@ std::string dumpConfiguration(const Style& style) {
     YAML::Emitter out;
     out << YAML::BeginDoc;
     out << YAML::BeginMap;
+    out << YAML::Key << "AlignConsecutiveAssignments" << YAML::Value
+        << std::string{toString(style.AlignConsecutiveAssignments)};
     out << YAML::Key << "AlignConsecutiveDeclarations" << YAML::Value
         << std::string{toString(style.AlignConsecutiveDeclarations)};
     out << YAML::Key << "BreakAfterAlways" << YAML::Value
@@ -148,8 +150,12 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
         throw std::runtime_error("configuration must be a YAML mapping");
     }
 
+    if (auto v = lookup(node, "AlignConsecutiveAssignments")) {
+        style.AlignConsecutiveAssignments = parseAlignConsecutiveStyle(v.as<std::string>());
+    }
+
     if (auto v = lookup(node, "AlignConsecutiveDeclarations")) {
-        style.AlignConsecutiveDeclarations = parseAlignConsecutiveDeclarations(v.as<std::string>());
+        style.AlignConsecutiveDeclarations = parseAlignConsecutiveStyle(v.as<std::string>());
     }
 
     if (auto v = lookup(node, "MaxEmptyLinesToKeep")) {

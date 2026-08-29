@@ -12,7 +12,7 @@
 
 namespace slang::format {
 
-enum class AlignConsecutiveDeclarationsStyle {
+enum class AlignConsecutiveStyle {
     AcrossComments,
     AcrossEmptyLines,
     AcrossEmptyLinesAndComments,
@@ -42,9 +42,11 @@ struct InsertBeginEndStyle {
 
 /// Defines all formatting style options.
 struct Style {
+    /// Controls alignment of assignment operators in consecutive declarations.
+    AlignConsecutiveStyle AlignConsecutiveAssignments = AlignConsecutiveStyle::None;
+
     /// Controls alignment of signal names in consecutive declarations.
-    AlignConsecutiveDeclarationsStyle AlignConsecutiveDeclarations =
-        AlignConsecutiveDeclarationsStyle::Consecutive;
+    AlignConsecutiveStyle AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
 
     /// Maximum number of consecutive empty lines to keep.
     unsigned MaxEmptyLinesToKeep = 1;

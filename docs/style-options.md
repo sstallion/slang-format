@@ -45,7 +45,56 @@ for details.
 
 ## Configurable Options
 
-### AlignConsecutiveDeclarations (AlignConsecutiveDeclarationsStyle)
+### AlignConsecutiveAssignments (AlignConsecutiveStyle)
+
+Controls alignment of assignment operators in consecutive declarations. When
+enabled, the `=` signs in adjacent declaration initializers are aligned by
+padding with trailing spaces. Non-declaration statements are never affected;
+only assignments that are part of a declaration (e.g. `logic a = 1;`) are
+aligned. Standalone assignments (e.g. `assign x = 1;`) are not affected.
+
+**Default:** `None`
+
+| Value                          | Description                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| `AcrossComments`               | Comments do not break groups; empty lines do.                                      |
+| `AcrossEmptyLines`             | Empty lines do not break groups; comments do.                                      |
+| `AcrossEmptyLinesAndComments`  | Neither empty lines nor comments break groups.                                     |
+| `AcrossParameterPortList`      | Superset of `AcrossEmptyLinesAndComments`; port list boundaries do not break groups. |
+| `Consecutive`                  | Align consecutive declarations; empty lines and comments break groups.             |
+| `None`                         | No alignment applied.                                                              |
+
+`Consecutive`:
+
+```sv
+module foo;
+  logic a       = 1;
+  logic [7:0] b = 2;
+endmodule
+```
+
+`None` (default):
+
+```sv
+module foo;
+  logic a = 1;
+  logic [7:0] b = 2;
+endmodule
+```
+
+`Consecutive` with `AlignConsecutiveDeclarations: Consecutive`:
+
+```sv
+module foo;
+  logic        a = 1;
+  logic [7:0]  b = 2;
+  logic [15:0] c = 3;
+endmodule
+```
+
+---
+
+### AlignConsecutiveDeclarations (AlignConsecutiveStyle)
 
 Controls alignment of signal names in consecutive declarations. When enabled,
 identifiers in adjacent declarations are aligned by padding the type specifier

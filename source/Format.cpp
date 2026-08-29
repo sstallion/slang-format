@@ -691,6 +691,7 @@ struct LineInfo {
     size_t indent;
     size_t typeWidth; ///< Distance from indent to identifier start.
     size_t identPos;  ///< Absolute position of identifier in the line.
+    size_t equalsPos; ///< Position of '=' in declaration, or npos if absent.
 };
 
 constexpr std::array TypeKeywords{
@@ -784,30 +785,66 @@ size_t skipDirectionType(std::string_view line, size_t pos) {
     return pos;
 }
 
+constexpr auto npos = std::string_view::npos;
+
+size_t findEquals(std::string_view line, size_t pos) {
+    while (pos < line.size()) {
+        if (line[pos] == '=') {
+            if (pos + 1 < line.size() && line[pos + 1] == '=') {
+                pos += 2;
+                continue;
+            }
+            if (pos > 0 && (line[pos - 1] == '!' || line[pos - 1] == '<' || line[pos - 1] == '>')) {
+                pos++;
+                continue;
+            }
+            return pos;
+        }
+        pos++;
+    }
+    return npos;
+}
+
 LineInfo classifyLine(std::string_view line, bool formatOff) {
     if (line.empty() || line.find_first_not_of(' ') == std::string_view::npos) {
-        return {.kind = LineKind::Empty, .indent = 0, .typeWidth = 0, .identPos = 0};
+        return {
+            .kind = LineKind::Empty, .indent = 0, .typeWidth = 0, .identPos = 0, .equalsPos = npos};
     }
 
     auto indentEnd = line.find_first_not_of(' ');
     auto content = line.substr(indentEnd);
 
     if (content.starts_with("//") || content.starts_with("/*")) {
-        return {.kind = LineKind::Comment, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+        return {.kind = LineKind::Comment,
+                .indent = indentEnd,
+                .typeWidth = 0,
+                .identPos = 0,
+                .equalsPos = npos};
     }
 
     if (content == ") (" || content == ");" || content == ")" || content == "#(") {
-        return {
-            .kind = LineKind::PortListBoundary, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+        return {.kind = LineKind::PortListBoundary,
+                .indent = indentEnd,
+                .typeWidth = 0,
+                .identPos = 0,
+                .equalsPos = npos};
     }
 
     if (formatOff) {
-        return {.kind = LineKind::Other, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+        return {.kind = LineKind::Other,
+                .indent = indentEnd,
+                .typeWidth = 0,
+                .identPos = 0,
+                .equalsPos = npos};
     }
 
     auto firstWord = extractWord(content, 0);
     if (firstWord.empty()) {
-        return {.kind = LineKind::Other, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+        return {.kind = LineKind::Other,
+                .indent = indentEnd,
+                .typeWidth = 0,
+                .identPos = 0,
+                .equalsPos = npos};
     }
 
     size_t pos = indentEnd;
@@ -819,19 +856,29 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
         pos = skipTypeQualifiers(line, pos + firstWord.size());
     }
     else {
-        return {.kind = LineKind::Other, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+        return {.kind = LineKind::Other,
+                .indent = indentEnd,
+                .typeWidth = 0,
+                .identPos = 0,
+                .equalsPos = npos};
     }
 
     pos = skipSpaces(line, pos);
     if (pos >= line.size() ||
         (std::isalpha(static_cast<unsigned char>(line[pos])) == 0 && line[pos] != '_')) {
-        return {.kind = LineKind::Other, .indent = indentEnd, .typeWidth = 0, .identPos = 0};
+        return {.kind = LineKind::Other,
+                .indent = indentEnd,
+                .typeWidth = 0,
+                .identPos = 0,
+                .equalsPos = npos};
     }
 
+    auto eqPos = findEquals(line, pos);
     return {.kind = LineKind::Declaration,
             .indent = indentEnd,
             .typeWidth = pos - indentEnd,
-            .identPos = pos};
+            .identPos = pos,
+            .equalsPos = eqPos};
 }
 
 // NOLINTBEGIN(bugprone-easily-swappable-parameters)
@@ -899,21 +946,18 @@ bool shouldBreakGroup(const LineInfo& info, const AlignState& state, bool across
 }
 
 std::string applyAlignConsecutiveDeclarations(const std::string& output,
-                                              AlignConsecutiveDeclarationsStyle alignStyle) {
-    if (alignStyle == AlignConsecutiveDeclarationsStyle::None) {
+                                              AlignConsecutiveStyle alignStyle) {
+    if (alignStyle == AlignConsecutiveStyle::None) {
         return output;
     }
 
-    bool const acrossEmpty =
-        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossEmptyLines ||
-        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossEmptyLinesAndComments ||
-        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossParameterPortList;
-    bool const acrossComments =
-        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossComments ||
-        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossEmptyLinesAndComments ||
-        alignStyle == AlignConsecutiveDeclarationsStyle::AcrossParameterPortList;
-    bool const acrossIndent = alignStyle ==
-                              AlignConsecutiveDeclarationsStyle::AcrossParameterPortList;
+    bool const acrossEmpty = alignStyle == AlignConsecutiveStyle::AcrossEmptyLines ||
+                             alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
+                             alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
+    bool const acrossComments = alignStyle == AlignConsecutiveStyle::AcrossComments ||
+                                alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
+                                alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
+    bool const acrossIndent = alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
 
     std::vector<std::string_view> lines;
     std::string_view remaining{output};
@@ -980,6 +1024,120 @@ std::string applyAlignConsecutiveDeclarations(const std::string& output,
     return result;
 }
 
+// NOLINTBEGIN(bugprone-easily-swappable-parameters)
+void alignGroupEquals(std::string& result, const std::vector<std::string_view>& lines,
+                      const std::vector<LineInfo>& infos, size_t groupStart, size_t groupEnd) {
+    // NOLINTEND(bugprone-easily-swappable-parameters)
+    size_t equalsCount = 0;
+    size_t maxEqualsCol = 0;
+    for (size_t i = groupStart; i < groupEnd; i++) {
+        if (infos[i].kind == LineKind::Declaration && infos[i].equalsPos != npos) {
+            equalsCount++;
+            maxEqualsCol = std::max(maxEqualsCol, infos[i].equalsPos);
+        }
+    }
+
+    for (size_t i = groupStart; i < groupEnd; i++) {
+        if (infos[i].kind == LineKind::Declaration && infos[i].equalsPos != npos &&
+            equalsCount >= 2) {
+            auto line = lines[i];
+            auto eqPos = infos[i].equalsPos;
+
+            size_t preEqualsEnd = eqPos;
+            while (preEqualsEnd > 0 && line[preEqualsEnd - 1] == ' ') {
+                preEqualsEnd--;
+            }
+
+            result.append(line.substr(0, preEqualsEnd));
+            result.append(maxEqualsCol - preEqualsEnd, ' ');
+            result.append(line.substr(eqPos));
+        }
+        else {
+            result.append(lines[i]);
+        }
+        result += '\n';
+    }
+}
+
+std::string applyAlignConsecutiveAssignments(const std::string& output,
+                                             AlignConsecutiveStyle alignStyle) {
+    if (alignStyle == AlignConsecutiveStyle::None) {
+        return output;
+    }
+
+    bool const acrossEmpty = alignStyle == AlignConsecutiveStyle::AcrossEmptyLines ||
+                             alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
+                             alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
+    bool const acrossComments = alignStyle == AlignConsecutiveStyle::AcrossComments ||
+                                alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
+                                alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
+    bool const acrossIndent = alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
+
+    std::vector<std::string_view> lines;
+    std::string_view remaining{output};
+    while (!remaining.empty()) {
+        auto nl = remaining.find('\n');
+        if (nl == std::string_view::npos) {
+            lines.push_back(remaining);
+            remaining = {};
+        }
+        else {
+            lines.push_back(remaining.substr(0, nl));
+            remaining.remove_prefix(nl + 1);
+        }
+    }
+
+    std::vector<LineInfo> infos;
+    infos.reserve(lines.size());
+    bool formatOff = false;
+    for (auto& line : lines) {
+        if (line.find("slang-format off") != std::string_view::npos) {
+            formatOff = true;
+        }
+        else if (line.find("slang-format on") != std::string_view::npos) {
+            formatOff = false;
+        }
+
+        infos.push_back(classifyLine(line, formatOff));
+    }
+
+    std::string result;
+    result.reserve(output.size());
+    AlignState state;
+
+    for (size_t i = 0; i < lines.size(); i++) {
+        auto& info = infos[i];
+        bool const breakGroup = shouldBreakGroup(info, state, acrossEmpty, acrossComments,
+                                                 acrossIndent);
+
+        if (breakGroup && state.inGroup) {
+            alignGroupEquals(result, lines, infos, state.groupStart, i);
+            state.inGroup = false;
+            state.groupIndent.reset();
+        }
+
+        if (info.kind == LineKind::Declaration && !state.inGroup) {
+            state.groupStart = i;
+            state.inGroup = true;
+            state.groupIndent = info.indent;
+        }
+        else if (!state.inGroup) {
+            result.append(lines[i]);
+            result += '\n';
+        }
+    }
+
+    if (state.inGroup) {
+        alignGroupEquals(result, lines, infos, state.groupStart, lines.size());
+    }
+
+    if (!result.empty() && result.back() == '\n' && (output.empty() || output.back() != '\n')) {
+        result.pop_back();
+    }
+
+    return result;
+}
+
 std::string applyOneLineFormatOff(const std::string& output, const std::regex& re) {
     std::string result;
     result.reserve(output.size());
@@ -1018,8 +1176,12 @@ std::string reformat(std::string_view text, const Style& style) {
     FormatPrinter printer(style);
 
     auto result = printer.print(*tree);
-    if (style.AlignConsecutiveDeclarations != AlignConsecutiveDeclarationsStyle::None) {
+    if (style.AlignConsecutiveDeclarations != AlignConsecutiveStyle::None) {
         result = applyAlignConsecutiveDeclarations(result, style.AlignConsecutiveDeclarations);
+    }
+
+    if (style.AlignConsecutiveAssignments != AlignConsecutiveStyle::None) {
+        result = applyAlignConsecutiveAssignments(result, style.AlignConsecutiveAssignments);
     }
 
     if (!style.OneLineFormatOffRegex.empty()) {
