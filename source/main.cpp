@@ -156,16 +156,16 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> fileListPaths;
     std::vector<std::string> positionalFiles;
 
-    cmdLine.add("--dump-config", dumpConfig, "Dump configuration options to stdout and exit");
-    cmdLine.add("-h,--help", help, "Display available options");
-    cmdLine.add("-i", inplace, "Inplace edit <files>, if specified");
-    cmdLine.add("--list-ignored", listIgnored, "List ignored files");
-    cmdLine.add("--version", version, "Display version information and exit");
+    cmdLine.add("--dump-config", dumpConfig, "Dump configuration options to stdout and exit.");
     cmdLine.add("--files", fileListPaths,
-                "A file containing a list of files to process, one per line.\n"
-                "Blank lines and lines starting with '#' are ignored",
+                "A file containing a list of files to process.\n"
+                "Blank lines and lines starting with '#' are ignored.",
                 "<filename>");
-    cmdLine.setPositional(positionalFiles, "files");
+    cmdLine.add("-i", inplace, "Inplace edit <file>s, if specified.");
+    cmdLine.add("--list-ignored", listIgnored, "List ignored files.");
+    cmdLine.add("-h,--help", help, "Display available options.");
+    cmdLine.add("--version", version, "Display version information and exit.");
+    cmdLine.setPositional(positionalFiles, "[@<file>] [<file>]");
 
     if (!cmdLine.parse(argc, const_cast<const char* const*>(argv))) {
         for (const auto& err : cmdLine.getErrors()) {

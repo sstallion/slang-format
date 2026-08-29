@@ -36,9 +36,9 @@ changes to the command-line interface or file-handling behavior.
 
 The file contains the following sections, in order:
 
-- An unnamed introductory section describing slang-format as a standalone tool.
-- **Standalone Tool** - Documents command-line options (as a verbatim help-text
-  code block), response file syntax, stdin support, and exit codes.
+- An unnamed introductory section describing slang-format as a standalone tool,
+  and Documents command-line options (as a verbatim help-text code block),
+  response file syntax, stdin support, and exit codes.
 - **Configuration** - Documents the `.slang-format` YAML file and
   directory-hierarchy lookup behavior with example configuration.
 - **Ignoring Files** - Documents `.slang-format-ignore` pattern format and

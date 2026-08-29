@@ -4,39 +4,27 @@ slang-format is a standalone tool that formats SystemVerilog source code. It can
 be used to format files in place, write formatted output to stdout, or read from
 stdin as part of a pipeline.
 
-## Standalone Tool
-
-When invoked with one or more file arguments, slang-format formats each file and
-writes the result to stdout. Use `-i` to edit files in place.
-
 ```
 OVERVIEW: SystemVerilog code formatter
 
-USAGE: slang-format [options] files...
+USAGE: slang-format [options] [@<file>] [<file>]...
 
 OPTIONS:
-  --dump-config       Dump configuration options to stdout and exit
-  --files <filename>  A file containing a list of files to process, one per line.
-                      Blank lines and lines starting with '#' are ignored
-  -h,--help           Display available options
-  -i                  Inplace edit <files>, if specified
-  --list-ignored      List ignored files
-  --version           Display version information and exit
+  --dump-config       Dump configuration options to stdout and exit.
+  --files <filename>  A file containing a list of files to process.
+                      Blank lines and lines starting with '#' are ignored.
+  -i                  Inplace edit <file>s, if specified.
+  --list-ignored      List ignored files.
+  -h,--help           Display available options.
+  --version           Display version information and exit.
 ```
 
-A file argument of `-` causes slang-format to read from stdin:
+When invoked with one or more file arguments, slang-format formats each file and
+writes the result to stdout unless `-i` is specified to edit files in place.
 
-```shell
-echo "module foo; endmodule" | slang-format -
-```
-
-A file argument prefixed with `@` is treated as a response file containing a
-list of paths to process, one per line. Blank lines and lines starting with `#`
-are ignored:
-
-```shell
-slang-format @filelist.txt
-```
+If a file argument is prefixed with `@` is treated as a response file containing
+a list of paths to process, one per line. Blank lines and lines starting with
+`#` are ignored. A file argument of `-` causes slang-format to read from stdin.
 
 ## Configuration
 

@@ -7,9 +7,9 @@ systems are supported, including Linux, macOS, and Windows.
 
 ## Dependencies
 
-- **[slang][1]** - SystemVerilog compilation, elaboration, and analysis
-- **[yaml-cpp][3]** - Parses configuration files written in YAML
-- **[GoogleTest][4]** - Testing and mocking framework
+- [slang][1] - SystemVerilog compilation, elaboration, and analysis
+- [yaml-cpp][3] - Parses configuration files written in YAML
+- [GoogleTest][4] - Testing and mocking framework
 
 ## Directory Structure
 
@@ -27,7 +27,7 @@ slang-format/
 │   ├── SyntaxHelper.h    # Shared predicates for syntax node classification
 │   └── main.cpp          # Entry point; command-line processing and output
 └── tests/
-    ├── fixtures/         # CTest integration test scripts and data
+    ├── fixtures/         # CTest integration test scripts
     ├── FormatTest.cpp    # Formatting and post-processing tests
     ├── IgnoreTest.cpp    # Ignore file lookup and pattern matching tests
     ├── RewriterTest.cpp  # Syntax rewriting tests
@@ -39,33 +39,33 @@ slang-format/
 
 ```mermaid
 flowchart LR
-    input([Source Text])
-    findStyle --> reformat
+    input([Unformatted Input])
+    formatin --> formatter
 
-    subgraph getStyle [Configuration]
-        findStyle[Walk directory hierarchy\nfor .slang-format]
+    subgraph config [Configuration]
+        formatin[Walk directory hierarchy\nfor .slang-format and\n.slang-format-ignore]
     end
 
-    subgraph reformat [reformat]
+    subgraph formatter [Formatter]
         parse[Parse\nSyntaxTree::fromText]
         rewrite[Rewrite\nbegin/end insertion]
         converged{Converged?}
         format[Format\nSingle-pass tree walk]
 
-        subgraph postprocess [Post-process]
+        subgraph postprocess [Post-Processing]
             align[Align consecutive\ndeclarations, dimensions,\nand assignments]
-            formatoff[Apply OneLineFormatOff]
+            formatout[Apply OneLineFormatOff]
         end
 
         parse --> rewrite
         rewrite --> converged
         converged -- No --> rewrite
         converged -- Yes --> format
-        format --> align --> formatoff
+        format --> align --> formatout
     end
 
-    input --> findStyle
-    formatoff --> output([Formatted Text])
+    input --> formatin
+    formatout --> output([Formatted Output])
 ```
 
 ## Architectural Decisions
