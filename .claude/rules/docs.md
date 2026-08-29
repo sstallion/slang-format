@@ -28,10 +28,27 @@ The file contains the following sections, in order:
   approach chosen and the rationale behind it. Add a new section whenever a
   non-obvious design decision is made.
 
+### Usage
+
+`docs/usage.md` documents command-line usage, configuration, and ignore-file
+behavior. It is modeled after [ClangFormat][1]. It must be kept in sync with the
+source code as the implementation evolves. Read this document only when making
+changes to the command-line interface or file-handling behavior.
+
+The file contains the following sections, in order:
+
+- An unnamed introductory section describing slang-format as a standalone tool.
+- **Standalone Tool** - Documents command-line options (as a verbatim help-text
+  code block), response file syntax, stdin support, and exit codes.
+- **Configuration** - Documents the `.slang-format` YAML file and
+  directory-hierarchy lookup behavior with example configuration.
+- **Ignoring Files** - Documents `.slang-format-ignore` pattern format and
+  supported matching rules.
+
 ### Style Options
 
 `docs/style-options.md` documents user-facing configuration. It is modeled after
-[clang-format Style Options][1]. It must be kept in sync with the source code as
+[ClangFormatStyleOptions][2]. It must be kept in sync with the source code as
 the implementation evolves. Read this document only when making user-facing
 configuration changes.
 
@@ -59,4 +76,5 @@ unless explicitly requested by the user.
   alphabetical order.
 - List items should begin with a capital letter, even if it is a fragment.
 
-[1]: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+[1]: https://clang.llvm.org/docs/ClangFormat.html
+[2]: https://clang.llvm.org/docs/ClangFormatStyleOptions.html

@@ -7,7 +7,7 @@ description: >
 
 # CMake
 
-## Context
+## Overview
 
 - A top-level `build` directory is used to maintain build files.
 - Build files are generated when the `build` directory is missing or empty.

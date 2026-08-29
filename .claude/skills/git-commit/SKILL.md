@@ -7,7 +7,7 @@ description: >
 
 # Git Commit
 
-## Context
+## Overview
 
 - Add unstaged changes to the next commit.
 - Commit messages are composed of a subject followed by a body.

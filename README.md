@@ -30,56 +30,15 @@ On Windows, issue:
 cmake -B build && cmake --build build --config Release
 ```
 
-> [!NOTE]
-> Once built, binaries can be found in the `build` directory.
+Once built, binaries can be found in the `build` directory.
 
-### Configuration
-
-slang-format reads style options from a YAML configuration file named
-`.slang-format` or `_slang-format`. When formatting a file, slang-format
-searches for configuration starting from the directory containing the source
-file and walks up the directory hierarchy to the filesystem root. The first file
-found is used; default settings are applied when none is found.
-
-The configuration file uses the format:
-
-```yaml
-key1: value1
-key2: value2
-# A comment.
-...
-```
-
-An example of a configuration file:
-
-```yaml
-IndentWidth: 4
-MaxEmptyLinesToKeep: 2
-```
-
-See [Style Options][6] for a complete list of supported options.
-
-### Ignoring Files
-
-slang-format supports `.slang-format-ignore` (or `_slang-format-ignore`) files
-to make the formatter ignore certain files. A `.slang-format-ignore` file
-consists of patterns of file path names. It has the following format:
-
-- A blank line is skipped.
-- Leading and trailing spaces of a line are trimmed.
-- A line starting with a hash (`#`) is a comment.
-- A non-comment line is a single pattern.
-- The slash (`/`) is used as the directory separator.
-- Patterns are relative to the directory of the `.slang-format-ignore` file.
-- Patterns follow the rules specified in [POSIX 2.13.1, 2.13.2, and Rule 1 of
-  2.13.3][7].
-- Both `**` (bash globstar) and `...` (LRM 33.3.1) are supported for recursive
-  directory matching.
-- A pattern is negated if it starts with a bang (`!`).
+> [!TIP]
+> See [Usage][6] for command-line options, configuration, and supported file
+> patterns.
 
 ## Contributing
 
-Pull requests are welcome! See [Contributing][8] for details.
+Pull requests are welcome! See [Contributing][7] for details.
 
 ## License
 
@@ -91,6 +50,5 @@ Source code in this repository is licensed under the MIT License. See
 [3]: https://github.com/sstallion/slang-format/blob/main/LICENSE
 [4]: https://sv-lang.com/
 [5]: https://clang.llvm.org/docs/ClangFormat.html
-[6]: https://github.com/sstallion/slang-format/blob/main/docs/style-options.md
-[7]: https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_13
-[8]: https://github.com/sstallion/slang-format/blob/main/CONTRIBUTING.md
+[6]: https://github.com/sstallion/slang-format/blob/main/docs/usage.md
+[7]: https://github.com/sstallion/slang-format/blob/main/CONTRIBUTING.md
