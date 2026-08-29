@@ -45,6 +45,8 @@ paths:
 - Statements surrounded by pragma comments (e.g. `// clang-format off` followed
   by `// clang-format on`) are wrapped by blank lines unless it is already at a
   natural boundary such as the start or end of a block.
+- Do not suppress Clang-Tidy or IWYU warnings and errors unless explicitly
+  authorized by the user.
 
 ### Includes
 

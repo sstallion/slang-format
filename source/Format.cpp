@@ -692,6 +692,7 @@ struct LineInfo {
     size_t typeWidth; ///< Distance from indent to identifier start.
     size_t identPos;  ///< Absolute position of identifier in the line.
     size_t equalsPos; ///< Position of '=' in declaration, or npos if absent.
+    size_t dimPos;    ///< Position of first '[' after type keyword, or npos if absent.
 };
 
 constexpr std::array TypeKeywords{
@@ -805,10 +806,44 @@ size_t findEquals(std::string_view line, size_t pos) {
     return npos;
 }
 
+size_t findDimPos(std::string_view line, size_t pos, std::string_view firstWord) {
+    if (isDirectionKeyword(firstWord) || isParameterKeyword(firstWord)) {
+        auto nextWord = extractWord(line, pos);
+        if (isTypeKeyword(nextWord)) {
+            auto afterType = skipSignedness(line, pos + nextWord.size());
+            auto afterSpaces = skipSpaces(line, afterType);
+            if (afterSpaces < line.size() && line[afterSpaces] == '[') {
+                return afterSpaces;
+            }
+        }
+        else if (nextWord == "signed" || nextWord == "unsigned") {
+            auto afterSign = skipSpaces(line, pos + nextWord.size());
+            if (afterSign < line.size() && line[afterSign] == '[') {
+                return afterSign;
+            }
+        }
+        else if (pos < line.size() && line[pos] == '[') {
+            return pos;
+        }
+    }
+    else if (isTypeKeyword(firstWord)) {
+        auto afterType = skipSignedness(line, pos + firstWord.size());
+        auto afterSpaces = skipSpaces(line, afterType);
+        if (afterSpaces < line.size() && line[afterSpaces] == '[') {
+            return afterSpaces;
+        }
+    }
+    return npos;
+}
+
 LineInfo classifyLine(std::string_view line, bool formatOff) {
     if (line.empty() || line.find_first_not_of(' ') == std::string_view::npos) {
-        return {
-            .kind = LineKind::Empty, .indent = 0, .typeWidth = 0, .identPos = 0, .equalsPos = npos};
+        return {.kind = LineKind::Empty,
+                .indent = 0,
+                .typeWidth = 0,
+                .identPos = 0,
+                .equalsPos = npos,
+                .dimPos = npos};
     }
 
     auto indentEnd = line.find_first_not_of(' ');
@@ -819,7 +854,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .indent = indentEnd,
                 .typeWidth = 0,
                 .identPos = 0,
-                .equalsPos = npos};
+                .equalsPos = npos,
+                .dimPos = npos};
     }
 
     if (content == ") (" || content == ");" || content == ")" || content == "#(") {
@@ -827,7 +863,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .indent = indentEnd,
                 .typeWidth = 0,
                 .identPos = 0,
-                .equalsPos = npos};
+                .equalsPos = npos,
+                .dimPos = npos};
     }
 
     if (formatOff) {
@@ -835,7 +872,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .indent = indentEnd,
                 .typeWidth = 0,
                 .identPos = 0,
-                .equalsPos = npos};
+                .equalsPos = npos,
+                .dimPos = npos};
     }
 
     auto firstWord = extractWord(content, 0);
@@ -844,15 +882,19 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .indent = indentEnd,
                 .typeWidth = 0,
                 .identPos = 0,
-                .equalsPos = npos};
+                .equalsPos = npos,
+                .dimPos = npos};
     }
 
     size_t pos = indentEnd;
+    size_t dimPos = npos;
     if (isDirectionKeyword(firstWord) || isParameterKeyword(firstWord)) {
         pos = skipSpaces(line, pos + firstWord.size());
+        dimPos = findDimPos(line, pos, firstWord);
         pos = skipDirectionType(line, pos);
     }
     else if (isTypeKeyword(firstWord)) {
+        dimPos = findDimPos(line, indentEnd, firstWord);
         pos = skipTypeQualifiers(line, pos + firstWord.size());
     }
     else {
@@ -860,7 +902,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .indent = indentEnd,
                 .typeWidth = 0,
                 .identPos = 0,
-                .equalsPos = npos};
+                .equalsPos = npos,
+                .dimPos = npos};
     }
 
     pos = skipSpaces(line, pos);
@@ -870,7 +913,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .indent = indentEnd,
                 .typeWidth = 0,
                 .identPos = 0,
-                .equalsPos = npos};
+                .equalsPos = npos,
+                .dimPos = npos};
     }
 
     auto eqPos = findEquals(line, pos);
@@ -878,7 +922,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
             .indent = indentEnd,
             .typeWidth = pos - indentEnd,
             .identPos = pos,
-            .equalsPos = eqPos};
+            .equalsPos = eqPos,
+            .dimPos = dimPos};
 }
 
 // NOLINTBEGIN(bugprone-easily-swappable-parameters)
@@ -943,6 +988,128 @@ bool shouldBreakGroup(const LineInfo& info, const AlignState& state, bool across
     }
 
     return true;
+}
+
+// NOLINTBEGIN(bugprone-easily-swappable-parameters)
+void alignGroupDimensions(std::string& result, const std::vector<std::string_view>& lines,
+                          const std::vector<LineInfo>& infos, size_t groupStart, size_t groupEnd) {
+    // NOLINTEND(bugprone-easily-swappable-parameters)
+    size_t dimCount = 0;
+    size_t maxDimCol = 0;
+    for (size_t i = groupStart; i < groupEnd; i++) {
+        if (infos[i].kind == LineKind::Declaration && infos[i].dimPos != npos) {
+            dimCount++;
+            maxDimCol = std::max(maxDimCol, infos[i].dimPos);
+        }
+    }
+
+    for (size_t i = groupStart; i < groupEnd; i++) {
+        if (infos[i].kind == LineKind::Declaration && infos[i].dimPos != npos && dimCount >= 2) {
+            auto line = lines[i];
+            auto dp = infos[i].dimPos;
+
+            size_t preDimEnd = dp;
+            while (preDimEnd > 0 && line[preDimEnd - 1] == ' ') {
+                preDimEnd--;
+            }
+
+            result.append(line.substr(0, preDimEnd));
+            result.append(maxDimCol - preDimEnd, ' ');
+            result.append(line.substr(dp));
+        }
+        else {
+            result.append(lines[i]);
+        }
+        result += '\n';
+    }
+}
+
+bool shouldBreakDimGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
+                         bool acrossComments, bool acrossIndent) {
+    if (info.kind == LineKind::Declaration && info.dimPos == npos) {
+        return state.inGroup;
+    }
+    return shouldBreakGroup(info, state, acrossEmpty, acrossComments, acrossIndent);
+}
+
+std::string applyAlignConsecutivePackedDimensions(const std::string& output,
+                                                  AlignConsecutiveStyle alignStyle) {
+    if (alignStyle == AlignConsecutiveStyle::None) {
+        return output;
+    }
+
+    bool const acrossEmpty = alignStyle == AlignConsecutiveStyle::AcrossEmptyLines ||
+                             alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
+                             alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
+    bool const acrossComments = alignStyle == AlignConsecutiveStyle::AcrossComments ||
+                                alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
+                                alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
+    bool const acrossIndent = alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
+
+    std::vector<std::string_view> lines;
+    std::string_view remaining{output};
+    while (!remaining.empty()) {
+        auto nl = remaining.find('\n');
+        if (nl == std::string_view::npos) {
+            lines.push_back(remaining);
+            remaining = {};
+        }
+        else {
+            lines.push_back(remaining.substr(0, nl));
+            remaining.remove_prefix(nl + 1);
+        }
+    }
+
+    std::vector<LineInfo> infos;
+    infos.reserve(lines.size());
+    bool formatOff = false;
+    for (auto& line : lines) {
+        if (line.find("slang-format off") != std::string_view::npos) {
+            formatOff = true;
+        }
+        else if (line.find("slang-format on") != std::string_view::npos) {
+            formatOff = false;
+        }
+
+        infos.push_back(classifyLine(line, formatOff));
+    }
+
+    std::string result;
+    result.reserve(output.size());
+    AlignState state;
+
+    for (size_t i = 0; i < lines.size(); i++) {
+        auto& info = infos[i];
+        bool const hasDim = info.kind == LineKind::Declaration && info.dimPos != npos;
+        bool const breakGroup = shouldBreakDimGroup(info, state, acrossEmpty, acrossComments,
+                                                    acrossIndent);
+
+        if (breakGroup && state.inGroup) {
+            alignGroupDimensions(result, lines, infos, state.groupStart, i);
+            state.inGroup = false;
+            state.groupIndent.reset();
+        }
+
+        if (hasDim && !state.inGroup) {
+            state.groupStart = i;
+            state.inGroup = true;
+            state.groupIndent = info.indent;
+        }
+        else if (!state.inGroup) {
+            result.append(lines[i]);
+            result += '\n';
+        }
+    }
+
+    if (state.inGroup) {
+        alignGroupDimensions(result, lines, infos, state.groupStart, lines.size());
+    }
+
+    if (!result.empty() && result.back() == '\n' && (output.empty() || output.back() != '\n')) {
+        result.pop_back();
+    }
+
+    return result;
 }
 
 std::string applyAlignConsecutiveDeclarations(const std::string& output,
@@ -1176,6 +1343,11 @@ std::string reformat(std::string_view text, const Style& style) {
     FormatPrinter printer(style);
 
     auto result = printer.print(*tree);
+    if (style.AlignConsecutivePackedDimensions != AlignConsecutiveStyle::None) {
+        result = applyAlignConsecutivePackedDimensions(result,
+                                                       style.AlignConsecutivePackedDimensions);
+    }
+
     if (style.AlignConsecutiveDeclarations != AlignConsecutiveStyle::None) {
         result = applyAlignConsecutiveDeclarations(result, style.AlignConsecutiveDeclarations);
     }

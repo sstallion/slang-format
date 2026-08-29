@@ -48,6 +48,9 @@ struct Style {
     /// Controls alignment of signal names in consecutive declarations.
     AlignConsecutiveStyle AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
 
+    /// Controls alignment of packed dimensions in consecutive declarations.
+    AlignConsecutiveStyle AlignConsecutivePackedDimensions = AlignConsecutiveStyle::None;
+
     /// Maximum number of consecutive empty lines to keep.
     unsigned MaxEmptyLinesToKeep = 1;
 

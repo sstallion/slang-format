@@ -118,6 +118,8 @@ std::string dumpConfiguration(const Style& style) {
         << std::string{toString(style.AlignConsecutiveAssignments)};
     out << YAML::Key << "AlignConsecutiveDeclarations" << YAML::Value
         << std::string{toString(style.AlignConsecutiveDeclarations)};
+    out << YAML::Key << "AlignConsecutivePackedDimensions" << YAML::Value
+        << std::string{toString(style.AlignConsecutivePackedDimensions)};
     out << YAML::Key << "BreakAfterAlways" << YAML::Value
         << std::string{toString(style.BreakAfterAlways)};
     out << YAML::Key << "BreakAfterBegin" << YAML::Value << style.BreakAfterBegin;
@@ -156,6 +158,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto v = lookup(node, "AlignConsecutiveDeclarations")) {
         style.AlignConsecutiveDeclarations = parseAlignConsecutiveStyle(v.as<std::string>());
+    }
+
+    if (auto v = lookup(node, "AlignConsecutivePackedDimensions")) {
+        style.AlignConsecutivePackedDimensions = parseAlignConsecutiveStyle(v.as<std::string>());
     }
 
     if (auto v = lookup(node, "MaxEmptyLinesToKeep")) {

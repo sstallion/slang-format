@@ -110,6 +110,27 @@ TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarations) {
     EXPECT_EQ(parse("AlignConsecutiveDeclarations: None"), AlignConsecutiveStyle::None);
 }
 
+TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensions) {
+    auto parse = [](const char* yaml) {
+        YAML::Node const node = YAML::Load(yaml);
+        Style style;
+        parseConfiguration(node, style);
+        return style.AlignConsecutivePackedDimensions;
+    };
+
+    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: AcrossComments"),
+              AlignConsecutiveStyle::AcrossComments);
+    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: AcrossEmptyLines"),
+              AlignConsecutiveStyle::AcrossEmptyLines);
+    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: AcrossEmptyLinesAndComments"),
+              AlignConsecutiveStyle::AcrossEmptyLinesAndComments);
+    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: AcrossParameterPortList"),
+              AlignConsecutiveStyle::AcrossParameterPortList);
+    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: Consecutive"),
+              AlignConsecutiveStyle::Consecutive);
+    EXPECT_EQ(parse("AlignConsecutivePackedDimensions: None"), AlignConsecutiveStyle::None);
+}
+
 TEST(ParseConfiguration, ContinuationIndentWidthDefaultsToIndentWidth) {
     YAML::Node const node = YAML::Load("IndentWidth: 6");
     Style style;

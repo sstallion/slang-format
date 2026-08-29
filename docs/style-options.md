@@ -148,6 +148,45 @@ endmodule
 
 ---
 
+### AlignConsecutivePackedDimensions (AlignConsecutiveStyle)
+
+Controls alignment of packed dimensions in consecutive declarations. When
+enabled, the opening bracket `[` of packed dimensions in adjacent declarations
+is aligned by padding the type specifier with trailing spaces. Only declarations
+that have packed dimensions participate in alignment groups; declarations without
+packed dimensions are skipped.
+
+**Default:** `None`
+
+| Value                          | Description                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| `AcrossComments`               | Comments do not break groups; empty lines do.                                      |
+| `AcrossEmptyLines`             | Empty lines do not break groups; comments do.                                      |
+| `AcrossEmptyLinesAndComments`  | Neither empty lines nor comments break groups.                                     |
+| `AcrossParameterPortList`      | Superset of `AcrossEmptyLinesAndComments`; port list boundaries do not break groups. |
+| `Consecutive`                  | Align consecutive declarations; empty lines and comments break groups.             |
+| `None`                         | No alignment applied.                                                              |
+
+`Consecutive`:
+
+```sv
+module foo;
+  bit   [7:0] a;
+  logic [7:0] b;
+endmodule
+```
+
+`None` (default):
+
+```sv
+module foo;
+  bit [7:0] a;
+  logic [7:0] b;
+endmodule
+```
+
+---
+
 ### BreakAfterAlways (BreakAfterBlockStyle)
 
 Controls whether a newline is inserted between an `always`, `always_comb`,

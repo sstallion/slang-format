@@ -56,6 +56,8 @@ reformat(source, style)
   │   ├─ Limit consecutive empty lines
   │   └─ Honor formatting pragmas
   │
+  ├─ applyAlignConsecutivePackedDimensions()  # Optional post-processing
+  │
   ├─ applyAlignConsecutiveDeclarations()   # Optional post-processing
   │
   ├─ applyAlignConsecutiveAssignments()   # Optional post-processing

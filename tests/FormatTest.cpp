@@ -1299,6 +1299,280 @@ TEST(AlignConsecutiveDeclarations, IndentLevelBreaksGroup) {
 // clang-format on
 
 // clang-format off
+TEST(AlignConsecutivePackedDimensions, None) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::None;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:0] b;
+          logic [31:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:0] b;
+          logic [31:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, Consecutive) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::Consecutive;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          bit [7:0] a;
+          logic [15:0] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bit   [7:0] a;
+          logic [15:0] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, SkipsBareTypes) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::Consecutive;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic b;
+          logic [15:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic b;
+          logic [15:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, GroupBrokenByEmptyLine) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::Consecutive;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+
+          logic [15:0] b;
+          logic [31:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] a;
+
+          logic [15:0] b;
+          logic [31:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, GroupBrokenByComment) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::Consecutive;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          // comment
+          logic [15:0] b;
+          logic [31:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] a;
+          // comment
+          logic [15:0] b;
+          logic [31:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, AcrossEmptyLines) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::AcrossEmptyLines;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          bit [7:0] a;
+
+          logic [15:0] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bit   [7:0] a;
+
+          logic [15:0] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, AcrossComments) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::AcrossComments;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          bit [7:0] a;
+          // comment
+          logic [15:0] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bit   [7:0] a;
+          // comment
+          logic [15:0] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, AcrossEmptyLinesAndComments) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::AcrossEmptyLinesAndComments;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          bit [7:0] a;
+
+          // comment
+          logic [15:0] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bit   [7:0] a;
+
+          // comment
+          logic [15:0] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, AcrossParameterPortList) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::AcrossParameterPortList;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo #(
+          parameter bit [7:0] M = 8,
+          parameter logic [15:0] N = 16
+        ) (
+          input bit [7:0] a,
+          input logic [31:0] b
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo #(
+          parameter bit   [7:0] M = 8,
+          parameter logic [15:0] N = 16
+        ) (
+          input bit       [7:0] a,
+          input logic     [31:0] b
+        );
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, DirectionKeywords) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::Consecutive;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo(
+          input bit [7:0] a,
+          input logic [15:0] b
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo(
+          input bit   [7:0] a,
+          input logic [15:0] b
+        );
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, WithAlignConsecutiveDeclarations) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::Consecutive;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          bit [7:0] a;
+          logic [15:0] b;
+          logic c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bit   [7:0]  a;
+          logic [15:0] b;
+          logic        c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, FormatOff) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::Consecutive;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          // slang-format off
+          bit [7:0] a;
+          logic [15:0] b;
+          // slang-format on
+          bit [7:0] c;
+          logic [31:0] d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // slang-format off
+          bit [7:0] a;
+          logic [15:0] b;
+          // slang-format on
+          bit   [7:0] c;
+          logic [31:0] d;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, SingleDeclaration) {
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::None;
+    style.AlignConsecutivePackedDimensions = AlignConsecutiveStyle::Consecutive;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] a;
+        endmodule
+    )"));
+}
+// clang-format on
+
+// clang-format off
 TEST(AlignConsecutiveAssignments, None) {
     Style style;
     style.AlignConsecutiveAssignments = AlignConsecutiveStyle::None;
