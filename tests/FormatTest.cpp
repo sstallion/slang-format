@@ -1085,7 +1085,7 @@ TEST(AlignConsecutiveDeclarations, ConsecutiveNonDeclarationBreaksGroup) {
 
 TEST(AlignConsecutiveDeclarations, AcrossEmptyLines) {
     Style style;
-    style.AlignConsecutiveDeclarations = {.Enabled = true, .AcrossEmptyLines = true};
+    style.AlignConsecutiveDeclarations = {.AcrossEmptyLines = true, .Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1106,7 +1106,7 @@ TEST(AlignConsecutiveDeclarations, AcrossEmptyLines) {
 
 TEST(AlignConsecutiveDeclarations, AcrossComments) {
     Style style;
-    style.AlignConsecutiveDeclarations = {.Enabled = true, .AcrossComments = true};
+    style.AlignConsecutiveDeclarations = {.AcrossComments = true, .Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1127,7 +1127,7 @@ TEST(AlignConsecutiveDeclarations, AcrossComments) {
 
 TEST(AlignConsecutiveDeclarations, AcrossEmptyLinesAndComments) {
     Style style;
-    style.AlignConsecutiveDeclarations = {.Enabled = true, .AcrossComments = true, .AcrossEmptyLines = true};
+    style.AlignConsecutiveDeclarations = {.AcrossComments = true, .AcrossEmptyLines = true, .Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1150,7 +1150,7 @@ TEST(AlignConsecutiveDeclarations, AcrossEmptyLinesAndComments) {
 
 TEST(AlignConsecutiveDeclarations, AcrossParameterPortList) {
     Style style;
-    style.AlignConsecutiveDeclarations = {.Enabled = true, .AcrossParameterPortList = true};
+    style.AlignConsecutiveDeclarations = {.AcrossParameterPortList = true, .Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
@@ -1411,7 +1411,7 @@ TEST(AlignConsecutivePackedDimensions, GroupBrokenByComment) {
 TEST(AlignConsecutivePackedDimensions, AcrossEmptyLines) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions = {.Enabled = true, .AcrossEmptyLines = true};
+    style.AlignConsecutivePackedDimensions = {.AcrossEmptyLines = true, .Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1431,7 +1431,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossEmptyLines) {
 TEST(AlignConsecutivePackedDimensions, AcrossComments) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions = {.Enabled = true, .AcrossComments = true};
+    style.AlignConsecutivePackedDimensions = {.AcrossComments = true, .Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1451,7 +1451,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossComments) {
 TEST(AlignConsecutivePackedDimensions, AcrossEmptyLinesAndComments) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions = {.Enabled = true, .AcrossComments = true, .AcrossEmptyLines = true};
+    style.AlignConsecutivePackedDimensions = {.AcrossComments = true, .AcrossEmptyLines = true, .Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1473,7 +1473,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossEmptyLinesAndComments) {
 TEST(AlignConsecutivePackedDimensions, AcrossParameterPortList) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions = {.Enabled = true, .AcrossParameterPortList = true};
+    style.AlignConsecutivePackedDimensions = {.AcrossParameterPortList = true, .Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
@@ -1574,6 +1574,211 @@ TEST(AlignConsecutivePackedDimensions, SingleDeclaration) {
     )"), style), dedent(R"(
         module foo;
           logic [7:0] a;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, PadLeft) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {.Enabled = true, .PadLeft = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:0] b;
+          logic [127:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [  7:0] a;
+          logic [ 15:0] b;
+          logic [127:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, PadRight) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {.Enabled = true, .PadRight = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:0] b;
+          logic [127:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0  ] a;
+          logic [15:0 ] b;
+          logic [127:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, AlignColon) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {.AlignColon = true, .Enabled = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:12] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [ 7:0] a;
+          logic [15:12] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, AlignColonPadLeft) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {
+        .AlignColon = true, .Enabled = true, .PadLeft = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:12] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [ 7: 0] a;
+          logic [15:12] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, AlignColonPadRight) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {
+        .AlignColon = true, .Enabled = true, .PadRight = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:12] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [ 7:0 ] a;
+          logic [15:12] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, PadLeftPrecedenceOverPadRight) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {
+        .Enabled = true, .PadLeft = true, .PadRight = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:0] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [ 7:0] a;
+          logic [15:0] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, MultipleDimensions) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {.Enabled = true, .PadLeft = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0][3:0] a;
+          logic [15:0][7:0] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [ 7:0][3:0] a;
+          logic [15:0][7:0] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, MultipleDimensionsDifferentWidths) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {.Enabled = true, .PadLeft = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0][3:0] a;
+          logic [15:0][15:0] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [ 7:0][ 3:0] a;
+          logic [15:0][15:0] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, SingleNumberDimensions) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {.Enabled = true, .PadLeft = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [8] a;
+          logic [16] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [ 8] a;
+          logic [16] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, ContentAlignDisabledWhenNotEnabled) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {.PadLeft = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:0] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:0] b;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, PadLeftWithDeclarationAlignment) {
+    Style style;
+    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutivePackedDimensions = {.Enabled = true, .PadLeft = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] a;
+          logic [15:0] b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [ 7:0] a;
+          logic [15:0] b;
         endmodule
     )"));
 }
@@ -1694,7 +1899,7 @@ TEST(AlignConsecutiveAssignments, ConsecutiveNonDeclarationBreaksGroup) {
 
 TEST(AlignConsecutiveAssignments, AcrossEmptyLines) {
     Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .AcrossEmptyLines = true};
+    style.AlignConsecutiveAssignments = {.AcrossEmptyLines = true, .Enabled = true};
     style.AlignConsecutiveDeclarations = {};
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1716,7 +1921,7 @@ TEST(AlignConsecutiveAssignments, AcrossEmptyLines) {
 
 TEST(AlignConsecutiveAssignments, AcrossComments) {
     Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .AcrossComments = true};
+    style.AlignConsecutiveAssignments = {.AcrossComments = true, .Enabled = true};
     style.AlignConsecutiveDeclarations = {};
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1738,7 +1943,7 @@ TEST(AlignConsecutiveAssignments, AcrossComments) {
 
 TEST(AlignConsecutiveAssignments, AcrossEmptyLinesAndComments) {
     Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .AcrossComments = true, .AcrossEmptyLines = true};
+    style.AlignConsecutiveAssignments = {.AcrossComments = true, .AcrossEmptyLines = true, .Enabled = true};
     style.AlignConsecutiveDeclarations = {};
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1762,7 +1967,7 @@ TEST(AlignConsecutiveAssignments, AcrossEmptyLinesAndComments) {
 
 TEST(AlignConsecutiveAssignments, AcrossParameterPortList) {
     Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .AcrossParameterPortList = true};
+    style.AlignConsecutiveAssignments = {.AcrossParameterPortList = true, .Enabled = true};
     style.AlignConsecutiveDeclarations = {};
 
     EXPECT_EQ(reformat(dedent(R"(

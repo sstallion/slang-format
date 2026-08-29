@@ -55,8 +55,20 @@ void parseAlignConsecutive(const YAML::Node& node, AlignConsecutiveStyle& config
         config.AcrossParameterPortList = v.as<bool>();
     }
 
+    if (auto v = lookup(node, "AlignColon")) {
+        config.AlignColon = v.as<bool>();
+    }
+
     if (auto v = lookup(node, "Enabled")) {
         config.Enabled = v.as<bool>();
+    }
+
+    if (auto v = lookup(node, "PadLeft")) {
+        config.PadLeft = v.as<bool>();
+    }
+
+    if (auto v = lookup(node, "PadRight")) {
+        config.PadRight = v.as<bool>();
     }
 }
 
@@ -118,7 +130,12 @@ std::string dumpConfiguration(const Style& style) {
         << style.AlignConsecutivePackedDimensions.AcrossEmptyLines;
     out << YAML::Key << "AcrossParameterPortList" << YAML::Value
         << style.AlignConsecutivePackedDimensions.AcrossParameterPortList;
+    out << YAML::Key << "AlignColon" << YAML::Value
+        << style.AlignConsecutivePackedDimensions.AlignColon;
     out << YAML::Key << "Enabled" << YAML::Value << style.AlignConsecutivePackedDimensions.Enabled;
+    out << YAML::Key << "PadLeft" << YAML::Value << style.AlignConsecutivePackedDimensions.PadLeft;
+    out << YAML::Key << "PadRight" << YAML::Value
+        << style.AlignConsecutivePackedDimensions.PadRight;
     out << YAML::EndMap;
     out << YAML::Key << "BreakAfterAlways" << YAML::Value
         << std::string{toString(style.BreakAfterAlways)};

@@ -19,7 +19,7 @@
   - [ ] Line breaks between constructs
   - [ ] Alignment:
     - [x] Names
-    - [ ] Ranges
+    - [x] Dimensions
     - [/] Assignments
     - [ ] Groups (i.e. parameters, signals)
     - [ ] Delays

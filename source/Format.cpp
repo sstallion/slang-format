@@ -992,8 +992,168 @@ bool shouldBreakGroup(const LineInfo& info, const AlignState& state, bool across
     return true;
 }
 
+struct DimContent {
+    std::string_view full;
+    std::string_view left;
+    std::string_view right;
+    bool hasColon;
+    size_t openPos;
+    size_t closePos;
+};
+
+struct DimWidths {
+    size_t maxFullWidth = 0;
+    size_t maxLeftWidth = 0;
+    size_t maxRightWidth = 0;
+};
+
+std::vector<DimContent> parseDimContents(std::string_view line, size_t pos) {
+    std::vector<DimContent> dims;
+    while (pos < line.size()) {
+        pos = skipSpaces(line, pos);
+        if (pos >= line.size() || line[pos] != '[') {
+            break;
+        }
+
+        auto openPos = pos;
+        pos++;
+        auto depth = 1;
+        auto contentStart = pos;
+        while (pos < line.size() && depth > 0) {
+            if (line[pos] == '[') {
+                depth++;
+            }
+            else if (line[pos] == ']') {
+                depth--;
+            }
+
+            if (depth > 0) {
+                pos++;
+            }
+        }
+
+        auto contentEnd = pos;
+        auto closePos = pos;
+        if (pos < line.size()) {
+            pos++;
+        }
+
+        auto full = line.substr(contentStart, contentEnd - contentStart);
+        auto colonPos = full.find(':');
+        if (colonPos != npos) {
+            dims.push_back({.full = full,
+                            .left = full.substr(0, colonPos),
+                            .right = full.substr(colonPos + 1),
+                            .hasColon = true,
+                            .openPos = openPos,
+                            .closePos = closePos});
+        }
+        else {
+            dims.push_back({.full = full,
+                            .left = full,
+                            .right = {},
+                            .hasColon = false,
+                            .openPos = openPos,
+                            .closePos = closePos});
+        }
+    }
+    return dims;
+}
+
+void emitDimContent(std::string& result, const DimContent& dim, const DimWidths& widths,
+                    const AlignConsecutiveStyle& alignStyle) {
+    if (alignStyle.AlignColon && dim.hasColon) {
+        result.append(widths.maxLeftWidth - dim.left.size(), ' ');
+        result.append(dim.left);
+        result += ':';
+
+        if (alignStyle.PadLeft) {
+            result.append(widths.maxRightWidth - dim.right.size(), ' ');
+            result.append(dim.right);
+        }
+        else if (alignStyle.PadRight) {
+            result.append(dim.right);
+            result.append(widths.maxRightWidth - dim.right.size(), ' ');
+        }
+        else {
+            result.append(dim.right);
+        }
+    }
+    else if (alignStyle.PadLeft) {
+        result.append(widths.maxFullWidth - dim.full.size(), ' ');
+        result.append(dim.full);
+    }
+    else if (alignStyle.PadRight) {
+        result.append(dim.full);
+        result.append(widths.maxFullWidth - dim.full.size(), ' ');
+    }
+    else {
+        result.append(dim.full);
+    }
+}
+
+void emitRewrittenDims(std::string& result, std::string_view line,
+                       const std::vector<DimContent>& dims,
+                       const std::vector<DimWidths>& slotWidths,
+                       const AlignConsecutiveStyle& alignStyle) {
+    size_t lastClose = npos;
+    for (size_t j = 0; j < dims.size(); j++) {
+        if (j > 0 && dims[j].openPos > lastClose + 1) {
+            result.append(dims[j].openPos - lastClose - 1, ' ');
+        }
+
+        result += '[';
+        emitDimContent(result, dims[j], slotWidths[j], alignStyle);
+        result += ']';
+        lastClose = dims[j].closePos;
+    }
+
+    auto origLastClose = dims.back().closePos;
+    if (origLastClose + 1 < line.size()) {
+        result.append(line.substr(origLastClose + 1));
+    }
+}
+
+std::vector<DimWidths> computeSlotWidths(const std::vector<std::vector<DimContent>>& allDims) {
+    size_t maxSlots = 0;
+    for (const auto& dims : allDims) {
+        maxSlots = std::max(maxSlots, dims.size());
+    }
+
+    std::vector<DimWidths> slotWidths(maxSlots);
+    for (const auto& dims : allDims) {
+        for (size_t j = 0; j < dims.size(); j++) {
+            slotWidths[j].maxFullWidth = std::max(slotWidths[j].maxFullWidth, dims[j].full.size());
+
+            if (dims[j].hasColon) {
+                slotWidths[j].maxLeftWidth = std::max(slotWidths[j].maxLeftWidth,
+                                                      dims[j].left.size());
+                slotWidths[j].maxRightWidth = std::max(slotWidths[j].maxRightWidth,
+                                                       dims[j].right.size());
+            }
+        }
+    }
+    return slotWidths;
+}
+
+std::vector<std::vector<DimContent>> collectDimContents(const std::vector<std::string_view>& lines,
+                                                        const std::vector<LineInfo>& infos,
+                                                        GroupRange range) {
+    std::vector<std::vector<DimContent>> allDims;
+    for (size_t i = range.start; i < range.end; i++) {
+        if (infos[i].kind == LineKind::Declaration && infos[i].dimPos != npos) {
+            allDims.push_back(parseDimContents(lines[i], infos[i].dimPos));
+        }
+        else {
+            allDims.emplace_back();
+        }
+    }
+    return allDims;
+}
+
 void alignGroupDimensions(std::string& result, const std::vector<std::string_view>& lines,
-                          const std::vector<LineInfo>& infos, GroupRange range) {
+                          const std::vector<LineInfo>& infos, GroupRange range,
+                          const AlignConsecutiveStyle& alignStyle) {
     size_t dimCount = 0;
     size_t maxDimCol = 0;
     for (size_t i = range.start; i < range.end; i++) {
@@ -1003,6 +1163,16 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
         }
     }
 
+    auto const contentAlign = alignStyle.AlignColon || alignStyle.PadLeft || alignStyle.PadRight;
+
+    std::vector<std::vector<DimContent>> allDims;
+    std::vector<DimWidths> slotWidths;
+    if (contentAlign && dimCount >= 2) {
+        allDims = collectDimContents(lines, infos, range);
+        slotWidths = computeSlotWidths(allDims);
+    }
+
+    size_t dimIdx = 0;
     for (size_t i = range.start; i < range.end; i++) {
         if (infos[i].kind == LineKind::Declaration && infos[i].dimPos != npos && dimCount >= 2) {
             auto line = lines[i];
@@ -1015,10 +1185,21 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
 
             result.append(line.substr(0, preDimEnd));
             result.append(maxDimCol - preDimEnd, ' ');
-            result.append(line.substr(dp));
+
+            if (contentAlign && dimIdx < allDims.size() && !allDims[dimIdx].empty()) {
+                emitRewrittenDims(result, line, allDims[dimIdx], slotWidths, alignStyle);
+            }
+            else {
+                result.append(line.substr(dp));
+            }
+
+            dimIdx++;
         }
         else {
             result.append(lines[i]);
+            if (contentAlign) {
+                dimIdx++;
+            }
         }
         result += '\n';
     }
@@ -1187,8 +1368,12 @@ std::string reformat(std::string_view text, const Style& style) {
     FormatPrinter printer(style);
 
     auto result = printer.print(*tree);
+    auto dimAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
+                               const std::vector<LineInfo>& inf, GroupRange rng) {
+        alignGroupDimensions(r, l, inf, rng, style.AlignConsecutivePackedDimensions);
+    };
     result = applyAlignConsecutive(result, style.AlignConsecutivePackedDimensions,
-                                   shouldBreakDimGroup, canStartDimGroup, alignGroupDimensions);
+                                   shouldBreakDimGroup, canStartDimGroup, dimAlignFn);
     result = applyAlignConsecutive(result, style.AlignConsecutiveDeclarations, shouldBreakGroup,
                                    canStartDeclGroup, alignGroup);
     result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments, shouldBreakGroup,

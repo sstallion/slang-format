@@ -197,9 +197,11 @@ Controls alignment of packed dimensions in consecutive declarations. When
 enabled, the opening bracket `[` of packed dimensions in adjacent declarations
 is aligned by padding the type specifier with trailing spaces. Only declarations
 that have packed dimensions participate in alignment groups; declarations without
-packed dimensions are skipped. This is a nested mapping with four sub-options.
-`Enabled` is a master switch; the remaining sub-options take effect only when
-`Enabled` is `true`.
+packed dimensions are skipped. Content within brackets can be independently
+padded and colon-aligned using the `AlignColon`, `PadLeft`, and `PadRight`
+sub-options. This is a nested mapping with seven sub-options. `Enabled` is a
+master switch; the remaining sub-options take effect only when `Enabled` is
+`true`.
 
 **Default:**
 
@@ -208,7 +210,10 @@ AlignConsecutivePackedDimensions:
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
+  AlignColon: false
   Enabled: false
+  PadLeft: false
+  PadRight: false
 ```
 
 #### AcrossComments (bool)
@@ -235,6 +240,32 @@ Has no effect when `Enabled` is `false`.
 
 **Default:** `false`
 
+#### AlignColon (bool)
+
+If `true`, right-justify the left-side value of packed dimension ranges to align
+`:` separators across a group. When combined with `PadLeft` or `PadRight`, those
+options independently pad the right-side value after the `:`. For dimensions
+without a `:`, this option has no effect and `PadLeft`/`PadRight` apply to the
+whole content.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+```sv
+// AlignColon: true
+module foo;
+  logic [ 7:0] a;
+  logic [15:0] b;
+endmodule
+
+// AlignColon: true, PadLeft: true
+module foo;
+  logic [ 7: 0] a;
+  logic [15: 0] b;
+endmodule
+```
+
 #### Enabled (bool)
 
 If `false`, disables all alignment regardless of other options.
@@ -252,6 +283,42 @@ endmodule
 module foo;
   bit [7:0] a;
   logic [7:0] b;
+endmodule
+```
+
+#### PadLeft (bool)
+
+If `true`, left-pad content within brackets to right-justify values. Takes
+precedence over `PadRight` when both are set.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+```sv
+// PadLeft: true
+module foo;
+  logic [  7:0] a;
+  logic [ 15:0] b;
+  logic [127:0] c;
+endmodule
+```
+
+#### PadRight (bool)
+
+If `true`, right-pad content within brackets to left-justify values. Has no
+effect when `PadLeft` is also `true`.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+```sv
+// PadRight: true
+module foo;
+  logic [7:0  ] a;
+  logic [15:0 ] b;
+  logic [127:0] c;
 endmodule
 ```
 

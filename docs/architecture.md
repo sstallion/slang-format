@@ -93,11 +93,13 @@ with last-match-wins semantics.
 ### Configuration Dump
 
 The `--dump-config` option serializes the resolved style to a YAML document on
-stdout, matching the behavior of `clang-format --dump-config`. All fields are
-emitted unconditionally in alphabetical order, wrapped with `---` and `...`
-document markers. When a new configuration option is added, its key must be
-inserted at the correct alphabetical position in `dumpConfiguration()` and a
-corresponding round-trip test added.
+stdout, matching the behavior of `clang-format --dump-config`. Fields are emitted
+in alphabetical order, wrapped with `---` and `...` document markers. When a
+shared struct contains fields that are unused by a particular configuration
+option, those fields must not be emitted for that option. When a new
+configuration option is added, its key must be inserted at the correct
+alphabetical position in `dumpConfiguration()` and a corresponding round-trip
+test added.
 
 ### Separate Structural and Formatting Passes
 

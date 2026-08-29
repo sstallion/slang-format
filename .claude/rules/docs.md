@@ -60,6 +60,8 @@ The file contains the following sections, in order:
 - **Configurable Options** - Documents per-option type, default value, allowed
   values (for enums), and before and after code examples written in
   SystemVerilog using `sv` fenced code blocks.
+- Shared struct fields that are unused by a particular configuration option
+  must not be documented for that option.
 
 ### TODO
 

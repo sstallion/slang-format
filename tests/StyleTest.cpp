@@ -236,6 +236,48 @@ TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensionsEnabled) {
     EXPECT_TRUE(style.AlignConsecutivePackedDimensions.Enabled);
 }
 
+TEST(ParseConfiguration, ParsesAlignConsecutiveStyleAlignColon) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutivePackedDimensions:
+          AlignColon: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.AlignColon);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutiveStylePadLeft) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutivePackedDimensions:
+          PadLeft: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.PadLeft);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutiveStylePadRight) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutivePackedDimensions:
+          PadRight: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.PadRight);
+}
+
 TEST(ParseConfiguration, ContinuationIndentWidthDefaultsToIndentWidth) {
     YAML::Node const node = YAML::Load("IndentWidth: 6");
     Style style;
@@ -414,6 +456,9 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("OneLineFormatOffRegex: \"\""), std::string::npos);
     EXPECT_NE(result.find("ParameterPortListIndentWidth: 2"), std::string::npos);
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
+    EXPECT_NE(result.find("AlignColon: false"), std::string::npos);
+    EXPECT_NE(result.find("PadLeft: false"), std::string::npos);
+    EXPECT_NE(result.find("PadRight: false"), std::string::npos);
     EXPECT_NE(result.find("ControlStatements: true"), std::string::npos);
     EXPECT_NE(result.find("AlwaysStatements: true"), std::string::npos);
     EXPECT_NE(result.find("InitialStatements: true"), std::string::npos);
@@ -435,6 +480,9 @@ TEST(DumpConfiguration, RoundTrip) {
     Style original;
     original.AlignConsecutiveDeclarations.Enabled = true;
     original.AlignConsecutiveDeclarations.AcrossEmptyLines = true;
+    original.AlignConsecutivePackedDimensions.AlignColon = true;
+    original.AlignConsecutivePackedDimensions.PadLeft = true;
+    original.AlignConsecutivePackedDimensions.PadRight = true;
     original.IndentWidth = 4;
     original.ContinuationIndentWidth = 4;
     original.ParameterPortListIndentWidth = 4;
