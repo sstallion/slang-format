@@ -21,7 +21,7 @@
     - [x] Names
     - [x] Dimensions
     - [/] Assignments
-    - [ ] Groups (i.e. parameters, signals)
+    - [x] Groups (i.e. parameters, signals)
     - [ ] Delays
   - [ ] Multiple assignments
   - [ ] MSB vs. LSB ranges

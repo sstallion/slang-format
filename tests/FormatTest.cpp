@@ -1083,6 +1083,25 @@ TEST(AlignConsecutiveDeclarations, ConsecutiveNonDeclarationBreaksGroup) {
     )"));
 }
 
+TEST(AlignConsecutiveDeclarations, ContinuationLines) {
+    Style style;
+    style.AlignConsecutiveDeclarations.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          localparam [1:0] STATE_0 = 1,
+            STATE_1 = 2,
+            STATE_2 = 3;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          localparam [1:0] STATE_0 = 1,
+                           STATE_1 = 2,
+                           STATE_2 = 3;
+        endmodule
+    )"));
+}
+
 TEST(AlignConsecutiveDeclarations, AcrossEmptyLines) {
     Style style;
     style.AlignConsecutiveDeclarations = {.AcrossEmptyLines = true, .Enabled = true};
@@ -1893,6 +1912,66 @@ TEST(AlignConsecutiveAssignments, ConsecutiveNonDeclarationBreaksGroup) {
           assign x = 1;
           logic [15:0] c = 3;
           logic d        = 4;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, ContinuationLines) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          localparam [1:0] STATE_0 = 1,
+            STATE_1 = 2,
+            STATE_2 = 3;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          localparam [1:0] STATE_0 = 1,
+            STATE_1                = 2,
+            STATE_2                = 3;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, ContinuationLinesVariableLength) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          localparam [1:0] A = 1,
+            LONG_NAME = 2,
+            B = 3;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          localparam [1:0] A = 1,
+            LONG_NAME        = 2,
+            B                = 3;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, ContinuationLinesWithDeclarationAlignment) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          localparam [1:0] STATE_0 = 1,
+            STATE_1 = 2,
+            STATE_2 = 3;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          localparam [1:0] STATE_0 = 1,
+                           STATE_1 = 2,
+                           STATE_2 = 3;
         endmodule
     )"));
 }

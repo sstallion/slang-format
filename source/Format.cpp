@@ -683,7 +683,7 @@ private:
     }
 };
 
-enum class LineKind { Declaration, Comment, Empty, PortListBoundary, Other };
+enum class LineKind { Continuation, Declaration, Comment, Empty, PortListBoundary, Other };
 
 struct LineInfo {
     LineKind kind;
@@ -925,6 +925,30 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
             .dimPos = dimPos};
 }
 
+bool isContinuationLine(std::string_view line) {
+    auto indentEnd = line.find_first_not_of(' ');
+    if (indentEnd == npos) {
+        return false;
+    }
+
+    if (std::isalpha(static_cast<unsigned char>(line[indentEnd])) == 0 && line[indentEnd] != '_') {
+        return false;
+    }
+
+    auto word = extractWord(line, indentEnd);
+    auto afterWord = skipSpaces(line, indentEnd + word.size());
+    if (afterWord >= line.size() || line[afterWord] != '=') {
+        return false;
+    }
+
+    if (afterWord + 1 < line.size() && line[afterWord + 1] == '=') {
+        return false;
+    }
+
+    auto lastNonSpace = line.find_last_not_of(' ');
+    return lastNonSpace != npos && (line[lastNonSpace] == ',' || line[lastNonSpace] == ';');
+}
+
 struct GroupRange {
     size_t start;
     size_t end;
@@ -934,12 +958,21 @@ void alignGroup(std::string& result, const std::vector<std::string_view>& lines,
                 const std::vector<LineInfo>& infos, GroupRange range) {
     size_t declCount = 0;
     size_t maxTypeWidth = 0;
+    std::optional<size_t> groupIndent;
     for (size_t i = range.start; i < range.end; i++) {
         if (infos[i].kind == LineKind::Declaration) {
             declCount++;
             maxTypeWidth = std::max(maxTypeWidth, infos[i].typeWidth);
+            if (!groupIndent) {
+                groupIndent = infos[i].indent;
+            }
+        }
+        else if (infos[i].kind == LineKind::Continuation) {
+            declCount++;
         }
     }
+
+    auto targetAbsCol = groupIndent.value_or(0) + maxTypeWidth;
 
     for (size_t i = range.start; i < range.end; i++) {
         if (infos[i].kind == LineKind::Declaration && declCount >= 2) {
@@ -957,6 +990,19 @@ void alignGroup(std::string& result, const std::vector<std::string_view>& lines,
             result.append(targetPos - (typeTextEnd - indent) - indent, ' ');
             result.append(line.substr(identPos));
         }
+        else if (infos[i].kind == LineKind::Continuation && declCount >= 2) {
+            auto line = lines[i];
+            auto indent = infos[i].indent;
+
+            if (targetAbsCol > indent) {
+                result.append(line.substr(0, indent));
+                result.append(targetAbsCol - indent, ' ');
+                result.append(line.substr(infos[i].identPos));
+            }
+            else {
+                result.append(line);
+            }
+        }
         else {
             result.append(lines[i]);
         }
@@ -972,6 +1018,10 @@ struct AlignState {
 
 bool shouldBreakGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
                       bool acrossComments, bool acrossIndent) {
+    if (info.kind == LineKind::Continuation) {
+        return false;
+    }
+
     if (info.kind == LineKind::Declaration) {
         return state.inGroup && !acrossIndent && state.groupIndent &&
                *state.groupIndent != info.indent;
@@ -1205,20 +1255,23 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
     }
 }
 
+bool isDeclOrContinuation(const LineInfo& info) {
+    return info.kind == LineKind::Declaration || info.kind == LineKind::Continuation;
+}
+
 void alignGroupEquals(std::string& result, const std::vector<std::string_view>& lines,
                       const std::vector<LineInfo>& infos, GroupRange range) {
     size_t equalsCount = 0;
     size_t maxEqualsCol = 0;
     for (auto i = range.start; i < range.end; i++) {
-        if (infos[i].kind == LineKind::Declaration && infos[i].equalsPos != npos) {
+        if (isDeclOrContinuation(infos[i]) && infos[i].equalsPos != npos) {
             equalsCount++;
             maxEqualsCol = std::max(maxEqualsCol, infos[i].equalsPos);
         }
     }
 
     for (auto i = range.start; i < range.end; i++) {
-        if (infos[i].kind == LineKind::Declaration && infos[i].equalsPos != npos &&
-            equalsCount >= 2) {
+        if (isDeclOrContinuation(infos[i]) && infos[i].equalsPos != npos && equalsCount >= 2) {
             auto line = lines[i];
             auto eqPos = infos[i].equalsPos;
 
@@ -1240,7 +1293,8 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
 
 bool shouldBreakDimGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
                          bool acrossComments, bool acrossIndent) {
-    if (info.kind == LineKind::Declaration && info.dimPos == npos) {
+    if ((info.kind == LineKind::Declaration || info.kind == LineKind::Continuation) &&
+        info.dimPos == npos) {
         return state.inGroup;
     }
     return shouldBreakGroup(info, state, acrossEmpty, acrossComments, acrossIndent);
@@ -1252,6 +1306,43 @@ bool canStartDeclGroup(const LineInfo& info) {
 
 bool canStartDimGroup(const LineInfo& info) {
     return info.kind == LineKind::Declaration && info.dimPos != npos;
+}
+
+bool followsDeclaration(const std::vector<LineInfo>& infos, size_t i) {
+    for (auto j = i; j > 0; j--) {
+        auto prevKind = infos[j - 1].kind;
+        if (prevKind == LineKind::Declaration || prevKind == LineKind::Continuation) {
+            return true;
+        }
+
+        if (prevKind == LineKind::Empty || prevKind == LineKind::Comment) {
+            continue;
+        }
+
+        break;
+    }
+    return false;
+}
+
+void reclassifyContinuationLines(const std::vector<std::string_view>& lines,
+                                 std::vector<LineInfo>& infos) {
+    for (size_t i = 1; i < infos.size(); i++) {
+        if (infos[i].kind != LineKind::Other) {
+            continue;
+        }
+
+        if (!followsDeclaration(infos, i) || !isContinuationLine(lines[i])) {
+            continue;
+        }
+
+        auto indentEnd = lines[i].find_first_not_of(' ');
+        infos[i] = {.kind = LineKind::Continuation,
+                    .indent = indentEnd,
+                    .typeWidth = 0,
+                    .identPos = indentEnd,
+                    .equalsPos = findEquals(lines[i], indentEnd),
+                    .dimPos = npos};
+    }
 }
 
 template<typename BreakPred, typename StartPred, typename AlignFn>
@@ -1293,6 +1384,8 @@ std::string applyAlignConsecutive(const std::string& output,
 
         infos.push_back(classifyLine(line, formatOff));
     }
+
+    reclassifyContinuationLines(lines, infos);
 
     std::string result;
     result.reserve(output.size());

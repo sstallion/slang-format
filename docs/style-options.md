@@ -49,11 +49,12 @@ for details.
 
 Controls alignment of assignment operators in consecutive declarations. When
 enabled, the `=` signs in adjacent declaration initializers are aligned by
-padding with trailing spaces. Non-declaration statements are never affected;
-only assignments that are part of a declaration (e.g. `logic a = 1;`) are
-aligned. Standalone assignments (e.g. `assign x = 1;`) are not affected. This
-is a nested mapping with four sub-options. `Enabled` is a master switch; the
-remaining sub-options take effect only when `Enabled` is `true`.
+padding with trailing spaces. Continuation lines of comma-separated declaration
+lists are included in alignment groups. Non-declaration statements are never
+affected; only assignments that are part of a declaration (e.g. `logic a = 1;`)
+are aligned. Standalone assignments (e.g. `assign x = 1;`) are not affected.
+This is a nested mapping with four sub-options. `Enabled` is a master switch;
+the remaining sub-options take effect only when `Enabled` is `true`.
 
 **Default:**
 
@@ -102,6 +103,13 @@ module foo;
   logic [7:0] b = 2;
 endmodule
 
+// Enabled: true (continuation lines)
+module foo;
+  localparam [1:0] STATE_0 = 1,
+    STATE_1                = 2,
+    STATE_2                = 3;
+endmodule
+
 // Enabled: false (default)
 module foo;
   logic a = 1;
@@ -115,9 +123,11 @@ endmodule
 
 Controls alignment of signal names in consecutive declarations. When enabled,
 identifiers in adjacent declarations are aligned by padding the type specifier
-with trailing spaces. Non-declaration statements always break alignment groups.
-This is a nested mapping with four sub-options. `Enabled` is a master switch;
-the remaining sub-options take effect only when `Enabled` is `true`.
+with trailing spaces. Continuation lines of comma-separated declaration lists
+are included in alignment groups. Non-declaration statements always break
+alignment groups. This is a nested mapping with four sub-options. `Enabled` is a
+master switch; the remaining sub-options take effect only when `Enabled` is
+`true`.
 
 **Default:**
 
@@ -179,6 +189,13 @@ module foo;
   logic        a;
   logic [7:0]  b;
   logic [15:0] c;
+endmodule
+
+// Enabled: true (continuation lines)
+module foo;
+  localparam [1:0] STATE_0 = 1,
+                   STATE_1 = 2,
+                   STATE_2 = 3;
 endmodule
 
 // Enabled: false (default)
