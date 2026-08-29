@@ -100,7 +100,7 @@ Controls alignment of signal names in consecutive declarations. When enabled,
 identifiers in adjacent declarations are aligned by padding the type specifier
 with trailing spaces. Non-declaration statements always break alignment groups.
 
-**Default:** `Consecutive`
+**Default:** `None`
 
 | Value                          | Description                                                                        |
 | ------------------------------ | ---------------------------------------------------------------------------------- |

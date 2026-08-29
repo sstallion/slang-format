@@ -1024,192 +1024,24 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
     }
 }
 
-bool shouldBreakDimGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
-                         bool acrossComments, bool acrossIndent) {
-    if (info.kind == LineKind::Declaration && info.dimPos == npos) {
-        return state.inGroup;
-    }
-    return shouldBreakGroup(info, state, acrossEmpty, acrossComments, acrossIndent);
-}
-
-std::string applyAlignConsecutivePackedDimensions(const std::string& output,
-                                                  AlignConsecutiveStyle alignStyle) {
-    if (alignStyle == AlignConsecutiveStyle::None) {
-        return output;
-    }
-
-    bool const acrossEmpty = alignStyle == AlignConsecutiveStyle::AcrossEmptyLines ||
-                             alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
-                             alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
-    bool const acrossComments = alignStyle == AlignConsecutiveStyle::AcrossComments ||
-                                alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
-                                alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
-    bool const acrossIndent = alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
-
-    std::vector<std::string_view> lines;
-    std::string_view remaining{output};
-    while (!remaining.empty()) {
-        auto nl = remaining.find('\n');
-        if (nl == std::string_view::npos) {
-            lines.push_back(remaining);
-            remaining = {};
-        }
-        else {
-            lines.push_back(remaining.substr(0, nl));
-            remaining.remove_prefix(nl + 1);
-        }
-    }
-
-    std::vector<LineInfo> infos;
-    infos.reserve(lines.size());
-    bool formatOff = false;
-    for (auto& line : lines) {
-        if (line.find("slang-format off") != std::string_view::npos) {
-            formatOff = true;
-        }
-        else if (line.find("slang-format on") != std::string_view::npos) {
-            formatOff = false;
-        }
-
-        infos.push_back(classifyLine(line, formatOff));
-    }
-
-    std::string result;
-    result.reserve(output.size());
-    AlignState state;
-
-    for (size_t i = 0; i < lines.size(); i++) {
-        auto& info = infos[i];
-        bool const hasDim = info.kind == LineKind::Declaration && info.dimPos != npos;
-        bool const breakGroup = shouldBreakDimGroup(info, state, acrossEmpty, acrossComments,
-                                                    acrossIndent);
-
-        if (breakGroup && state.inGroup) {
-            alignGroupDimensions(result, lines, infos, {.start = state.groupStart, .end = i});
-            state.inGroup = false;
-            state.groupIndent.reset();
-        }
-
-        if (hasDim && !state.inGroup) {
-            state.groupStart = i;
-            state.inGroup = true;
-            state.groupIndent = info.indent;
-        }
-        else if (!state.inGroup) {
-            result.append(lines[i]);
-            result += '\n';
-        }
-    }
-
-    if (state.inGroup) {
-        alignGroupDimensions(result, lines, infos,
-                             {.start = state.groupStart, .end = lines.size()});
-    }
-
-    if (!result.empty() && result.back() == '\n' && (output.empty() || output.back() != '\n')) {
-        result.pop_back();
-    }
-
-    return result;
-}
-
-std::string applyAlignConsecutiveDeclarations(const std::string& output,
-                                              AlignConsecutiveStyle alignStyle) {
-    if (alignStyle == AlignConsecutiveStyle::None) {
-        return output;
-    }
-
-    bool const acrossEmpty = alignStyle == AlignConsecutiveStyle::AcrossEmptyLines ||
-                             alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
-                             alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
-    bool const acrossComments = alignStyle == AlignConsecutiveStyle::AcrossComments ||
-                                alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
-                                alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
-    bool const acrossIndent = alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
-
-    std::vector<std::string_view> lines;
-    std::string_view remaining{output};
-    while (!remaining.empty()) {
-        auto nl = remaining.find('\n');
-        if (nl == std::string_view::npos) {
-            lines.push_back(remaining);
-            remaining = {};
-        }
-        else {
-            lines.push_back(remaining.substr(0, nl));
-            remaining.remove_prefix(nl + 1);
-        }
-    }
-
-    std::vector<LineInfo> infos;
-    infos.reserve(lines.size());
-    bool formatOff = false;
-    for (auto& line : lines) {
-        if (line.find("slang-format off") != std::string_view::npos) {
-            formatOff = true;
-        }
-        else if (line.find("slang-format on") != std::string_view::npos) {
-            formatOff = false;
-        }
-
-        infos.push_back(classifyLine(line, formatOff));
-    }
-
-    std::string result;
-    result.reserve(output.size());
-    AlignState state;
-
-    for (size_t i = 0; i < lines.size(); i++) {
-        auto& info = infos[i];
-        bool const breakGroup = shouldBreakGroup(info, state, acrossEmpty, acrossComments,
-                                                 acrossIndent);
-
-        if (breakGroup && state.inGroup) {
-            alignGroup(result, lines, infos, {.start = state.groupStart, .end = i});
-            state.inGroup = false;
-            state.groupIndent.reset();
-        }
-
-        if (info.kind == LineKind::Declaration && !state.inGroup) {
-            state.groupStart = i;
-            state.inGroup = true;
-            state.groupIndent = info.indent;
-        }
-        else if (!state.inGroup) {
-            result.append(lines[i]);
-            result += '\n';
-        }
-    }
-
-    if (state.inGroup) {
-        alignGroup(result, lines, infos, {.start = state.groupStart, .end = lines.size()});
-    }
-
-    if (!result.empty() && result.back() == '\n' && (output.empty() || output.back() != '\n')) {
-        result.pop_back();
-    }
-
-    return result;
-}
-
 void alignGroupEquals(std::string& result, const std::vector<std::string_view>& lines,
                       const std::vector<LineInfo>& infos, GroupRange range) {
     size_t equalsCount = 0;
     size_t maxEqualsCol = 0;
-    for (size_t i = range.start; i < range.end; i++) {
+    for (auto i = range.start; i < range.end; i++) {
         if (infos[i].kind == LineKind::Declaration && infos[i].equalsPos != npos) {
             equalsCount++;
             maxEqualsCol = std::max(maxEqualsCol, infos[i].equalsPos);
         }
     }
 
-    for (size_t i = range.start; i < range.end; i++) {
+    for (auto i = range.start; i < range.end; i++) {
         if (infos[i].kind == LineKind::Declaration && infos[i].equalsPos != npos &&
             equalsCount >= 2) {
             auto line = lines[i];
             auto eqPos = infos[i].equalsPos;
 
-            size_t preEqualsEnd = eqPos;
+            auto preEqualsEnd = eqPos;
             while (preEqualsEnd > 0 && line[preEqualsEnd - 1] == ' ') {
                 preEqualsEnd--;
             }
@@ -1225,19 +1057,36 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
     }
 }
 
-std::string applyAlignConsecutiveAssignments(const std::string& output,
-                                             AlignConsecutiveStyle alignStyle) {
+bool shouldBreakDimGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
+                         bool acrossComments, bool acrossIndent) {
+    if (info.kind == LineKind::Declaration && info.dimPos == npos) {
+        return state.inGroup;
+    }
+    return shouldBreakGroup(info, state, acrossEmpty, acrossComments, acrossIndent);
+}
+
+bool canStartDeclGroup(const LineInfo& info) {
+    return info.kind == LineKind::Declaration;
+}
+
+bool canStartDimGroup(const LineInfo& info) {
+    return info.kind == LineKind::Declaration && info.dimPos != npos;
+}
+
+template<typename BreakPred, typename StartPred, typename AlignFn>
+std::string applyAlignConsecutive(const std::string& output, AlignConsecutiveStyle alignStyle,
+                                  BreakPred shouldBreak, StartPred canStart, AlignFn alignFn) {
     if (alignStyle == AlignConsecutiveStyle::None) {
         return output;
     }
 
-    bool const acrossEmpty = alignStyle == AlignConsecutiveStyle::AcrossEmptyLines ||
+    auto const acrossEmpty = alignStyle == AlignConsecutiveStyle::AcrossEmptyLines ||
                              alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
                              alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
-    bool const acrossComments = alignStyle == AlignConsecutiveStyle::AcrossComments ||
+    auto const acrossComments = alignStyle == AlignConsecutiveStyle::AcrossComments ||
                                 alignStyle == AlignConsecutiveStyle::AcrossEmptyLinesAndComments ||
                                 alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
-    bool const acrossIndent = alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
+    auto const acrossIndent = alignStyle == AlignConsecutiveStyle::AcrossParameterPortList;
 
     std::vector<std::string_view> lines;
     std::string_view remaining{output};
@@ -1255,7 +1104,7 @@ std::string applyAlignConsecutiveAssignments(const std::string& output,
 
     std::vector<LineInfo> infos;
     infos.reserve(lines.size());
-    bool formatOff = false;
+    auto formatOff = false;
     for (auto& line : lines) {
         if (line.find("slang-format off") != std::string_view::npos) {
             formatOff = true;
@@ -1273,16 +1122,15 @@ std::string applyAlignConsecutiveAssignments(const std::string& output,
 
     for (size_t i = 0; i < lines.size(); i++) {
         auto& info = infos[i];
-        bool const breakGroup = shouldBreakGroup(info, state, acrossEmpty, acrossComments,
-                                                 acrossIndent);
+        auto const breakGroup = shouldBreak(info, state, acrossEmpty, acrossComments, acrossIndent);
 
         if (breakGroup && state.inGroup) {
-            alignGroupEquals(result, lines, infos, {.start = state.groupStart, .end = i});
+            alignFn(result, lines, infos, {.start = state.groupStart, .end = i});
             state.inGroup = false;
             state.groupIndent.reset();
         }
 
-        if (info.kind == LineKind::Declaration && !state.inGroup) {
+        if (canStart(info) && !state.inGroup) {
             state.groupStart = i;
             state.inGroup = true;
             state.groupIndent = info.indent;
@@ -1294,7 +1142,7 @@ std::string applyAlignConsecutiveAssignments(const std::string& output,
     }
 
     if (state.inGroup) {
-        alignGroupEquals(result, lines, infos, {.start = state.groupStart, .end = lines.size()});
+        alignFn(result, lines, infos, {.start = state.groupStart, .end = lines.size()});
     }
 
     if (!result.empty() && result.back() == '\n' && (output.empty() || output.back() != '\n')) {
@@ -1342,18 +1190,12 @@ std::string reformat(std::string_view text, const Style& style) {
     FormatPrinter printer(style);
 
     auto result = printer.print(*tree);
-    if (style.AlignConsecutivePackedDimensions != AlignConsecutiveStyle::None) {
-        result = applyAlignConsecutivePackedDimensions(result,
-                                                       style.AlignConsecutivePackedDimensions);
-    }
-
-    if (style.AlignConsecutiveDeclarations != AlignConsecutiveStyle::None) {
-        result = applyAlignConsecutiveDeclarations(result, style.AlignConsecutiveDeclarations);
-    }
-
-    if (style.AlignConsecutiveAssignments != AlignConsecutiveStyle::None) {
-        result = applyAlignConsecutiveAssignments(result, style.AlignConsecutiveAssignments);
-    }
+    result = applyAlignConsecutive(result, style.AlignConsecutivePackedDimensions,
+                                   shouldBreakDimGroup, canStartDimGroup, alignGroupDimensions);
+    result = applyAlignConsecutive(result, style.AlignConsecutiveDeclarations, shouldBreakGroup,
+                                   canStartDeclGroup, alignGroup);
+    result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments, shouldBreakGroup,
+                                   canStartDeclGroup, alignGroupEquals);
 
     if (!style.OneLineFormatOffRegex.empty()) {
         std::regex const re(style.OneLineFormatOffRegex);

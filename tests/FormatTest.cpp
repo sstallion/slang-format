@@ -996,7 +996,8 @@ TEST(AlignConsecutiveDeclarations, None) {
 }
 
 TEST(AlignConsecutiveDeclarations, Consecutive) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1014,7 +1015,8 @@ TEST(AlignConsecutiveDeclarations, Consecutive) {
 }
 
 TEST(AlignConsecutiveDeclarations, ConsecutiveEmptyLineBreaksGroup) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1036,7 +1038,8 @@ TEST(AlignConsecutiveDeclarations, ConsecutiveEmptyLineBreaksGroup) {
 }
 
 TEST(AlignConsecutiveDeclarations, ConsecutiveCommentBreaksGroup) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1058,7 +1061,8 @@ TEST(AlignConsecutiveDeclarations, ConsecutiveCommentBreaksGroup) {
 }
 
 TEST(AlignConsecutiveDeclarations, ConsecutiveNonDeclarationBreaksGroup) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1176,7 +1180,8 @@ TEST(AlignConsecutiveDeclarations, AcrossParameterPortList) {
 }
 
 TEST(AlignConsecutiveDeclarations, PackedDimensions) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1194,7 +1199,8 @@ TEST(AlignConsecutiveDeclarations, PackedDimensions) {
 }
 
 TEST(AlignConsecutiveDeclarations, DirectionKeywords) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo(
@@ -1214,7 +1220,8 @@ TEST(AlignConsecutiveDeclarations, DirectionKeywords) {
 }
 
 TEST(AlignConsecutiveDeclarations, ParameterDeclarations) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
@@ -1246,7 +1253,8 @@ TEST(AlignConsecutiveDeclarations, SingleDeclarationNotAligned) {
 }
 
 TEST(AlignConsecutiveDeclarations, FormatOffRegionSkipped) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1270,7 +1278,8 @@ TEST(AlignConsecutiveDeclarations, FormatOffRegionSkipped) {
 }
 
 TEST(AlignConsecutiveDeclarations, IndentLevelBreaksGroup) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = AlignConsecutiveStyle::Consecutive;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(

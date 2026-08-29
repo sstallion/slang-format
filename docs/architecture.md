@@ -40,29 +40,29 @@ slang-format/
 input
   │
   ▼
-getStyle(cwd)                              # Walks directory hierarchy for configuration
+getStyle(cwd)                                   # Walks directory hierarchy for configuration
   │
   ▼
 reformat(source, style)
   │
-  ├─ slang::SyntaxTree::fromText(source)   # Parses input
+  ├─ slang::SyntaxTree::fromText(source)        # Parses input
   │
-  ├─ applyBeginEndInsertion(tree, style)   # Iterative SyntaxRewriter
+  ├─ applyBeginEndInsertion(tree, style)        # Iterative SyntaxRewriter
   │   └─ Wrap bare statement bodies in begin/end blocks
   │
-  ├─ FormatPrinter::print(tree)            # Single-pass tree walk
+  ├─ FormatPrinter::print(tree)                 # Single-pass tree walk
   │   ├─ Emit tokens with computed indentation
   │   ├─ Enforce break rules
   │   ├─ Limit consecutive empty lines
   │   └─ Honor formatting pragmas
   │
-  ├─ applyAlignConsecutivePackedDimensions()  # Optional post-processing
+  ├─ applyAlignConsecutivePackedDimensions()    # Optional post-processing
   │
-  ├─ applyAlignConsecutiveDeclarations()   # Optional post-processing
+  ├─ applyAlignConsecutiveDeclarations()        # Optional post-processing
   │
-  ├─ applyAlignConsecutiveAssignments()   # Optional post-processing
+  ├─ applyAlignConsecutiveAssignments()         # Optional post-processing
   │
-  └─ applyOneLineFormatOff()               # Optional post-processing
+  └─ applyOneLineFormatOff()                    # Optional post-processing
   │
   ▼
 output
@@ -131,12 +131,7 @@ and the single-pass constraint keeps the implementation linear and predictable.
 
 ### Post-Processing
 
-The `OneLineFormatOffRegex` option strips indentation from lines matching a
-regex. This is applied as a second pass over the already-formatted string rather
-than inline during the tree walk, because the regex operates on final output
-content that is not known until after the walk is complete.
-
-### Alignment as Post-Processing
+#### Alignment
 
 Declaration alignment operates on the already-formatted output string rather than
 during the tree walk. Alignment requires knowledge of multiple adjacent lines to
@@ -144,6 +139,13 @@ compute the maximum column width, which is incompatible with the single-pass tre
 walk where each token is emitted independently. The line-based post-processing
 approach avoids correlating tree structure with output positions and matches the
 existing pattern established by `applyOneLineFormatOff`.
+
+#### Indentation
+
+The `OneLineFormatOffRegex` option strips indentation from lines matching a
+regex. This is applied as a second pass over the already-formatted string rather
+than inline during the tree walk, because the regex operates on final output
+content that is not known until after the walk is complete.
 
 ### Fixture Tests
 

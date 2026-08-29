@@ -297,7 +297,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     auto const result = dumpConfiguration(getDefaultStyle());
     EXPECT_NE(result.find("---"), std::string::npos);
     EXPECT_NE(result.find("..."), std::string::npos);
-    EXPECT_NE(result.find("AlignConsecutiveDeclarations: Consecutive"), std::string::npos);
+    EXPECT_NE(result.find("AlignConsecutiveDeclarations: None"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterInitial: OnlyMultiline"), std::string::npos);
