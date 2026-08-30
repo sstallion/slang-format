@@ -32,6 +32,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/Config.h)
 
 add_library(${PROJECT_NAME}-object OBJECT
+            ${SOURCE_DIR}/Align.cpp
             ${SOURCE_DIR}/Format.cpp
             ${SOURCE_DIR}/Ignore.cpp
             ${SOURCE_DIR}/Rewriter.cpp

@@ -16,6 +16,8 @@ systems are supported, including Linux, macOS, and Windows.
 ```
 slang-format/
 ├── source/
+│   ├── Align.cpp         # Alignment post-processing
+│   ├── Align.h           # Public interface for alignment post-processing
 │   ├── Format.cpp        # Single-pass formatting and post-processing
 │   ├── Format.h          # Public interface for formatting and post-processing
 │   ├── Ignore.cpp        # Ignore file lookup and pattern matching
@@ -43,7 +45,7 @@ flowchart LR
     formatin --> formatter
 
     subgraph config [Configuration]
-        formatin[Walk directory hierarchy\nfor .slang-format and\n.slang-format-ignore]
+        formatin[Walk directory hierarchy\nfor configuration]
     end
 
     subgraph formatter [Formatter]
@@ -53,7 +55,7 @@ flowchart LR
         format[Format\nSingle-pass tree walk]
 
         subgraph postprocess [Post-Processing]
-            align[Align consecutive\nassignments, declarations,\ndimensions, timing controls,\nand trailing comments]
+            align[Align syntax elements]
             formatout[Apply OneLineFormatOff]
         end
 
@@ -135,11 +137,16 @@ and the single-pass constraint keeps the implementation linear and predictable.
 
 #### Alignment
 
-Declaration alignment operates on the already-formatted output string rather than
-during the tree walk. Alignment requires knowledge of multiple adjacent lines to
-compute the maximum column width, which is incompatible with the single-pass tree
-walk where each token is emitted independently. The line-based post-processing
-approach matches the existing pattern established by `applyOneLineFormatOff`.
+Alignment is implemented in a dedicated translation unit (`Align.cpp`) and
+exposed to the formatter through a single function. Internally, alignment
+operates on the already-formatted output string rather than during the tree walk.
+Alignment requires knowledge of multiple adjacent lines to compute the maximum
+column width, which is incompatible with the single-pass tree walk where each
+token is emitted independently.
+
+A line-based grouping algorithm driven by `applyAlignConsecutive`, a template
+that handles group formation while delegating break, start, and alignment
+decisions to per-alignment-type callbacks, drives all five alignment passes.
 
 Assignment alignment groups are scoped by AST depth to avoid breaking groups at
 control-flow boundaries such as `if`/`else` and `case`/`endcase`. The tree walk
