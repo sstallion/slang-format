@@ -38,26 +38,26 @@ assign x = 1;   // emitted verbatim
 endmodule
 ```
 
-The `OneLineFormatOffRegex` option provides a complementary mechanism for
-suppressing indentation on lines that match a regular expression without
-requiring inline comments. See [`OneLineFormatOffRegex`](#onelineformatoffregex-string)
-for details.
+`OneLineFormatOffRegex` offers a complementary mechanism: it suppresses
+indentation on lines matching a regular expression, without requiring inline
+comments. See [`OneLineFormatOffRegex`](#onelineformatoffregex-string) for
+details.
 
 ## Configurable Options
 
 ### AlignConsecutiveAssignments (AlignConsecutiveStyle)
 
 Controls alignment of assignment operators in consecutive assignments. When
-enabled, assignment operators in adjacent lines are aligned by padding with
-trailing spaces. All assignment types are supported: declaration initializers
-(e.g. `logic a = 1;`), continuous assignments (e.g. `assign x = 1;`), blocking
-assignments (`=`), nonblocking assignments (`<=`), and compound assignments
-(`+=`, `-=`, `<<=`, etc.). Continuation lines of comma-separated declaration
-lists are included in alignment groups. Alignment groups are scoped by AST
-depth; scope boundaries such as `module`/`endmodule` and `always`/`end` break
-groups, while control flow at the same depth (`if`/`else`, `case`/`endcase`)
-does not. This is a nested mapping with four sub-options. `Enabled` is a master
-switch; the remaining sub-options take effect only when `Enabled` is `true`.
+enabled, slang-format aligns assignment operators in adjacent lines by padding
+with trailing spaces. All assignment types are supported: declaration
+initializers (e.g. `logic a = 1;`), continuous assignments
+(e.g. `assign x = 1;`), blocking assignments (`=`), nonblocking assignments
+(`<=`), and compound assignments (`+=`, `-=`, `<<=`, etc.). Continuation lines
+of comma-separated declaration lists are included in alignment groups. Alignment
+groups are scoped by AST depth; scope boundaries such as `module`/`endmodule`
+and `always`/`end` break groups, while control flow at the same depth
+(`if`/`else`, `case`/`endcase`) does not. `Enabled` is a master switch; the
+remaining sub-options take effect only when `Enabled` is `true`.
 
 **Default:**
 
@@ -73,23 +73,17 @@ AlignConsecutiveAssignments:
 
 If `true`, comments do not break alignment groups.
 
-Has no effect when `Enabled` is `false`.
-
 **Default:** `false`
 
 #### AcrossEmptyLines (bool)
 
 If `true`, empty lines do not break alignment groups.
 
-Has no effect when `Enabled` is `false`.
-
 **Default:** `false`
 
 #### AcrossParameterPortList (bool)
 
 If `true`, port list boundaries do not break alignment groups.
-
-Has no effect when `Enabled` is `false`.
 
 **Default:** `false`
 
@@ -143,12 +137,11 @@ endmodule
 ### AlignConsecutiveDeclarations (AlignConsecutiveStyle)
 
 Controls alignment of signal names in consecutive declarations. When enabled,
-identifiers in adjacent declarations are aligned by padding the type specifier
-with trailing spaces. Continuation lines of comma-separated declaration lists
-are included in alignment groups. Non-declaration statements always break
-alignment groups. This is a nested mapping with four sub-options. `Enabled` is a
-master switch; the remaining sub-options take effect only when `Enabled` is
-`true`.
+slang-format aligns identifiers in adjacent declarations by padding the type
+specifier with trailing spaces. Continuation lines of comma-separated
+declaration lists are included in alignment groups. Non-declaration statements
+always break alignment groups. `Enabled` is a master switch; the remaining
+sub-options take effect only when `Enabled` is `true`.
 
 **Default:**
 
@@ -164,23 +157,17 @@ AlignConsecutiveDeclarations:
 
 If `true`, comments do not break alignment groups.
 
-Has no effect when `Enabled` is `false`.
-
 **Default:** `false`
 
 #### AcrossEmptyLines (bool)
 
 If `true`, empty lines do not break alignment groups.
 
-Has no effect when `Enabled` is `false`.
-
 **Default:** `false`
 
 #### AcrossParameterPortList (bool)
 
 If `true`, port list boundaries do not break alignment groups.
-
-Has no effect when `Enabled` is `false`.
 
 **Default:** `false`
 
@@ -232,14 +219,13 @@ endmodule
 ### AlignConsecutivePackedDimensions (AlignConsecutiveStyle)
 
 Controls alignment of packed dimensions in consecutive declarations. When
-enabled, the opening bracket `[` of packed dimensions in adjacent declarations
-is aligned by padding the type specifier with trailing spaces. Only declarations
-that have packed dimensions participate in alignment groups; declarations without
-packed dimensions are skipped. Content within brackets can be independently
-padded and colon-aligned using the `AlignColon`, `PadLeft`, and `PadRight`
-sub-options. This is a nested mapping with seven sub-options. `Enabled` is a
-master switch; the remaining sub-options take effect only when `Enabled` is
-`true`.
+enabled, slang-format aligns the opening bracket `[` of packed dimensions in
+adjacent declarations by padding the type specifier with trailing spaces. Only
+declarations that have packed dimensions participate in alignment groups;
+declarations without packed dimensions are skipped. Content within brackets can
+be independently padded and colon-aligned using the `AlignColon`, `PadLeft`, and
+`PadRight` sub-options. `Enabled` is a master switch; the remaining sub-options
+take effect only when `Enabled` is `true`.
 
 **Default:**
 
@@ -258,23 +244,17 @@ AlignConsecutivePackedDimensions:
 
 If `true`, comments do not break alignment groups.
 
-Has no effect when `Enabled` is `false`.
-
 **Default:** `false`
 
 #### AcrossEmptyLines (bool)
 
 If `true`, empty lines do not break alignment groups.
 
-Has no effect when `Enabled` is `false`.
-
 **Default:** `false`
 
 #### AcrossParameterPortList (bool)
 
 If `true`, port list boundaries do not break alignment groups.
-
-Has no effect when `Enabled` is `false`.
 
 **Default:** `false`
 
@@ -285,8 +265,6 @@ If `true`, right-justify the left-side value of packed dimension ranges to align
 options independently pad the right-side value after the `:`. For dimensions
 without a `:`, this option has no effect and `PadLeft`/`PadRight` apply to the
 whole content.
-
-Has no effect when `Enabled` is `false`.
 
 **Default:** `false`
 
@@ -329,8 +307,6 @@ endmodule
 If `true`, left-pad content within brackets to right-justify values. Takes
 precedence over `PadRight` when both are set.
 
-Has no effect when `Enabled` is `false`.
-
 **Default:** `false`
 
 ```sv
@@ -344,10 +320,8 @@ endmodule
 
 #### PadRight (bool)
 
-If `true`, right-pad content within brackets to left-justify values. Has no
-effect when `PadLeft` is also `true`.
-
-Has no effect when `Enabled` is `false`.
+If `true`, right-pad content within brackets to left-justify values. `PadLeft`
+takes precedence when both are `true`.
 
 **Default:** `false`
 
@@ -365,11 +339,11 @@ endmodule
 ### AlignConsecutiveTimingControls (AlignConsecutiveStyle)
 
 Controls alignment of signal names and assignment operators in consecutive
-timing controls. When enabled, adjacent `always` statements with delay
-expressions (e.g. `always #5 clk = ~clk;`) have their signal names and
-assignment operators aligned by padding with trailing spaces. This is a nested
-mapping with three sub-options. `Enabled` is a master switch; the remaining
-sub-options take effect only when `Enabled` is `true`.
+timing controls. When enabled, slang-format aligns signal names and assignment
+operators in adjacent `always` statements with delay expressions
+(e.g. `always #5 clk = ~clk;`) by padding with trailing spaces. `Enabled` is a
+master switch; the remaining sub-options take effect only when `Enabled` is
+`true`.
 
 **Default:**
 
@@ -384,15 +358,11 @@ AlignConsecutiveTimingControls:
 
 If `true`, comments do not break alignment groups.
 
-Has no effect when `Enabled` is `false`.
-
 **Default:** `false`
 
 #### AcrossEmptyLines (bool)
 
 If `true`, empty lines do not break alignment groups.
-
-Has no effect when `Enabled` is `false`.
 
 **Default:** `false`
 
@@ -421,11 +391,10 @@ endmodule
 ### AlignTrailingComments (AlignConsecutiveStyle)
 
 Controls alignment of trailing comments in consecutive lines. When enabled,
-trailing comments (`//` and `/* */`) on adjacent code lines are aligned by
-padding with spaces. Only comments that appear after code on the same line are
-considered; standalone comment lines are not affected. This is a nested mapping
-with four sub-options. `Enabled` is a master switch; the remaining sub-options
-take effect only when `Enabled` is `true`.
+slang-format aligns trailing comments (`//` and `/* */`) on adjacent code lines
+by padding with spaces. Only comments that appear after code on the same line
+are considered; standalone comment lines are not affected. `Enabled` is a master
+switch; the remaining sub-options take effect only when `Enabled` is `true`.
 
 **Default:**
 
@@ -441,23 +410,17 @@ AlignTrailingComments:
 
 If `true`, comments do not break alignment groups.
 
-Has no effect when `Enabled` is `false`.
-
 **Default:** `false`
 
 #### AcrossEmptyLines (bool)
 
 If `true`, empty lines do not break alignment groups.
 
-Has no effect when `Enabled` is `false`.
-
 **Default:** `false`
 
 #### AcrossParameterPortList (bool)
 
 If `true`, port list boundaries do not break alignment groups.
-
-Has no effect when `Enabled` is `false`.
 
 **Default:** `false`
 
@@ -485,16 +448,16 @@ endmodule
 
 ### BreakAfterAlways (BreakAfterBlockStyle)
 
-Controls whether a newline is inserted between an `always`, `always_comb`,
-`always_ff`, or `always_latch` header and its body.
+Controls whether slang-format inserts a newline between an `always`,
+`always_comb`, `always_ff`, or `always_latch` header and its body.
 
 **Default:** `OnlyMultiline`
 
 | Value           | Description                                                       |
 | --------------- | ----------------------------------------------------------------- |
-| `Always`        | Newline always inserted between the header and its body.          |
-| `Never`         | No newline inserted; body follows the header on the same line.    |
-| `OnlyMultiline` | Newline inserted only when the body spans multiple source lines.  |
+| `Always`        | Always insert a newline between the header and its body.          |
+| `Never`         | Never insert a newline; body follows the header on the same line. |
+| `OnlyMultiline` | Insert a newline only when the body spans multiple source lines.  |
 
 `Always` - break always inserted even for a single-statement body:
 
@@ -555,16 +518,11 @@ endmodule
 
 ### BreakAfterInitial (BreakAfterBlockStyle)
 
-Controls whether a newline is inserted between an `initial` or `final` header
-and its body. Accepts the same values as [`BreakAfterAlways`](#breakafteralways-breakafterblockstyle).
+Controls whether slang-format inserts a newline between an `initial` or `final`
+header and its body. Accepts the same values as
+[`BreakAfterAlways`](#breakafteralways-breakafterblockstyle).
 
 **Default:** `OnlyMultiline`
-
-| Value           | Description                                                       |
-| --------------- | ----------------------------------------------------------------- |
-| `Always`        | Newline always inserted between the header and its body.          |
-| `Never`         | No newline inserted; body follows the header on the same line.    |
-| `OnlyMultiline` | Newline inserted only when the body spans multiple source lines.  |
 
 `Always` - break always inserted even for a single-statement body:
 
@@ -626,9 +584,9 @@ endmodule
 
 ### ContinuationIndentWidth (unsigned)
 
-Number of spaces added for continuation lines relative to the enclosing
-statement. A continuation line is a syntactic continuation of the previous line
-(for example, the operand of a multi-line expression).
+Number of spaces added for continuation lines - lines that syntactically
+continue the previous line (for example, an operand in a multi-line expression)
+- relative to the enclosing statement.
 
 If not explicitly set, defaults to `IndentWidth`.
 
@@ -716,9 +674,9 @@ endmodule
 
 ### InsertBeginEnd (InsertBeginEndStyle)
 
-Controls automatic insertion of `begin`/`end` blocks around bare single-statement
-bodies. This is a nested mapping with four sub-options. `Enabled` is a master
-switch; the remaining sub-options take effect only when `Enabled` is `true`.
+Controls whether slang-format inserts `begin`/`end` blocks around bare
+single-statement bodies. `Enabled` is a master switch; the remaining sub-options
+take effect only when `Enabled` is `true`.
 
 **Default:**
 
@@ -734,8 +692,6 @@ InsertBeginEnd:
 
 If `true`, wrap bare statement bodies of `always`, `always_comb`, `always_ff`,
 and `always_latch` blocks with `begin`/`end`.
-
-Has no effect when `Enabled` is `false`.
 
 **Default:** `true`
 
@@ -759,8 +715,6 @@ endmodule
 If `true`, wrap bare single-statement bodies of control constructs - `if`,
 `else`, `for`, `while`, `foreach`, `repeat`, `forever`, `do`-`while`, and `case`
 items - with `begin`/`end`.
-
-Has no effect when `Enabled` is `false`.
 
 **Default:** `true`
 
@@ -786,8 +740,6 @@ endmodule
 If `true`, wrap bare statement bodies of `initial` and `final` blocks with
 `begin`/`end`.
 
-Has no effect when `Enabled` is `false`.
-
 **Default:** `true`
 
 ```sv
@@ -809,8 +761,8 @@ endmodule
 
 ### MaxEmptyLinesToKeep (unsigned)
 
-Maximum number of consecutive empty lines to keep. Any run of empty lines
-exceeding this limit is collapsed to the limit. Empty lines inside a
+Maximum number of consecutive empty lines to keep. slang-format collapses any
+run of empty lines exceeding this limit. Empty lines inside a
 `// slang-format off` region are not affected.
 
 **Default:** `1`
@@ -838,9 +790,8 @@ endmodule
 
 ### OneLineFormatOffRegex (string)
 
-Any formatted output line whose entire content matches this regular expression
-is emitted verbatim - without the indentation that slang-format would ordinarily
-apply.
+slang-format emits any formatted output line whose entire content matches this
+regular expression verbatim - without the indentation it would ordinarily apply.
 
 An empty string disables this feature.
 
@@ -866,10 +817,10 @@ endmodule
 
 ### ParameterPortListIndentWidth (unsigned)
 
-Number of spaces used to indent items in a module ANSI port declaration. When a
-module has a parameter port list (`#( ... )`), this option controls the
-indentation of items in both the parameter list and the following port list.
-When a module has a port list only, items are indented by `IndentWidth`.
+Number of spaces used to indent items in a module ANSI port declaration. When
+the module has a parameter port list (`#( ... )`), this value governs both the
+parameter list and the following port list. When only a port list is present,
+`IndentWidth` applies instead.
 
 If not explicitly set, defaults to `ContinuationIndentWidth`, which in turn
 defaults to `IndentWidth`.

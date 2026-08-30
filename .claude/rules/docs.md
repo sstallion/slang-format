@@ -16,11 +16,11 @@ beginning of every session.
 The file contains the following sections, in order:
 
 - An unnamed introductory section describing the project and its goals.
-- **Directory Structure** - An ASCII tree listing every source file under
-  `source/` and `test/` with a one-line description of each file's role. Add or
-  remove entries whenever source code and tests are added or removed.
 - **Dependencies** - A bulleted list of third-party libraries with a one-line
   description of what it provides.
+- **Directory Structure** - An ASCII tree listing every source file under
+  `source/` and `tests/` with a one-line description of each file's role. Add or
+  remove entries whenever source code and tests are added or removed.
 - **Formatting Flow** - A Mermaid flowchart tracing the path from input through
   output. Update the diagram whenever a pass is added, removed, or reordered.
 - **Architectural Decisions** - Prose sections, one per decision, explaining the

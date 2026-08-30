@@ -22,9 +22,6 @@ To build using the default CMake generator, issue:
 cmake -B build && cmake --build build
 ```
 
-> [!NOTE]
-> Once built, binaries can be found in the `build` directory.
-
 To run tests, issue:
 
 ```shell

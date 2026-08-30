@@ -42,10 +42,10 @@ slang-format/
 ```mermaid
 flowchart LR
     input([Unformatted Input])
-    formatin --> formatter
+    format_in --> formatter
 
     subgraph config [Configuration]
-        formatin[Walk directory hierarchy\nfor configuration]
+        format_in[Walk directory hierarchy\nfor configuration]
     end
 
     subgraph formatter [Formatter]
@@ -56,80 +56,78 @@ flowchart LR
 
         subgraph postprocess [Post-Processing]
             align[Align syntax elements]
-            formatout[Apply OneLineFormatOff]
+            format_out[Apply OneLineFormatOff]
         end
 
         parse --> rewrite
         rewrite --> converged
         converged -- No --> rewrite
         converged -- Yes --> format
-        format --> align --> formatout
+        format --> align --> format_out
     end
 
-    input --> formatin
-    formatout --> output([Formatted Output])
+    input --> format_in
+    format_out --> output([Formatted Output])
 ```
 
 ## Architectural Decisions
 
 ### Configuration Search
 
-The configuration loader walks upward from the current directory until it finds
-a `.slang-format` file or reaches the filesystem root, returning default
-settings if none is found. This mirrors clang-format's `.clang-format` lookup
-strategy, allowing per-project configuration without explicit path arguments.
+The configuration loader walks upward from the directory containing the source
+file until it finds a `.slang-format` file or reaches the filesystem root,
+returning default settings if none is found. This mirrors clang-format's
+`.clang-format` lookup strategy, allowing per-project configuration without
+explicit path arguments.
 
 ### Ignore File Lookup
 
 The ignore file loader walks upward from the directory containing the source
 file until it finds a `.slang-format-ignore` file, mirroring the configuration
-file lookup. A lower-level ignore file voids any higher-level ones; ignore files
-are not merged across directory levels.
+file lookup. Ignore files are not merged across directory levels; a lower-level
+file voids any higher-level ones.
 
 Patterns use glob syntax with `*` and `?` for single-segment matching. Both `**`
 (bash globstar) and `...` (LRM 33.3.1 recursive directory search) are accepted
-for recursive directory matching. Internally, `**` is translated to `...` before
-delegating to slang's `svGlobMatches`. Negation is supported via the `!` prefix,
-with last-match-wins semantics.
+for recursive directory matching. The `!` prefix negates a pattern, with
+last-match-wins semantics.
 
 ### Configuration Dump
 
+When adding a new configuration option, insert its key at the correct
+alphabetical position in `dumpConfiguration()` and add a corresponding
+round-trip test. When a shared struct contains fields that are unused by a
+particular option, those fields must not be emitted.
+
 The `--dump-config` option serializes the resolved style to a YAML document on
 stdout, matching the behavior of `clang-format --dump-config`. Fields are emitted
-in alphabetical order, wrapped with `---` and `...` document markers. When a
-shared struct contains fields that are unused by a particular configuration
-option, those fields must not be emitted for that option. When a new
-configuration option is added, its key must be inserted at the correct
-alphabetical position in `dumpConfiguration()` and a corresponding round-trip
-test added.
+in alphabetical order, wrapped with `---` and `...` document markers.
 
 ### Separate Structural and Formatting Passes
 
 Structural AST changes (begin/end insertion) are handled by a dedicated rewrite
-pass that produces a modified syntax tree before any formatting occurs. All
-other formatting - indentation, break insertion, empty line limiting, pragma
-handling - is performed by a read-only pass that emits formatted output directly
-from the rewritten tree.
+pass that produces a modified syntax tree before any formatting occurs. A
+read-only formatting pass then emits output directly from the rewritten tree,
+handling indentation, break insertion, empty line limiting, and pragma handling.
 
 This separation keeps each concern in its natural abstraction: the rewrite pass
 operates on tree structure, the formatting pass operates on token emission.
 
 ### Iterative Rewriting
 
-slang's syntax rewriter applies all registered changes atomically. When a node
-is replaced, the replacement is not re-visited for further changes. This means
-wrapping nested constructs (e.g., an `if` body nested inside an `always` body)
-cannot be done in a single pass.
+slang's syntax rewriter imposes a constraint: it applies all registered changes
+atomically, and replaced nodes are not re-visited. This means wrapping nested
+constructs (e.g., an `if` body nested inside an `always` body) cannot be done
+in a single pass.
 
 The begin/end insertion pass handles this by iterating: each pass wraps the
 outermost bare statements, and subsequent passes handle newly exposed inner
-ones. Convergence is detected when a pass produces no changes. Typical code
+ones. The loop terminates when a pass produces no changes. Typical code
 converges in 1-2 iterations; worst case is O(nesting depth).
 
 ### Single-Pass Formatting
 
-All formatting - indentation, break insertion, empty line limiting, pragma
-handling - is performed in a single traversal of the already-rewritten tree.
+The formatting pass performs a single traversal of the already-rewritten tree.
 Carrying formatting state across the walk is straightforward to reason about,
 and the single-pass constraint keeps the implementation linear and predictable.
 
@@ -137,39 +135,33 @@ and the single-pass constraint keeps the implementation linear and predictable.
 
 #### Alignment
 
-Alignment is implemented in a dedicated translation unit (`Align.cpp`) and
-exposed to the formatter through a single function. Alignment requires knowledge
-of multiple adjacent lines to compute the maximum column width, which is
-incompatible with the single-pass tree walk where each token is emitted
-independently.
-
-The tree walk populates a per-line `LineMetadata` record as a side channel
-alongside the formatted output. Each record carries the line's syntactic kind
-(declaration, assignment, timing control, comment, etc.), AST nesting depth, and
-trailing comment position. The alignment passes consume this metadata for line
+`Align.cpp` implements alignment and exposes it to the formatter through
+`applyAlignment`. Alignment requires knowledge of multiple adjacent lines to
+compute the maximum column width, which is incompatible with the single-pass
+tree walk where each token is emitted independently. The tree walk populates a
+per-line `LineMetadata` record as a side channel alongside the formatted output.
+Each record carries the line's syntactic kind, AST nesting depth, and trailing
+comment position. The alignment passes consume this metadata for line
 classification and group formation, falling back to text-based classification
 for line types not yet covered by metadata handlers. Position extraction for
-column alignment (type width, identifier position, equals position, dimension
-position) is still performed by text scanning, since preceding alignment passes
-may insert padding that shifts these positions from their original values.
+column alignment is still performed by text scanning, since preceding alignment
+passes may insert padding that shifts column positions from their original
+values.
 
-A line-based grouping algorithm driven by `applyAlignConsecutive`, a template
-that handles group formation while delegating break, start, and alignment
-decisions to per-alignment-type callbacks, drives all five alignment passes.
-
-Assignment alignment groups are scoped by AST depth to avoid breaking groups at
-control-flow boundaries such as `if`/`else` and `case`/`endcase`. The tree walk
-records the nesting depth at which each output line was emitted, and the
-alignment pass uses this to distinguish scope boundaries (depth changes) from
-control flow at the same depth. Assignments at different depths within a group
+`applyAlignConsecutive` is a function template that drives group formation while
+delegating break, start, and alignment decisions to per-alignment-type callbacks.
+It drives all five alignment passes: packed dimensions, declarations, timing
+controls, assignments, and trailing comments. Assignment alignment groups are
+scoped by AST depth to avoid breaking groups at control-flow boundaries such as
+`if`/`else` and `case`/`endcase`; assignments at different depths within a group
 are aligned independently.
 
 #### Indentation
 
 The `OneLineFormatOffRegex` option strips indentation from lines matching a
-regex. This is applied as a second pass over the already-formatted string rather
-than inline during the tree walk, because the regex operates on final output
-content that is not known until after the walk is complete.
+regex. The formatter applies this as a post-processing pass over the
+already-formatted string, because the regex needs the final rendered text that
+only exists after the tree walk.
 
 ### Fixture Tests
 
