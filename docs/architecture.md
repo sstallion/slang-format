@@ -139,8 +139,14 @@ Declaration alignment operates on the already-formatted output string rather tha
 during the tree walk. Alignment requires knowledge of multiple adjacent lines to
 compute the maximum column width, which is incompatible with the single-pass tree
 walk where each token is emitted independently. The line-based post-processing
-approach avoids correlating tree structure with output positions and matches the
-existing pattern established by `applyOneLineFormatOff`.
+approach matches the existing pattern established by `applyOneLineFormatOff`.
+
+Assignment alignment groups are scoped by AST depth to avoid breaking groups at
+control-flow boundaries such as `if`/`else` and `case`/`endcase`. The tree walk
+records the nesting depth at which each output line was emitted, and the
+alignment pass uses this to distinguish scope boundaries (depth changes) from
+control flow at the same depth. Assignments at different depths within a group
+are aligned independently.
 
 #### Indentation
 

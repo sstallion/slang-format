@@ -20,7 +20,7 @@
   - [ ] Alignment:
     - [x] Names
     - [x] Dimensions
-    - [/] Assignments
+    - [x] Assignments
     - [x] Groups (i.e. parameters, signals)
     - [ ] Delays
   - [ ] Multiple assignments

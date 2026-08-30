@@ -47,14 +47,17 @@ for details.
 
 ### AlignConsecutiveAssignments (AlignConsecutiveStyle)
 
-Controls alignment of assignment operators in consecutive declarations. When
-enabled, the `=` signs in adjacent declaration initializers are aligned by
-padding with trailing spaces. Continuation lines of comma-separated declaration
-lists are included in alignment groups. Non-declaration statements are never
-affected; only assignments that are part of a declaration (e.g. `logic a = 1;`)
-are aligned. Standalone assignments (e.g. `assign x = 1;`) are not affected.
-This is a nested mapping with four sub-options. `Enabled` is a master switch;
-the remaining sub-options take effect only when `Enabled` is `true`.
+Controls alignment of assignment operators in consecutive assignments. When
+enabled, assignment operators in adjacent lines are aligned by padding with
+trailing spaces. All assignment types are supported: declaration initializers
+(e.g. `logic a = 1;`), continuous assignments (e.g. `assign x = 1;`), blocking
+assignments (`=`), nonblocking assignments (`<=`), and compound assignments
+(`+=`, `-=`, `<<=`, etc.). Continuation lines of comma-separated declaration
+lists are included in alignment groups. Alignment groups are scoped by AST
+depth; scope boundaries such as `module`/`endmodule` and `always`/`end` break
+groups, while control flow at the same depth (`if`/`else`, `case`/`endcase`)
+does not. This is a nested mapping with four sub-options. `Enabled` is a master
+switch; the remaining sub-options take effect only when `Enabled` is `true`.
 
 **Default:**
 
@@ -97,11 +100,29 @@ If `false`, disables all alignment regardless of other options.
 **Default:** `false`
 
 ```sv
-// Enabled: true
+// Enabled: true (declaration initializers)
 module foo;
   logic a       = 1;
   logic [7:0] b = 2;
 endmodule
+
+// Enabled: true (continuous assignments)
+module foo;
+  assign x        = 1;
+  assign longname = 2;
+endmodule
+
+// Enabled: true (blocking assignments)
+always_comb begin
+  a        = 1;
+  longname = 2;
+end
+
+// Enabled: true (nonblocking assignments)
+always_ff @(posedge clk) begin
+  a        <= 1;
+  longname <= 2;
+end
 
 // Enabled: true (continuation lines)
 module foo;

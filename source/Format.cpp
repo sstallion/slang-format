@@ -86,14 +86,19 @@ public:
         }
     }
 
-    std::string print(const SyntaxTree& tree) {
+    struct Result {
+        std::string output;
+        std::vector<unsigned> lineDepths;
+    };
+
+    Result print(const SyntaxTree& tree) {
         tree.root().visit(*this);
 
         // The EndOfFile token is not part of the visited subtree when tree.root()
         // returns a member node (e.g. ModuleDeclarationSyntax). Emit its
         // leading trivia, which carries the final newlines from the source.
         emitToken(tree.getMetadata().eofToken);
-        return std::move(output);
+        return {.output = std::move(output), .lineDepths = std::move(lineDepths)};
     }
 
     // Called by the base-class visitDefault for every token child of an unhandled node.
@@ -404,7 +409,9 @@ public:
 private:
     const Style& style;
     std::string output;
+    std::vector<unsigned> lineDepths;
     unsigned depth = 0;
+    unsigned lineDepth = 0; ///< Depth when content was last emitted on the current line.
     bool atLineStart = true;
     bool nextIsPrimary = true;
     bool portItemNextIndent = false;
@@ -427,6 +434,7 @@ private:
             output.pop_back();
         }
         output += '\n';
+        lineDepths.push_back(lineDepth);
         atLineStart = true;
     }
 
@@ -440,10 +448,12 @@ private:
                 }
 
                 output += '\n';
+                lineDepths.push_back(lineDepth);
             }
             else {
                 emptyLineCount = 0;
                 output += '\n';
+                lineDepths.push_back(lineDepth);
                 atLineStart = true;
             }
             return;
@@ -468,6 +478,7 @@ private:
                 emitIndentRaw();
             }
             output += raw;
+            lineDepth = depth;
             atLineStart = false; // just emitted text on this line
 
             // Toggle after emit: off-pragma was indented (format was on);
@@ -526,6 +537,7 @@ private:
         }
 
         output += raw;
+        lineDepth = depth;
         nextIsPrimary = false;
         emptyLineCount = 0;
     }
@@ -683,7 +695,15 @@ private:
     }
 };
 
-enum class LineKind { Continuation, Declaration, Comment, Empty, PortListBoundary, Other };
+enum class LineKind {
+    Assignment,
+    Continuation,
+    Declaration,
+    Comment,
+    Empty,
+    PortListBoundary,
+    Other
+};
 
 struct LineInfo {
     LineKind kind;
@@ -692,6 +712,7 @@ struct LineInfo {
     size_t identPos;  ///< Absolute position of identifier in the line.
     size_t equalsPos; ///< Position of '=' in declaration, or npos if absent.
     size_t dimPos;    ///< Position of first '[' after type keyword, or npos if absent.
+    unsigned depth;   ///< AST nesting depth at the line's emission point.
 };
 
 constexpr std::array TypeKeywords{
@@ -805,6 +826,105 @@ size_t findEquals(std::string_view line, size_t pos) {
     return npos;
 }
 
+size_t skipAssignmentLHS(std::string_view line, size_t pos) {
+    pos += extractWord(line, pos).size();
+    while (pos < line.size()) {
+        if (line[pos] == '.') {
+            pos++;
+            pos += extractWord(line, pos).size();
+        }
+        else if (line[pos] == '[') {
+            pos = skipDimensions(line, pos);
+        }
+        else {
+            break;
+        }
+    }
+    return pos;
+}
+
+size_t findAssignOperator(std::string_view line, size_t pos) {
+    if (pos >= line.size()) {
+        return npos;
+    }
+
+    auto remaining = line.size() - pos;
+    auto c = line[pos];
+
+    if (c == '<') {
+        if (remaining >= 4 && line[pos + 1] == '<' && line[pos + 2] == '<' &&
+            line[pos + 3] == '=') {
+            return pos;
+        }
+
+        if (remaining >= 3 && line[pos + 1] == '<' && line[pos + 2] == '=') {
+            return pos;
+        }
+
+        if (remaining >= 2 && line[pos + 1] == '=') {
+            return pos;
+        }
+
+        return npos;
+    }
+
+    if (c == '>') {
+        if (remaining >= 4 && line[pos + 1] == '>' && line[pos + 2] == '>' &&
+            line[pos + 3] == '=') {
+            return pos;
+        }
+
+        if (remaining >= 3 && line[pos + 1] == '>' && line[pos + 2] == '=') {
+            return pos;
+        }
+
+        return npos;
+    }
+
+    if (c == '=' && (remaining < 2 || line[pos + 1] != '=')) {
+        return pos;
+    }
+
+    if ((c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '&' || c == '|' ||
+         c == '^') &&
+        remaining >= 2 && line[pos + 1] == '=') {
+        return pos;
+    }
+
+    return npos;
+}
+
+bool isStatementKeyword(std::string_view word) {
+    constexpr std::array keywords{
+        std::string_view{"always"},      std::string_view{"always_comb"},
+        std::string_view{"always_ff"},   std::string_view{"always_latch"},
+        std::string_view{"begin"},       std::string_view{"case"},
+        std::string_view{"casex"},       std::string_view{"casez"},
+        std::string_view{"class"},       std::string_view{"deassign"},
+        std::string_view{"do"},          std::string_view{"else"},
+        std::string_view{"end"},         std::string_view{"endcase"},
+        std::string_view{"endclass"},    std::string_view{"endfunction"},
+        std::string_view{"endgenerate"}, std::string_view{"endinterface"},
+        std::string_view{"endmodule"},   std::string_view{"endpackage"},
+        std::string_view{"endtask"},     std::string_view{"enum"},
+        std::string_view{"final"},       std::string_view{"for"},
+        std::string_view{"force"},       std::string_view{"foreach"},
+        std::string_view{"forever"},     std::string_view{"fork"},
+        std::string_view{"function"},    std::string_view{"generate"},
+        std::string_view{"if"},          std::string_view{"import"},
+        std::string_view{"initial"},     std::string_view{"interface"},
+        std::string_view{"join"},        std::string_view{"join_any"},
+        std::string_view{"join_none"},   std::string_view{"module"},
+        std::string_view{"package"},     std::string_view{"release"},
+        std::string_view{"repeat"},      std::string_view{"return"},
+        std::string_view{"struct"},      std::string_view{"task"},
+        std::string_view{"typedef"},     std::string_view{"union"},
+        std::string_view{"unique"},      std::string_view{"unique0"},
+        std::string_view{"while"},
+    };
+    return std::ranges::any_of(keywords, [&](auto kw) { return kw == word; });
+}
+
 size_t findDimPos(std::string_view line, size_t pos, std::string_view firstWord) {
     if (isDirectionKeyword(firstWord) || isParameterKeyword(firstWord)) {
         auto nextWord = extractWord(line, pos);
@@ -842,7 +962,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .typeWidth = 0,
                 .identPos = 0,
                 .equalsPos = npos,
-                .dimPos = npos};
+                .dimPos = npos,
+                .depth = 0};
     }
 
     auto indentEnd = line.find_first_not_of(' ');
@@ -854,7 +975,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .typeWidth = 0,
                 .identPos = 0,
                 .equalsPos = npos,
-                .dimPos = npos};
+                .dimPos = npos,
+                .depth = 0};
     }
 
     if (content == ") (" || content == ");" || content == ")" || content == "#(") {
@@ -863,7 +985,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .typeWidth = 0,
                 .identPos = 0,
                 .equalsPos = npos,
-                .dimPos = npos};
+                .dimPos = npos,
+                .depth = 0};
     }
 
     if (formatOff) {
@@ -872,7 +995,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .typeWidth = 0,
                 .identPos = 0,
                 .equalsPos = npos,
-                .dimPos = npos};
+                .dimPos = npos,
+                .depth = 0};
     }
 
     auto firstWord = extractWord(content, 0);
@@ -882,7 +1006,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .typeWidth = 0,
                 .identPos = 0,
                 .equalsPos = npos,
-                .dimPos = npos};
+                .dimPos = npos,
+                .depth = 0};
     }
 
     size_t pos = indentEnd;
@@ -897,12 +1022,51 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
         pos = skipTypeQualifiers(line, pos + firstWord.size());
     }
     else {
-        return {.kind = LineKind::Other,
+        auto identStart = indentEnd;
+        if (firstWord == "assign") {
+            identStart = skipSpaces(line, indentEnd + firstWord.size());
+        }
+        else if (isStatementKeyword(firstWord)) {
+            return {.kind = LineKind::Other,
+                    .indent = indentEnd,
+                    .typeWidth = 0,
+                    .identPos = 0,
+                    .equalsPos = npos,
+                    .dimPos = npos,
+                    .depth = 0};
+        }
+
+        if (identStart >= line.size() ||
+            (std::isalpha(static_cast<unsigned char>(line[identStart])) == 0 &&
+             line[identStart] != '_')) {
+            return {.kind = LineKind::Other,
+                    .indent = indentEnd,
+                    .typeWidth = 0,
+                    .identPos = 0,
+                    .equalsPos = npos,
+                    .dimPos = npos,
+                    .depth = 0};
+        }
+
+        auto afterLHS = skipAssignmentLHS(line, identStart);
+        auto opPos = findAssignOperator(line, skipSpaces(line, afterLHS));
+        if (opPos == npos) {
+            return {.kind = LineKind::Other,
+                    .indent = indentEnd,
+                    .typeWidth = 0,
+                    .identPos = 0,
+                    .equalsPos = npos,
+                    .dimPos = npos,
+                    .depth = 0};
+        }
+
+        return {.kind = LineKind::Assignment,
                 .indent = indentEnd,
                 .typeWidth = 0,
-                .identPos = 0,
-                .equalsPos = npos,
-                .dimPos = npos};
+                .identPos = identStart,
+                .equalsPos = opPos,
+                .dimPos = npos,
+                .depth = 0};
     }
 
     pos = skipSpaces(line, pos);
@@ -913,7 +1077,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .typeWidth = 0,
                 .identPos = 0,
                 .equalsPos = npos,
-                .dimPos = npos};
+                .dimPos = npos,
+                .depth = 0};
     }
 
     auto eqPos = findEquals(line, pos);
@@ -922,7 +1087,8 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
             .typeWidth = pos - indentEnd,
             .identPos = pos,
             .equalsPos = eqPos,
-            .dimPos = dimPos};
+            .dimPos = dimPos,
+            .depth = 0};
 }
 
 bool isContinuationLine(std::string_view line) {
@@ -1014,6 +1180,7 @@ struct AlignState {
     size_t groupStart = 0;
     bool inGroup = false;
     std::optional<size_t> groupIndent;
+    std::optional<unsigned> groupDepth;
 };
 
 bool shouldBreakGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
@@ -1258,23 +1425,49 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
     }
 }
 
-bool isDeclOrContinuation(const LineInfo& info) {
-    return info.kind == LineKind::Declaration || info.kind == LineKind::Continuation;
+bool isAlignableKind(const LineInfo& info) {
+    return info.kind == LineKind::Assignment || info.kind == LineKind::Declaration ||
+           info.kind == LineKind::Continuation;
 }
 
 void alignGroupEquals(std::string& result, const std::vector<std::string_view>& lines,
                       const std::vector<LineInfo>& infos, GroupRange range) {
-    size_t equalsCount = 0;
-    size_t maxEqualsCol = 0;
+    // Collect unique depths present among alignable lines in this group.
+    std::vector<unsigned> depths;
     for (auto i = range.start; i < range.end; i++) {
-        if (isDeclOrContinuation(infos[i]) && infos[i].equalsPos != npos) {
-            equalsCount++;
-            maxEqualsCol = std::max(maxEqualsCol, infos[i].equalsPos);
+        if (isAlignableKind(infos[i]) && infos[i].equalsPos != npos) {
+            if (std::ranges::find(depths, infos[i].depth) == depths.end()) {
+                depths.push_back(infos[i].depth);
+            }
+        }
+    }
+
+    // Compute the max equals column for each depth independently.
+    std::vector<size_t> maxEqualsCols(depths.size(), 0);
+    std::vector<size_t> equalsCounts(depths.size(), 0);
+    for (auto i = range.start; i < range.end; i++) {
+        if (!isAlignableKind(infos[i]) || infos[i].equalsPos == npos) {
+            continue;
+        }
+
+        auto it = std::ranges::find(depths, infos[i].depth);
+        if (it != depths.end()) {
+            auto idx = static_cast<size_t>(it - depths.begin());
+            equalsCounts[idx]++;
+            maxEqualsCols[idx] = std::max(maxEqualsCols[idx], infos[i].equalsPos);
         }
     }
 
     for (auto i = range.start; i < range.end; i++) {
-        if (isDeclOrContinuation(infos[i]) && infos[i].equalsPos != npos && equalsCount >= 2) {
+        if (!isAlignableKind(infos[i]) || infos[i].equalsPos == npos) {
+            result.append(lines[i]);
+            result += '\n';
+            continue;
+        }
+
+        auto it = std::ranges::find(depths, infos[i].depth);
+        auto idx = static_cast<size_t>(it - depths.begin());
+        if (equalsCounts[idx] >= 2) {
             auto line = lines[i];
             auto eqPos = infos[i].equalsPos;
 
@@ -1284,7 +1477,7 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
             }
 
             result.append(line.substr(0, preEqualsEnd));
-            result.append(maxEqualsCol - preEqualsEnd, ' ');
+            result.append(maxEqualsCols[idx] - preEqualsEnd, ' ');
             result.append(line.substr(eqPos));
         }
         else {
@@ -1311,10 +1504,44 @@ bool canStartDimGroup(const LineInfo& info) {
     return info.kind == LineKind::Declaration;
 }
 
+bool shouldBreakAssignGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
+                            bool acrossComments, bool acrossIndent) {
+    if (info.kind == LineKind::Continuation) {
+        return false;
+    }
+
+    if (info.kind == LineKind::Assignment || info.kind == LineKind::Declaration) {
+        if (state.inGroup && state.groupDepth && *state.groupDepth != info.depth) {
+            return false;
+        }
+        return state.inGroup && !acrossIndent && state.groupIndent &&
+               *state.groupIndent != info.indent;
+    }
+
+    if (info.kind == LineKind::Empty) {
+        return state.inGroup && !acrossEmpty;
+    }
+
+    if (info.kind == LineKind::Comment) {
+        return state.inGroup && !acrossComments;
+    }
+
+    if (info.kind == LineKind::PortListBoundary) {
+        return state.inGroup && !acrossIndent;
+    }
+
+    return state.inGroup && state.groupDepth && info.depth < *state.groupDepth;
+}
+
+bool canStartAssignGroup(const LineInfo& info) {
+    return info.kind == LineKind::Assignment || info.kind == LineKind::Declaration;
+}
+
 bool followsDeclaration(const std::vector<LineInfo>& infos, size_t i) {
     for (auto j = i; j > 0; j--) {
         auto prevKind = infos[j - 1].kind;
-        if (prevKind == LineKind::Declaration || prevKind == LineKind::Continuation) {
+        if (prevKind == LineKind::Assignment || prevKind == LineKind::Declaration ||
+            prevKind == LineKind::Continuation) {
             return true;
         }
 
@@ -1330,7 +1557,7 @@ bool followsDeclaration(const std::vector<LineInfo>& infos, size_t i) {
 void reclassifyContinuationLines(const std::vector<std::string_view>& lines,
                                  std::vector<LineInfo>& infos) {
     for (size_t i = 1; i < infos.size(); i++) {
-        if (infos[i].kind != LineKind::Other) {
+        if (infos[i].kind != LineKind::Other && infos[i].kind != LineKind::Assignment) {
             continue;
         }
 
@@ -1344,14 +1571,16 @@ void reclassifyContinuationLines(const std::vector<std::string_view>& lines,
                     .typeWidth = 0,
                     .identPos = indentEnd,
                     .equalsPos = findEquals(lines[i], indentEnd),
-                    .dimPos = npos};
+                    .dimPos = npos,
+                    .depth = infos[i].depth};
     }
 }
 
 template<typename BreakPred, typename StartPred, typename AlignFn>
 std::string applyAlignConsecutive(const std::string& output,
                                   const AlignConsecutiveStyle& alignStyle, BreakPred shouldBreak,
-                                  StartPred canStart, AlignFn alignFn) {
+                                  StartPred canStart, AlignFn alignFn,
+                                  const std::vector<unsigned>& lineDepths = {}) {
     if (!alignStyle.Enabled) {
         return output;
     }
@@ -1377,15 +1606,19 @@ std::string applyAlignConsecutive(const std::string& output,
     std::vector<LineInfo> infos;
     infos.reserve(lines.size());
     auto formatOff = false;
-    for (auto& line : lines) {
-        if (line.find("slang-format off") != std::string_view::npos) {
+    for (size_t i = 0; i < lines.size(); i++) {
+        if (lines[i].find("slang-format off") != std::string_view::npos) {
             formatOff = true;
         }
-        else if (line.find("slang-format on") != std::string_view::npos) {
+        else if (lines[i].find("slang-format on") != std::string_view::npos) {
             formatOff = false;
         }
 
-        infos.push_back(classifyLine(line, formatOff));
+        auto info = classifyLine(lines[i], formatOff);
+        if (i < lineDepths.size()) {
+            info.depth = lineDepths[i];
+        }
+        infos.push_back(info);
     }
 
     reclassifyContinuationLines(lines, infos);
@@ -1402,12 +1635,14 @@ std::string applyAlignConsecutive(const std::string& output,
             alignFn(result, lines, infos, {.start = state.groupStart, .end = i});
             state.inGroup = false;
             state.groupIndent.reset();
+            state.groupDepth.reset();
         }
 
         if (canStart(info) && !state.inGroup) {
             state.groupStart = i;
             state.inGroup = true;
             state.groupIndent = info.indent;
+            state.groupDepth = info.depth;
         }
         else if (!state.inGroup) {
             result.append(lines[i]);
@@ -1463,7 +1698,7 @@ std::string reformat(std::string_view text, const Style& style) {
     tree = applyBeginEndInsertion(tree, style);
     FormatPrinter printer(style);
 
-    auto result = printer.print(*tree);
+    auto [result, lineDepths] = printer.print(*tree);
     auto dimAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
                                const std::vector<LineInfo>& inf, GroupRange rng) {
         alignGroupDimensions(r, l, inf, rng, style.AlignConsecutivePackedDimensions);
@@ -1472,8 +1707,9 @@ std::string reformat(std::string_view text, const Style& style) {
                                    shouldBreakDimGroup, canStartDimGroup, dimAlignFn);
     result = applyAlignConsecutive(result, style.AlignConsecutiveDeclarations, shouldBreakGroup,
                                    canStartDeclGroup, alignGroup);
-    result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments, shouldBreakGroup,
-                                   canStartDeclGroup, alignGroupEquals);
+    result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments,
+                                   shouldBreakAssignGroup, canStartAssignGroup, alignGroupEquals,
+                                   lineDepths);
 
     if (!style.OneLineFormatOffRegex.empty()) {
         std::regex const re(style.OneLineFormatOffRegex);

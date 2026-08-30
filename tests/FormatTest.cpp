@@ -1947,9 +1947,9 @@ TEST(AlignConsecutiveAssignments, ConsecutiveNonDeclarationBreaksGroup) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic a       = 1;
-          logic [7:0] b = 2;
-          assign x = 1;
+          logic a        = 1;
+          logic [7:0] b  = 2;
+          assign x       = 1;
           logic [15:0] c = 3;
           logic d        = 4;
         endmodule
@@ -2134,7 +2134,7 @@ TEST(AlignConsecutiveAssignments, DeclarationWithoutInitializer) {
     )"));
 }
 
-TEST(AlignConsecutiveAssignments, StandaloneAssignmentNotAffected) {
+TEST(AlignConsecutiveAssignments, StandaloneAssignmentAligned) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
@@ -2146,7 +2146,7 @@ TEST(AlignConsecutiveAssignments, StandaloneAssignmentNotAffected) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign x = 1;
+          assign x        = 1;
           assign longname = 2;
         endmodule
     )"));
@@ -2168,6 +2168,40 @@ TEST(AlignConsecutiveAssignments, SingleDeclarationNotAligned) {
     )"));
 }
 
+TEST(AlignConsecutiveAssignments, DepthChangeBreaksGroup) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.AcrossEmptyLines = true;
+    style.AlignConsecutiveAssignments.AcrossComments = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            a = 1;
+            longname = 2;
+            begin
+              x = 1;
+              verylongname = 2;
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            a        = 1;
+            longname = 2;
+            begin
+              x            = 1;
+              verylongname = 2;
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(AlignConsecutiveAssignments, FormatOffRegionSkipped) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
@@ -2180,7 +2214,9 @@ TEST(AlignConsecutiveAssignments, FormatOffRegionSkipped) {
           logic [15:0] b = 2;
           // slang-format on
         endmodule
-    )"), style), dedent(R"(
+    )"),
+                       style),
+              dedent(R"(
         module foo;
           // slang-format off
           logic a = 1;
@@ -2201,11 +2237,335 @@ TEST(AlignConsecutiveAssignments, InteractionWithAlignConsecutiveDeclarations) {
           logic [7:0] b = 2;
           logic [15:0] c = 3;
         endmodule
-    )"), style), dedent(R"(
+    )"),
+                       style),
+              dedent(R"(
         module foo;
           logic        a = 1;
           logic [7:0]  b = 2;
           logic [15:0] c = 3;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, BlockingAssignments) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            a = 1;
+            longname = 2;
+          end
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          always_comb begin
+            a        = 1;
+            longname = 2;
+          end
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, NonblockingAssignments) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_ff @(posedge clk) begin
+            a <= 1;
+            longname <= 2;
+          end
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          always_ff @(posedge clk) begin
+            a        <= 1;
+            longname <= 2;
+          end
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, CaseStatementDoesNotBreakGroup) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1;
+            case (state)
+              STATE_A: a = 1;
+              STATE_B: a = 2;
+            endcase
+            longname = 2;
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            x        = 1;
+            case (state)
+              STATE_A: a = 1;
+              STATE_B: a = 2;
+            endcase
+            longname = 2;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignConsecutiveAssignments, CompoundAssignments) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            a += 1;
+            longname -= 2;
+          end
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          always_comb begin
+            a        += 1;
+            longname -= 2;
+          end
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, ShiftAssignments) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            a <<= 1;
+            longname >>= 2;
+          end
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          always_comb begin
+            a        <<= 1;
+            longname >>= 2;
+          end
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, HierarchicalLHS) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            x.y = 1;
+            x.longname = 2;
+          end
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          always_comb begin
+            x.y        = 1;
+            x.longname = 2;
+          end
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, BitSelectLHS) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            x[0] = 1;
+            longname[3:0] = 2;
+          end
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          always_comb begin
+            x[0]          = 1;
+            longname[3:0] = 2;
+          end
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, IfStatementDoesNotBreakGroup) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1;
+            if (cond) begin
+              y = 2;
+            end
+            else begin
+              y = 3;
+            end
+            longname = 4;
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            x        = 1;
+            if (cond) begin
+              y = 2;
+            end
+            else begin
+              y = 3;
+            end
+            longname = 4;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignConsecutiveAssignments, MixedDeclarationsAndAssignments) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic a = 1;
+          assign x = 2;
+          logic [7:0] b = 3;
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          logic a       = 1;
+          assign x      = 2;
+          logic [7:0] b = 3;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, BeginEndBreaksGroup) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.AcrossEmptyLines = true;
+    style.AlignConsecutiveAssignments.AcrossComments = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            a = 1;
+            longname = 2;
+          end
+
+          always_comb begin
+            x = 1;
+            verylongname = 2;
+          end
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          always_comb begin
+            a        = 1;
+            longname = 2;
+          end
+
+          always_comb begin
+            x            = 1;
+            verylongname = 2;
+          end
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveAssignments, ControlFlowDoesNotBreakGroup) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            a = 1;
+            if (x == 1) begin
+              b = 2;
+            end
+            longname = 3;
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            a        = 1;
+            if (x == 1) begin
+              b = 2;
+            end
+            longname = 3;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignConsecutiveAssignments, SingleAssignmentNotAligned) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            a = 1;
+          end
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          always_comb begin
+            a = 1;
+          end
         endmodule
     )"));
 }
