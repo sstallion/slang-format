@@ -362,6 +362,62 @@ endmodule
 
 ---
 
+### AlignConsecutiveTimingControls (AlignConsecutiveStyle)
+
+Controls alignment of signal names and assignment operators in consecutive
+timing controls. When enabled, adjacent `always` statements with delay
+expressions (e.g. `always #5 clk = ~clk;`) have their signal names and
+assignment operators aligned by padding with trailing spaces. This is a nested
+mapping with three sub-options. `Enabled` is a master switch; the remaining
+sub-options take effect only when `Enabled` is `true`.
+
+**Default:**
+
+```yaml
+AlignConsecutiveTimingControls:
+  AcrossComments: false
+  AcrossEmptyLines: false
+  Enabled: false
+```
+
+#### AcrossComments (bool)
+
+If `true`, comments do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### AcrossEmptyLines (bool)
+
+If `true`, empty lines do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### Enabled (bool)
+
+If `false`, disables all alignment regardless of other options.
+
+**Default:** `false`
+
+```sv
+// Enabled: true
+module foo;
+  always #5  clk_i  = ~clk_i;
+  always #20 dclk_i = ~dclk_i;
+endmodule
+
+// Enabled: false (default)
+module foo;
+  always #5 clk_i = ~clk_i;
+  always #20 dclk_i = ~dclk_i;
+endmodule
+```
+
+---
+
 ### BreakAfterAlways (BreakAfterBlockStyle)
 
 Controls whether a newline is inserted between an `always`, `always_comb`,

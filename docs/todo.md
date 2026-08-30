@@ -22,7 +22,7 @@
     - [x] Dimensions
     - [x] Assignments
     - [x] Groups (i.e. parameters, signals)
-    - [ ] Delays
+    - [x] Delays
   - [ ] Multiple assignments
   - [ ] MSB vs. LSB ranges
   - [ ] Timing control

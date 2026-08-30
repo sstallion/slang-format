@@ -137,6 +137,14 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::Key << "PadRight" << YAML::Value
         << style.AlignConsecutivePackedDimensions.PadRight;
     out << YAML::EndMap;
+    out << YAML::Key << "AlignConsecutiveTimingControls" << YAML::Value;
+    out << YAML::BeginMap;
+    out << YAML::Key << "AcrossComments" << YAML::Value
+        << style.AlignConsecutiveTimingControls.AcrossComments;
+    out << YAML::Key << "AcrossEmptyLines" << YAML::Value
+        << style.AlignConsecutiveTimingControls.AcrossEmptyLines;
+    out << YAML::Key << "Enabled" << YAML::Value << style.AlignConsecutiveTimingControls.Enabled;
+    out << YAML::EndMap;
     out << YAML::Key << "BreakAfterAlways" << YAML::Value
         << std::string{toString(style.BreakAfterAlways)};
     out << YAML::Key << "BreakAfterBegin" << YAML::Value << style.BreakAfterBegin;
@@ -179,6 +187,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto n = lookup(node, "AlignConsecutivePackedDimensions")) {
         parseAlignConsecutive(n, style.AlignConsecutivePackedDimensions);
+    }
+
+    if (auto n = lookup(node, "AlignConsecutiveTimingControls")) {
+        parseAlignConsecutive(n, style.AlignConsecutiveTimingControls);
     }
 
     if (auto v = lookup(node, "MaxEmptyLinesToKeep")) {

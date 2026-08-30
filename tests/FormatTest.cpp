@@ -1841,6 +1841,150 @@ TEST(AlignConsecutivePackedDimensions, PadLeftWithDeclarationAlignment) {
         endmodule
     )"));
 }
+
+TEST(AlignConsecutiveTimingControls, Consecutive) {
+    Style style;
+    style.AlignConsecutiveTimingControls.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #5 clk_i = ~clk_i;
+        always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #5  clk_i  = ~clk_i;
+          always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveTimingControls, ConsecutiveEmptyLineBreaksGroup) {
+    Style style;
+    style.AlignConsecutiveTimingControls.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #5 clk_i = ~clk_i;
+
+        always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #5 clk_i = ~clk_i;
+
+          always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveTimingControls, AcrossEmptyLines) {
+    Style style;
+    style.AlignConsecutiveTimingControls.Enabled = true;
+    style.AlignConsecutiveTimingControls.AcrossEmptyLines = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #5 clk_i = ~clk_i;
+
+        always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #5  clk_i  = ~clk_i;
+
+          always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveTimingControls, ConsecutiveCommentBreaksGroup) {
+    Style style;
+    style.AlignConsecutiveTimingControls.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #5 clk_i = ~clk_i;
+        // comment
+        always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #5 clk_i = ~clk_i;
+          // comment
+          always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveTimingControls, AcrossComments) {
+    Style style;
+    style.AlignConsecutiveTimingControls.Enabled = true;
+    style.AlignConsecutiveTimingControls.AcrossComments = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #5 clk_i = ~clk_i;
+        // comment
+        always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #5  clk_i  = ~clk_i;
+          // comment
+          always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveTimingControls, None) {
+    Style style;
+    style.AlignConsecutiveTimingControls = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #5 clk_i = ~clk_i;
+        always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #5 clk_i = ~clk_i;
+          always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveTimingControls, ParenthesizedDelay) {
+    Style style;
+    style.AlignConsecutiveTimingControls.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #(CLK_PERIOD / 2) clk_i = ~clk_i;
+        always #20 dclk_i = ~dclk_i;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #(CLK_PERIOD / 2) clk_i  = ~clk_i;
+          always #20               dclk_i = ~dclk_i;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutiveTimingControls, SingleLineNotAligned) {
+    Style style;
+    style.AlignConsecutiveTimingControls.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #5 clk_i = ~clk_i;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #5 clk_i = ~clk_i;
+        endmodule
+    )"));
+}
 // clang-format on
 
 // clang-format off

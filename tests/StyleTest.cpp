@@ -236,6 +236,48 @@ TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensionsEnabled) {
     EXPECT_TRUE(style.AlignConsecutivePackedDimensions.Enabled);
 }
 
+TEST(ParseConfiguration, ParsesAlignConsecutiveTimingControlsAcrossComments) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveTimingControls:
+          AcrossComments: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveTimingControls.AcrossComments);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutiveTimingControlsAcrossEmptyLines) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveTimingControls:
+          AcrossEmptyLines: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveTimingControls.AcrossEmptyLines);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutiveTimingControlsEnabled) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveTimingControls:
+          Enabled: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveTimingControls.Enabled);
+}
+
 TEST(ParseConfiguration, ParsesAlignConsecutiveStyleAlignColon) {
     Style style;
 
@@ -483,6 +525,8 @@ TEST(DumpConfiguration, RoundTrip) {
     original.AlignConsecutivePackedDimensions.AlignColon = true;
     original.AlignConsecutivePackedDimensions.PadLeft = true;
     original.AlignConsecutivePackedDimensions.PadRight = true;
+    original.AlignConsecutiveTimingControls.Enabled = true;
+    original.AlignConsecutiveTimingControls.AcrossEmptyLines = true;
     original.IndentWidth = 4;
     original.ContinuationIndentWidth = 4;
     original.ParameterPortListIndentWidth = 4;

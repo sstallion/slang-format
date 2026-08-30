@@ -702,6 +702,7 @@ enum class LineKind {
     Comment,
     Empty,
     PortListBoundary,
+    TimingControl,
     Other
 };
 
@@ -788,6 +789,37 @@ size_t skipSignedness(std::string_view line, size_t pos) {
 size_t skipTypeQualifiers(std::string_view line, size_t pos) {
     pos = skipSignedness(line, pos);
     return skipDimensions(line, pos);
+}
+
+size_t skipTimingControl(std::string_view line, size_t pos) {
+    if (pos >= line.size() || line[pos] != '#') {
+        return pos;
+    }
+    pos++;
+
+    if (pos < line.size() && line[pos] == '(') {
+        int depth = 1;
+        pos++;
+        while (pos < line.size() && depth > 0) {
+            if (line[pos] == '(') {
+                depth++;
+            }
+            else if (line[pos] == ')') {
+                depth--;
+            }
+            pos++;
+        }
+        return pos;
+    }
+
+    auto start = pos;
+    while (pos < line.size() && isWordChar(line[pos])) {
+        pos++;
+    }
+    if (pos == start) {
+        return start - 1;
+    }
+    return pos;
 }
 
 size_t skipDirectionType(std::string_view line, size_t pos) {
@@ -955,6 +987,43 @@ size_t findDimPos(std::string_view line, size_t pos, std::string_view firstWord)
     return npos;
 }
 
+LineInfo classifyTimingControl(std::string_view line, size_t indentEnd) {
+    LineInfo const other{.kind = LineKind::Other,
+                         .indent = indentEnd,
+                         .typeWidth = 0,
+                         .identPos = 0,
+                         .equalsPos = npos,
+                         .dimPos = npos,
+                         .depth = 0};
+
+    auto afterKeyword = skipSpaces(line, indentEnd + std::string_view{"always"}.size());
+    if (afterKeyword >= line.size() || line[afterKeyword] != '#') {
+        return other;
+    }
+
+    auto afterDelay = skipTimingControl(line, afterKeyword);
+    auto identStart = skipSpaces(line, afterDelay);
+    if (identStart >= line.size() ||
+        (std::isalpha(static_cast<unsigned char>(line[identStart])) == 0 &&
+         line[identStart] != '_')) {
+        return other;
+    }
+
+    auto afterLHS = skipAssignmentLHS(line, identStart);
+    auto opPos = findAssignOperator(line, skipSpaces(line, afterLHS));
+    if (opPos == npos) {
+        return other;
+    }
+
+    return {.kind = LineKind::TimingControl,
+            .indent = indentEnd,
+            .typeWidth = identStart - indentEnd,
+            .identPos = identStart,
+            .equalsPos = opPos,
+            .dimPos = npos,
+            .depth = 0};
+}
+
 LineInfo classifyLine(std::string_view line, bool formatOff) {
     if (line.empty() || line.find_first_not_of(' ') == std::string_view::npos) {
         return {.kind = LineKind::Empty,
@@ -1008,6 +1077,10 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
                 .equalsPos = npos,
                 .dimPos = npos,
                 .depth = 0};
+    }
+
+    if (firstWord == "always") {
+        return classifyTimingControl(line, indentEnd);
     }
 
     size_t pos = indentEnd;
@@ -1537,6 +1610,108 @@ bool canStartAssignGroup(const LineInfo& info) {
     return info.kind == LineKind::Assignment || info.kind == LineKind::Declaration;
 }
 
+bool shouldBreakTimingGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
+                            bool acrossComments, bool /*acrossIndent*/) {
+    if (info.kind == LineKind::TimingControl) {
+        return state.inGroup && state.groupIndent && *state.groupIndent != info.indent;
+    }
+
+    if (info.kind == LineKind::Empty) {
+        return state.inGroup && !acrossEmpty;
+    }
+
+    if (info.kind == LineKind::Comment) {
+        return state.inGroup && !acrossComments;
+    }
+
+    return true;
+}
+
+bool canStartTimingGroup(const LineInfo& info) {
+    return info.kind == LineKind::TimingControl;
+}
+
+std::string padTimingIdent(std::string_view line, const LineInfo& info, size_t maxTypeWidth) {
+    auto targetPos = info.indent + maxTypeWidth;
+    auto typeTextEnd = info.identPos;
+    while (typeTextEnd > info.indent && line[typeTextEnd - 1] == ' ') {
+        typeTextEnd--;
+    }
+
+    std::string p;
+    p.append(line.substr(0, typeTextEnd));
+    p.append(targetPos - (typeTextEnd - info.indent) - info.indent, ' ');
+    p.append(line.substr(info.identPos));
+    return p;
+}
+
+void alignTimingIdentsAndEquals(std::string& result, const std::vector<std::string_view>& lines,
+                                const std::vector<LineInfo>& infos, GroupRange range,
+                                size_t maxTypeWidth) {
+    std::vector<std::string> padded;
+    padded.reserve(range.end - range.start);
+    size_t maxEqualsCol = 0;
+    for (auto i = range.start; i < range.end; i++) {
+        if (infos[i].kind != LineKind::TimingControl) {
+            padded.emplace_back(lines[i]);
+            continue;
+        }
+
+        padded.push_back(padTimingIdent(lines[i], infos[i], maxTypeWidth));
+        auto shift = static_cast<ptrdiff_t>(infos[i].indent + maxTypeWidth) -
+                     static_cast<ptrdiff_t>(infos[i].identPos);
+        auto adjustedEquals = static_cast<size_t>(static_cast<ptrdiff_t>(infos[i].equalsPos) +
+                                                  shift);
+        maxEqualsCol = std::max(maxEqualsCol, adjustedEquals);
+    }
+
+    size_t idx = 0;
+    for (auto i = range.start; i < range.end; i++, idx++) {
+        if (infos[i].kind != LineKind::TimingControl) {
+            result.append(padded[idx]);
+            result += '\n';
+            continue;
+        }
+
+        auto& p = padded[idx];
+        auto shift = static_cast<ptrdiff_t>(infos[i].indent + maxTypeWidth) -
+                     static_cast<ptrdiff_t>(infos[i].identPos);
+        auto eqPos = static_cast<size_t>(static_cast<ptrdiff_t>(infos[i].equalsPos) + shift);
+        auto preEqualsEnd = eqPos;
+        while (preEqualsEnd > 0 && p[preEqualsEnd - 1] == ' ') {
+            preEqualsEnd--;
+        }
+
+        result.append(std::string_view(p).substr(0, preEqualsEnd));
+        result.append(maxEqualsCol - preEqualsEnd, ' ');
+        result.append(std::string_view(p).substr(eqPos));
+        result += '\n';
+    }
+}
+
+void alignGroupTiming(std::string& result, const std::vector<std::string_view>& lines,
+                      const std::vector<LineInfo>& infos, GroupRange range) {
+    size_t count = 0;
+    size_t maxTypeWidth = 0;
+    for (auto i = range.start; i < range.end; i++) {
+        if (infos[i].kind != LineKind::TimingControl) {
+            continue;
+        }
+        count++;
+        maxTypeWidth = std::max(maxTypeWidth, infos[i].typeWidth);
+    }
+
+    if (count < 2) {
+        for (auto i = range.start; i < range.end; i++) {
+            result.append(lines[i]);
+            result += '\n';
+        }
+        return;
+    }
+
+    alignTimingIdentsAndEquals(result, lines, infos, range, maxTypeWidth);
+}
+
 bool followsDeclaration(const std::vector<LineInfo>& infos, size_t i) {
     for (auto j = i; j > 0; j--) {
         auto prevKind = infos[j - 1].kind;
@@ -1707,6 +1882,8 @@ std::string reformat(std::string_view text, const Style& style) {
                                    shouldBreakDimGroup, canStartDimGroup, dimAlignFn);
     result = applyAlignConsecutive(result, style.AlignConsecutiveDeclarations, shouldBreakGroup,
                                    canStartDeclGroup, alignGroup);
+    result = applyAlignConsecutive(result, style.AlignConsecutiveTimingControls,
+                                   shouldBreakTimingGroup, canStartTimingGroup, alignGroupTiming);
     result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments,
                                    shouldBreakAssignGroup, canStartAssignGroup, alignGroupEquals,
                                    lineDepths);

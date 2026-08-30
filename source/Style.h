@@ -68,6 +68,9 @@ struct Style {
     /// Controls alignment of packed dimensions in consecutive declarations.
     AlignConsecutiveStyle AlignConsecutivePackedDimensions;
 
+    /// Controls alignment of signal names and assignment operators in consecutive timing controls.
+    AlignConsecutiveStyle AlignConsecutiveTimingControls;
+
     /// Maximum number of consecutive empty lines to keep.
     unsigned MaxEmptyLinesToKeep = 1;
 
