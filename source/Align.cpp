@@ -80,6 +80,29 @@ LineInfo makeOther(size_t indent) {
             .depth = 0};
 }
 
+LineKind toLineKind(LineMetadata::Kind mk) {
+    using MK = LineMetadata::Kind;
+    switch (mk) {
+        case MK::Assignment:
+            return LineKind::Assignment;
+        case MK::Comment:
+            return LineKind::Comment;
+        case MK::Continuation:
+            return LineKind::Continuation;
+        case MK::Declaration:
+            return LineKind::Declaration;
+        case MK::Empty:
+            return LineKind::Empty;
+        case MK::PortListBoundary:
+            return LineKind::PortListBoundary;
+        case MK::TimingControl:
+            return LineKind::TimingControl;
+        case MK::Other:
+            return LineKind::Other;
+    }
+    return LineKind::Other;
+}
+
 constexpr std::array TypeKeywords{
     std::string_view{"bit"},      std::string_view{"byte"},      std::string_view{"int"},
     std::string_view{"integer"},  std::string_view{"logic"},     std::string_view{"longint"},
@@ -1145,11 +1168,40 @@ void reclassifyContinuationLines(const std::vector<std::string_view>& lines,
     }
 }
 
+std::vector<LineInfo> classifyLines(const std::vector<std::string_view>& lines,
+                                    const std::vector<LineMetadata>& lineMetadata) {
+    std::vector<LineInfo> infos;
+    infos.reserve(lines.size());
+    auto formatOff = false;
+    for (size_t i = 0; i < lines.size(); i++) {
+        if (lines[i].find("slang-format off") != std::string_view::npos) {
+            formatOff = true;
+        }
+        else if (lines[i].find("slang-format on") != std::string_view::npos) {
+            formatOff = false;
+        }
+
+        auto info = classifyLine(lines[i], formatOff);
+        if (i < lineMetadata.size()) {
+            info.depth = lineMetadata[i].depth;
+
+            auto metaKind = toLineKind(lineMetadata[i].kind);
+            if (!formatOff && metaKind != LineKind::Other) {
+                info.kind = metaKind;
+            }
+        }
+        infos.push_back(info);
+    }
+
+    reclassifyContinuationLines(lines, infos);
+    return infos;
+}
+
 template<typename BreakPred, typename StartPred, typename AlignFn>
 std::string applyAlignConsecutive(const std::string& output,
                                   const AlignConsecutiveStyle& alignStyle, BreakPred shouldBreak,
                                   StartPred canStart, AlignFn alignFn,
-                                  const std::vector<unsigned>& lineDepths = {}) {
+                                  const std::vector<LineMetadata>& lineMetadata = {}) {
     if (!alignStyle.Enabled) {
         return output;
     }
@@ -1172,25 +1224,7 @@ std::string applyAlignConsecutive(const std::string& output,
         }
     }
 
-    std::vector<LineInfo> infos;
-    infos.reserve(lines.size());
-    auto formatOff = false;
-    for (size_t i = 0; i < lines.size(); i++) {
-        if (lines[i].find("slang-format off") != std::string_view::npos) {
-            formatOff = true;
-        }
-        else if (lines[i].find("slang-format on") != std::string_view::npos) {
-            formatOff = false;
-        }
-
-        auto info = classifyLine(lines[i], formatOff);
-        if (i < lineDepths.size()) {
-            info.depth = lineDepths[i];
-        }
-        infos.push_back(info);
-    }
-
-    reclassifyContinuationLines(lines, infos);
+    auto infos = classifyLines(lines, lineMetadata);
 
     std::string result;
     result.reserve(output.size());
@@ -1235,23 +1269,25 @@ std::string applyAlignConsecutive(const std::string& output,
 namespace slang::format {
 
 std::string applyAlignment(const std::string& output, const Style& style,
-                           const std::vector<unsigned>& lineDepths) {
+                           const std::vector<LineMetadata>& lineMetadata) {
     auto dimAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
                                const std::vector<LineInfo>& inf, GroupRange rng) {
         alignGroupDimensions(r, l, inf, rng, style.AlignConsecutivePackedDimensions);
     };
     auto result = applyAlignConsecutive(output, style.AlignConsecutivePackedDimensions,
-                                        shouldBreakDimGroup, canStartDimGroup, dimAlignFn);
+                                        shouldBreakDimGroup, canStartDimGroup, dimAlignFn,
+                                        lineMetadata);
     result = applyAlignConsecutive(result, style.AlignConsecutiveDeclarations, shouldBreakGroup,
-                                   canStartDeclGroup, alignGroup);
+                                   canStartDeclGroup, alignGroup, lineMetadata);
     result = applyAlignConsecutive(result, style.AlignConsecutiveTimingControls,
-                                   shouldBreakTimingGroup, canStartTimingGroup, alignGroupTiming);
+                                   shouldBreakTimingGroup, canStartTimingGroup, alignGroupTiming,
+                                   lineMetadata);
     result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments,
                                    shouldBreakAssignGroup, canStartAssignGroup, alignGroupEquals,
-                                   lineDepths);
+                                   lineMetadata);
     result = applyAlignConsecutive(result, style.AlignTrailingComments,
                                    shouldBreakTrailingCommentGroup, canStartTrailingCommentGroup,
-                                   alignGroupTrailingComments);
+                                   alignGroupTrailingComments, lineMetadata);
     return result;
 }
 

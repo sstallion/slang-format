@@ -138,11 +138,20 @@ and the single-pass constraint keeps the implementation linear and predictable.
 #### Alignment
 
 Alignment is implemented in a dedicated translation unit (`Align.cpp`) and
-exposed to the formatter through a single function. Internally, alignment
-operates on the already-formatted output string rather than during the tree walk.
-Alignment requires knowledge of multiple adjacent lines to compute the maximum
-column width, which is incompatible with the single-pass tree walk where each
-token is emitted independently.
+exposed to the formatter through a single function. Alignment requires knowledge
+of multiple adjacent lines to compute the maximum column width, which is
+incompatible with the single-pass tree walk where each token is emitted
+independently.
+
+The tree walk populates a per-line `LineMetadata` record as a side channel
+alongside the formatted output. Each record carries the line's syntactic kind
+(declaration, assignment, timing control, comment, etc.), AST nesting depth, and
+trailing comment position. The alignment passes consume this metadata for line
+classification and group formation, falling back to text-based classification
+for line types not yet covered by metadata handlers. Position extraction for
+column alignment (type width, identifier position, equals position, dimension
+position) is still performed by text scanning, since preceding alignment passes
+may insert padding that shifts these positions from their original values.
 
 A line-based grouping algorithm driven by `applyAlignConsecutive`, a template
 that handles group formation while delegating break, start, and alignment

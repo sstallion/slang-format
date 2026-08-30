@@ -23,6 +23,7 @@
 #include <slang/parsing/TokenKind.h>
 #include <slang/syntax/AllSyntax.h>
 #include <slang/syntax/SyntaxKind.h>
+#include <slang/syntax/SyntaxNode.h>
 #include <slang/syntax/SyntaxTree.h>
 #include <slang/syntax/SyntaxVisitor.h>
 #include <slang/text/SourceManager.h>
@@ -87,7 +88,7 @@ public:
 
     struct Result {
         std::string output;
-        std::vector<unsigned> lineDepths;
+        std::vector<LineMetadata> lineMetadata;
     };
 
     Result print(const SyntaxTree& tree) {
@@ -97,7 +98,7 @@ public:
         // returns a member node (e.g. ModuleDeclarationSyntax). Emit its
         // leading trivia, which carries the final newlines from the source.
         emitToken(tree.getMetadata().eofToken);
-        return {.output = std::move(output), .lineDepths = std::move(lineDepths)};
+        return {.output = std::move(output), .lineMetadata = std::move(lineMetadata)};
     }
 
     // Called by the base-class visitDefault for every token child of an unhandled node.
@@ -129,6 +130,7 @@ public:
 
         depth--;
         nextIsPrimary = true;
+        nextLineKind = LineMetadata::Kind::PortListBoundary;
         emitToken(p.closeParen);
     }
 
@@ -140,6 +142,7 @@ public:
 
         depth--;
         nextIsPrimary = true;
+        nextLineKind = LineMetadata::Kind::PortListBoundary;
         emitToken(p.closeParen);
     }
 
@@ -152,6 +155,7 @@ public:
 
         depth--;
         nextIsPrimary = true;
+        nextLineKind = LineMetadata::Kind::PortListBoundary;
         emitToken(p.closeParen);
     }
 
@@ -197,6 +201,11 @@ public:
     }
 
     void handle(const ProceduralBlockSyntax& proc) {
+        if (proc.kind == SyntaxKind::AlwaysBlock &&
+            proc.statement->kind == SyntaxKind::TimingControlStatement) {
+            nextLineKind = LineMetadata::Kind::TimingControl;
+        }
+
         nextIsPrimary = true;
         for (auto* attr : proc.attributes) {
             attr->visit(*this);
@@ -405,10 +414,96 @@ public:
 
     void handle(const SpecifyBlockSyntax& s) { visitScopedBlock(s, s.endspecify, s.items); }
 
+    void handle(const DataDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        for (auto tok : decl.modifiers) {
+            emitToken(tok);
+        }
+
+        decl.type->visit(*this);
+        visitDeclarators(decl.declarators);
+        emitToken(decl.semi);
+    }
+
+    void handle(const NetDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.netType);
+        if (decl.strength != nullptr) {
+            decl.strength->visit(*this);
+        }
+
+        emitToken(decl.expansionHint);
+        decl.type->visit(*this);
+        if (decl.delay != nullptr) {
+            decl.delay->visit(*this);
+        }
+
+        visitDeclarators(decl.declarators);
+        emitToken(decl.semi);
+    }
+
+    void handle(const PortDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        decl.header->visit(*this);
+        visitDeclarators(decl.declarators);
+        emitToken(decl.semi);
+    }
+
+    void handle(const ParameterDeclarationStatementSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        decl.parameter->visit(*this);
+        emitToken(decl.semi);
+    }
+
+    void handle(const ContinuousAssignSyntax& assign) {
+        nextLineKind = LineMetadata::Kind::Assignment;
+        for (auto* attr : assign.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(assign.assign);
+        if (assign.strength != nullptr) {
+            assign.strength->visit(*this);
+        }
+
+        if (assign.delay != nullptr) {
+            assign.delay->visit(*this);
+        }
+
+        for (const auto& elem : assign.assignments.elems()) {
+            if (elem.isNode()) {
+                elem.node()->visit(*this);
+            }
+            else if (elem.isToken()) {
+                emitToken(elem.token());
+            }
+        }
+
+        emitToken(assign.semi);
+    }
+
 private:
     const Style& style;
     std::string output;
-    std::vector<unsigned> lineDepths;
+    std::vector<LineMetadata> lineMetadata;
+    LineMetadata currentLineMeta;
+    size_t lineStart = 0; ///< Index into output where the current line begins.
     unsigned depth = 0;
     unsigned lineDepth = 0; ///< Depth when content was last emitted on the current line.
     bool atLineStart = true;
@@ -417,6 +512,7 @@ private:
     bool formatEnabled = true;
     unsigned emptyLineCount = 0;
     std::optional<std::regex> offRegex;
+    std::optional<LineMetadata::Kind> nextLineKind;
 
     static bool hasLeadingNewline(Token tok) {
         if (!tok) {
@@ -427,13 +523,20 @@ private:
                                    [](const auto& t) { return t.kind == TriviaKind::EndOfLine; });
     }
 
+    void finalizeLine() {
+        currentLineMeta.depth = lineDepth;
+        lineMetadata.push_back(std::move(currentLineMeta));
+        currentLineMeta = {};
+    }
+
     // Strip trailing spaces from output and emit a newline, setting atLineStart.
     void forceNewline() {
         while (!output.empty() && output.back() == ' ') {
             output.pop_back();
         }
         output += '\n';
-        lineDepths.push_back(lineDepth);
+        finalizeLine();
+        lineStart = output.size();
         atLineStart = true;
     }
 
@@ -446,13 +549,16 @@ private:
                     return;
                 }
 
+                currentLineMeta.kind = LineMetadata::Kind::Empty;
                 output += '\n';
-                lineDepths.push_back(lineDepth);
+                finalizeLine();
+                lineStart = output.size();
             }
             else {
                 emptyLineCount = 0;
                 output += '\n';
-                lineDepths.push_back(lineDepth);
+                finalizeLine();
+                lineStart = output.size();
                 atLineStart = true;
             }
             return;
@@ -471,6 +577,13 @@ private:
         if (t.kind == TriviaKind::LineComment || t.kind == TriviaKind::BlockComment) {
             bool const isOff = formatEnabled && matchesPragma(raw, "slang-format off");
             bool const isOn = !formatEnabled && matchesPragma(raw, "slang-format on");
+
+            if (atLineStart) {
+                currentLineMeta.kind = LineMetadata::Kind::Comment;
+            }
+            else {
+                currentLineMeta.trailingCommentPos = output.size() - lineStart;
+            }
 
             // Indent while still in the current format state (before toggling).
             if (formatEnabled && atLineStart) {
@@ -516,6 +629,11 @@ private:
 
         auto raw = tok.rawText();
         if (formatEnabled && atLineStart && !raw.empty()) {
+            if (nextLineKind) {
+                currentLineMeta.kind = *nextLineKind;
+                nextLineKind.reset();
+            }
+
             if (portItemNextIndent) {
                 output.append(style.ParameterPortListIndentWidth, ' ');
                 portItemNextIndent = false;
@@ -532,6 +650,11 @@ private:
             atLineStart = false;
         }
         else if (atLineStart) {
+            if (nextLineKind) {
+                currentLineMeta.kind = *nextLineKind;
+                nextLineKind.reset();
+            }
+
             atLineStart = false;
         }
 
@@ -550,6 +673,22 @@ private:
                 nextIsPrimary = true;
                 elem.node()->visit(*this);
                 portItemNextIndent = false;
+            }
+            else if (elem.isToken()) {
+                emitToken(elem.token());
+            }
+        }
+    }
+
+    void visitDeclarators(const SeparatedSyntaxList<DeclaratorSyntax>& list) {
+        bool first = true;
+        for (const auto& elem : list.elems()) {
+            if (elem.isNode()) {
+                if (!first && atLineStart) {
+                    currentLineMeta.kind = LineMetadata::Kind::Continuation;
+                }
+                first = false;
+                elem.node()->visit(*this);
             }
             else if (elem.isToken()) {
                 emitToken(elem.token());
@@ -731,8 +870,8 @@ std::string reformat(std::string_view text, const Style& style) {
     tree = applyBeginEndInsertion(tree, style);
     FormatPrinter printer(style);
 
-    auto [result, lineDepths] = printer.print(*tree);
-    result = applyAlignment(result, style, lineDepths);
+    auto [result, lineMetadata] = printer.print(*tree);
+    result = applyAlignment(result, style, lineMetadata);
 
     if (!style.OneLineFormatOffRegex.empty()) {
         std::regex const re(style.OneLineFormatOffRegex);

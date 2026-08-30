@@ -17,14 +17,14 @@
 - [x] In-place editing (i.e. `slang-format -i`)
 - [ ] Formatting (not exhaustive):
   - [ ] Line breaks between constructs
-  - [ ] Alignment:
+  - [x] Alignment:
     - [x] Names
     - [x] Dimensions
     - [x] Assignments
     - [x] Groups (i.e. parameters, signals)
     - [x] Delays
     - [x] Trailing comments
-  - [ ] Multiple assignments
+  - [x] Multiple assignments
   - [ ] MSB vs. LSB ranges
   - [ ] Timing control
     - [ ] Require parenthesis
