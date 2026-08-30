@@ -555,6 +555,52 @@ endmodule
 
 ---
 
+### BreakBeforeAlways (BreakAfterBlockStyle)
+
+Controls whether slang-format inserts a blank line before an `always`,
+`always_comb`, `always_ff`, or `always_latch` block. Comments immediately
+preceding the block are kept together with it; the blank line is inserted before
+the first attached comment. Accepts the same values as
+[`BreakAfterAlways`](#breakafteralways-breakafterblockstyle).
+
+**Default:** `OnlyMultiline`
+
+`Always` - blank line always inserted:
+
+```sv
+module foo;
+
+  always_comb begin
+    x = 1;
+  end
+endmodule
+```
+
+`Never` - no blank line inserted:
+
+```sv
+module foo;
+  always_comb begin
+    x = 1;
+    y = 2;
+  end
+endmodule
+```
+
+`OnlyMultiline` - blank line inserted before a multi-statement body:
+
+```sv
+module foo;
+
+  always_comb begin
+    x = 1;
+    y = 2;
+  end
+endmodule
+```
+
+---
+
 ### BreakBeforeEnd (bool)
 
 If `true`, enforce a newline before every `end` token that is not already on its

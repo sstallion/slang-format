@@ -286,6 +286,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysAlwaysTimingControl) {
 TEST(ApplyIndentation, BreakAfterAlwaysNone) {
     Style style;
     style.BreakAfterAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -308,6 +309,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysNone) {
 TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalWithBlocks) {
     Style style;
     style.BreakAfterAlways = BreakAfterBlockStyle::OnlyMultiline;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -330,6 +332,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalWithBlocks) {
 TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineMultiStatement) {
     Style style;
     style.BreakAfterAlways = BreakAfterBlockStyle::OnlyMultiline;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -462,7 +465,8 @@ TEST(ApplyIndentation, BreakAfterBeginInlineBlock) {
 }
 
 TEST(ApplyIndentation, BreakAfterBeginNested) {
-    Style const style;
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -565,6 +569,201 @@ TEST(ApplyIndentation, BreakAfterInitialOnlyMultilineMultiStatement) {
     // clang-format on
 }
 
+TEST(ApplyIndentation, BreakBeforeAlwaysAlways) {
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Always;
+    style.BreakAfterAlways = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb begin
+          x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          always_comb begin
+            x = 1;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeAlwaysAlwaysExistingBlankLine) {
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Always;
+    style.BreakAfterAlways = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+        always_comb begin
+          x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          always_comb begin
+            x = 1;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeAlwaysAlwaysTimingControl) {
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Always;
+    style.BreakAfterAlways = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always @(posedge clk) x <= y;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          always @(posedge clk) x <= y;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeAlwaysAlwaysWithComment) {
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Always;
+    style.BreakAfterAlways = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        // comment
+        always_comb begin
+          x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          // comment
+          always_comb begin
+            x = 1;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeAlwaysNever) {
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakAfterAlways = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb begin
+          x = 1;
+          y = 2;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1;
+            y = 2;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineMultiStatement) {
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::OnlyMultiline;
+    style.BreakAfterAlways = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb begin x = 1;
+          y = 2;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          always_comb begin
+            x = 1;
+            y = 2;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineSingleStatement) {
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::OnlyMultiline;
+    style.BreakAfterAlways = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb begin x = y; end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            x = y;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineSingleItemWithBlock) {
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::OnlyMultiline;
+    style.BreakAfterAlways = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb begin
+          x = 1;
+          y = 2;
+        end
+        always_ff @(posedge clk_i) begin
+          if (x == 0) begin
+            y <= 1;
+          end
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          always_comb begin
+            x = 1;
+            y = 2;
+          end
+
+          always_ff @(posedge clk_i) begin
+            if (x == 0) begin
+              y <= 1;
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyIndentation, BreakBeforeEndOnly) {
     Style style;
     style.BreakAfterBegin = false;
@@ -638,7 +837,8 @@ TEST(ApplyIndentation, CaseItemNextLineNotIndented) {
 }
 
 TEST(ApplyIndentation, CaseItemSameLineBeginUnchanged) {
-    Style const style;
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -868,7 +1068,8 @@ TEST(ApplyIndentation, ModuleMembersAndEndmodule) {
 }
 
 TEST(ApplyIndentation, NestedBeginEnd) {
-    Style const style;
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2318,6 +2519,7 @@ TEST(AlignConsecutiveAssignments, DepthChangeBreaksGroup) {
     style.AlignConsecutiveAssignments.AcrossEmptyLines = true;
     style.AlignConsecutiveAssignments.AcrossComments = true;
     style.AlignConsecutiveDeclarations = {};
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2396,6 +2598,7 @@ TEST(AlignConsecutiveAssignments, BlockingAssignments) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -2420,6 +2623,7 @@ TEST(AlignConsecutiveAssignments, NonblockingAssignments) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -2444,6 +2648,7 @@ TEST(AlignConsecutiveAssignments, CaseStatementDoesNotBreakGroup) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2476,6 +2681,7 @@ TEST(AlignConsecutiveAssignments, CompoundAssignments) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -2500,6 +2706,7 @@ TEST(AlignConsecutiveAssignments, ShiftAssignments) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -2524,6 +2731,7 @@ TEST(AlignConsecutiveAssignments, HierarchicalLHS) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -2548,6 +2756,7 @@ TEST(AlignConsecutiveAssignments, BitSelectLHS) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -2572,6 +2781,7 @@ TEST(AlignConsecutiveAssignments, IfStatementDoesNotBreakGroup) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2631,6 +2841,7 @@ TEST(AlignConsecutiveAssignments, BeginEndBreaksGroup) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveAssignments.AcrossEmptyLines = true;
     style.AlignConsecutiveAssignments.AcrossComments = true;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
     style.AlignConsecutiveDeclarations = {};
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -2666,6 +2877,7 @@ TEST(AlignConsecutiveAssignments, ControlFlowDoesNotBreakGroup) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(

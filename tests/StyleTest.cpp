@@ -421,6 +421,13 @@ TEST(ParseConfiguration, ParsesBreakAfterInitial) {
     EXPECT_EQ(style.BreakAfterInitial, BreakAfterBlockStyle::Always);
 }
 
+TEST(ParseConfiguration, ParsesBreakBeforeAlways) {
+    YAML::Node const node = YAML::Load("BreakBeforeAlways: Always");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.BreakBeforeAlways, BreakAfterBlockStyle::Always);
+}
+
 TEST(ParseConfiguration, ParsesBreakBeforeEnd) {
     YAML::Node const node = YAML::Load("BreakBeforeEnd: false");
     Style style;
@@ -549,6 +556,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterInitial: OnlyMultiline"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeEnd: true"), std::string::npos);
     EXPECT_NE(result.find("ContinuationIndentWidth: 2"), std::string::npos);
     EXPECT_NE(result.find("IndentCaseItem: true"), std::string::npos);
@@ -569,11 +577,13 @@ TEST(DumpConfiguration, NonDefaultValues) {
     Style style;
     style.IndentWidth = 4;
     style.BreakAfterAlways = BreakAfterBlockStyle::Always;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Always;
     style.InsertBeginEnd.Enabled = true;
 
     auto const result = dumpConfiguration(style);
     EXPECT_NE(result.find("IndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: Always"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeAlways: Always"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
 }
 
@@ -595,6 +605,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.IndentCaseItem = false;
     original.BreakAfterAlways = BreakAfterBlockStyle::Never;
     original.BreakAfterInitial = BreakAfterBlockStyle::Always;
+    original.BreakBeforeAlways = BreakAfterBlockStyle::Never;
     original.BreakAfterBegin = false;
     original.BreakBeforeEnd = false;
     original.OneLineFormatOffRegex = ".*test.*";

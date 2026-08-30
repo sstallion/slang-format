@@ -100,6 +100,9 @@ struct Style {
     /// Controls insertion of a newline between initial and its body.
     BreakAfterBlockStyle BreakAfterInitial = BreakAfterBlockStyle::OnlyMultiline;
 
+    /// Controls insertion of a blank line before always and its body.
+    BreakAfterBlockStyle BreakBeforeAlways = BreakAfterBlockStyle::OnlyMultiline;
+
     /// If true, enforce a newline after every begin statement.
     bool BreakAfterBegin = true;
 

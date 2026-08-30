@@ -201,6 +201,19 @@ public:
     }
 
     void handle(const ProceduralBlockSyntax& proc) {
+        if (isAlwaysBlockKind(proc.kind) &&
+            shouldBreakBeforeProcedural(style.BreakBeforeAlways, *proc.statement) &&
+            !hasLeadingBlankLine(proc.getFirstToken()) && !outputHasBlankLine()) {
+            if (!atLineStart) {
+                forceNewline();
+            }
+            output += '\n';
+            currentLineMeta.kind = LineMetadata::Kind::Empty;
+            finalizeLine();
+            lineStart = output.size();
+            emptyLineCount = style.MaxEmptyLinesToKeep;
+        }
+
         if (proc.kind == SyntaxKind::AlwaysBlock &&
             proc.statement->kind == SyntaxKind::TimingControlStatement) {
             nextLineKind = LineMetadata::Kind::TimingControl;
@@ -523,6 +536,33 @@ private:
                                    [](const auto& t) { return t.kind == TriviaKind::EndOfLine; });
     }
 
+    // Returns true if the token's leading trivia contains a blank line (two consecutive EndOfLine
+    // pieces) before any non-whitespace trivia.
+    static bool hasLeadingBlankLine(Token tok) {
+        if (!tok) {
+            return false;
+        }
+
+        bool sawNewline = false;
+        for (const auto& t : tok.trivia()) {
+            if (t.kind == TriviaKind::EndOfLine) {
+                if (sawNewline) {
+                    return true;
+                }
+                sawNewline = true;
+            }
+            else if (t.kind != TriviaKind::Whitespace) {
+                sawNewline = false;
+            }
+        }
+        return false;
+    }
+
+    [[nodiscard]] bool outputHasBlankLine() const {
+        return atLineStart && output.size() >= 2 && output[output.size() - 1] == '\n' &&
+               output[output.size() - 2] == '\n';
+    }
+
     void finalizeLine() {
         currentLineMeta.depth = lineDepth;
         lineMetadata.push_back(std::move(currentLineMeta));
@@ -776,6 +816,39 @@ private:
         }
 
         return containsBlock(body);
+    }
+
+    static bool shouldBreakBeforeProcedural(BreakAfterBlockStyle brkStyle,
+                                            const StatementSyntax& stmt) {
+        if (brkStyle == BreakAfterBlockStyle::Never) {
+            return false;
+        }
+
+        const auto* body = &stmt;
+        if (stmt.kind == SyntaxKind::TimingControlStatement) {
+            body = stmt.as<TimingControlStatementSyntax>().statement;
+        }
+
+        if (brkStyle == BreakAfterBlockStyle::Always) {
+            return true;
+        }
+
+        if (BlockStatementSyntax::isKind(body->kind)) {
+            const auto& block = body->as<BlockStatementSyntax>();
+            if (block.items.size() <= 1) {
+                return block.items.size() == 1 && containsBlock(*block.items.front());
+            }
+
+            if (hasLeadingNewline(block.end)) {
+                return true;
+            }
+
+            return std::ranges::any_of(block.items, [](const auto* item) {
+                return item->getFirstToken() && hasLeadingNewline(item->getFirstToken());
+            });
+        }
+
+        return containsBlock(*body);
     }
 
     void visitCaseItemClause(const SyntaxNode& clause) {
