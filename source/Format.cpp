@@ -1211,6 +1211,9 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
             dimCount++;
             maxDimCol = std::max(maxDimCol, infos[i].dimPos);
         }
+        else if (infos[i].kind == LineKind::Declaration) {
+            maxDimCol = std::max(maxDimCol, infos[i].identPos);
+        }
     }
 
     auto const contentAlign = alignStyle.AlignColon || alignStyle.PadLeft || alignStyle.PadRight;
@@ -1295,7 +1298,7 @@ bool shouldBreakDimGroup(const LineInfo& info, const AlignState& state, bool acr
                          bool acrossComments, bool acrossIndent) {
     if ((info.kind == LineKind::Declaration || info.kind == LineKind::Continuation) &&
         info.dimPos == npos) {
-        return state.inGroup;
+        return false;
     }
     return shouldBreakGroup(info, state, acrossEmpty, acrossComments, acrossIndent);
 }
@@ -1305,7 +1308,7 @@ bool canStartDeclGroup(const LineInfo& info) {
 }
 
 bool canStartDimGroup(const LineInfo& info) {
-    return info.kind == LineKind::Declaration && info.dimPos != npos;
+    return info.kind == LineKind::Declaration;
 }
 
 bool followsDeclaration(const std::vector<LineInfo>& infos, size_t i) {

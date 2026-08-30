@@ -1693,6 +1693,46 @@ TEST(AlignConsecutivePackedDimensions, AlignColonPadRight) {
     )"));
 }
 
+TEST(AlignConsecutivePackedDimensions, BareTypeNarrowerThanDimensions) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          bit b;
+          logic [7:0] a;
+          logic [15:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bit b;
+          logic [7:0] a;
+          logic [15:0] c;
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePackedDimensions, BareTypeWiderThanDimensions) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          integer a;
+          logic [7:0] b;
+          reg [3:0] c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          integer a;
+          logic   [7:0] b;
+          reg     [3:0] c;
+        endmodule
+    )"));
+}
+
 TEST(AlignConsecutivePackedDimensions, PadLeftPrecedenceOverPadRight) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
