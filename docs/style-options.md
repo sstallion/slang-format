@@ -418,6 +418,71 @@ endmodule
 
 ---
 
+### AlignTrailingComments (AlignConsecutiveStyle)
+
+Controls alignment of trailing comments in consecutive lines. When enabled,
+trailing comments (`//` and `/* */`) on adjacent code lines are aligned by
+padding with spaces. Only comments that appear after code on the same line are
+considered; standalone comment lines are not affected. This is a nested mapping
+with four sub-options. `Enabled` is a master switch; the remaining sub-options
+take effect only when `Enabled` is `true`.
+
+**Default:**
+
+```yaml
+AlignTrailingComments:
+  AcrossComments: false
+  AcrossEmptyLines: false
+  AcrossParameterPortList: false
+  Enabled: false
+```
+
+#### AcrossComments (bool)
+
+If `true`, comments do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### AcrossEmptyLines (bool)
+
+If `true`, empty lines do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### AcrossParameterPortList (bool)
+
+If `true`, port list boundaries do not break alignment groups.
+
+Has no effect when `Enabled` is `false`.
+
+**Default:** `false`
+
+#### Enabled (bool)
+
+If `false`, disables all alignment regardless of other options.
+
+**Default:** `false`
+
+```sv
+// Enabled: true
+module foo;
+  assign x = 1;        // first
+  assign longname = 2; // second
+endmodule
+
+// Enabled: false (default)
+module foo;
+  assign x = 1; // first
+  assign longname = 2; // second
+endmodule
+```
+
+---
+
 ### BreakAfterAlways (BreakAfterBlockStyle)
 
 Controls whether a newline is inserted between an `always`, `always_comb`,

@@ -23,6 +23,7 @@
     - [x] Assignments
     - [x] Groups (i.e. parameters, signals)
     - [x] Delays
+    - [x] Trailing comments
   - [ ] Multiple assignments
   - [ ] MSB vs. LSB ranges
   - [ ] Timing control

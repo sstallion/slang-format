@@ -2713,4 +2713,307 @@ TEST(AlignConsecutiveAssignments, SingleAssignmentNotAligned) {
         endmodule
     )"));
 }
+
+TEST(AlignTrailingComments, None) {
+    Style const style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; // first
+          assign longname = 2; // second
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1; // first
+          assign longname = 2; // second
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, Consecutive) {
+    Style style;
+    style.AlignTrailingComments.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; // first
+          assign longname = 2; // second
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1;        // first
+          assign longname = 2; // second
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, ConsecutiveBlockComment) {
+    Style style;
+    style.AlignTrailingComments.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; /* first */
+          assign longname = 2; /* second */
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1;        /* first */
+          assign longname = 2; /* second */
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, ConsecutiveEmptyLineBreaksGroup) {
+    Style style;
+    style.AlignTrailingComments.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; // first
+          assign longname = 2; // second
+
+          assign a = 3; // third
+          assign bc = 4; // fourth
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1;        // first
+          assign longname = 2; // second
+
+          assign a = 3;  // third
+          assign bc = 4; // fourth
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, ConsecutiveCommentBreaksGroup) {
+    Style style;
+    style.AlignTrailingComments.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; // first
+          assign longname = 2; // second
+          // standalone
+          assign a = 3; // third
+          assign bc = 4; // fourth
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1;        // first
+          assign longname = 2; // second
+          // standalone
+          assign a = 3;  // third
+          assign bc = 4; // fourth
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, AcrossEmptyLines) {
+    Style style;
+    style.AlignTrailingComments = {.AcrossEmptyLines = true, .Enabled = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; // first
+          assign longname = 2; // second
+
+          assign a = 3; // third
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1;        // first
+          assign longname = 2; // second
+
+          assign a = 3;        // third
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, AcrossComments) {
+    Style style;
+    style.AlignTrailingComments = {.AcrossComments = true, .Enabled = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; // first
+          assign longname = 2; // second
+          // standalone
+          assign a = 3; // third
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1;        // first
+          assign longname = 2; // second
+          // standalone
+          assign a = 3;        // third
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, AcrossEmptyLinesAndComments) {
+    Style style;
+    style.AlignTrailingComments = {.AcrossComments = true,
+                                   .AcrossEmptyLines = true,
+                                   .Enabled = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; // first
+
+          // standalone
+          assign longname = 2; // second
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1;        // first
+
+          // standalone
+          assign longname = 2; // second
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, AcrossParameterPortList) {
+    Style style;
+    style.AlignTrailingComments = {.AcrossParameterPortList = true, .Enabled = true};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo #(
+          parameter N = 4 // width
+        ) (
+          input a // port a
+        );
+          assign x = 1; // body
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo #(
+          parameter N = 4 // width
+        ) (
+          input a         // port a
+        );
+          assign x = 1;   // body
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, SingleLineNotAligned) {
+    Style style;
+    style.AlignTrailingComments.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; // only one
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1; // only one
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, NoTrailingComment) {
+    Style style;
+    style.AlignTrailingComments.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; // first
+          assign longname = 2;
+          assign a = 3; // third
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1; // first
+          assign longname = 2;
+          assign a = 3; // third
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, MixedLineAndBlockComments) {
+    Style style;
+    style.AlignTrailingComments.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; // line comment
+          assign longname = 2; /* block comment */
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1;        // line comment
+          assign longname = 2; /* block comment */
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, InteractionWithAlignConsecutiveAssignments) {
+    Style style;
+    style.AlignTrailingComments.Enabled = true;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveDeclarations = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1; // first
+          assign longname = 2; // second
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          assign x = 1;        // first
+          assign longname = 2; // second
+        endmodule
+    )"));
+}
+
+TEST(AlignTrailingComments, FormatOffRegionSkipped) {
+    Style style;
+    style.AlignTrailingComments.Enabled = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          // slang-format off
+          assign x = 1; // first
+          assign longname = 2; // second
+          // slang-format on
+        endmodule
+    )"),
+                       style),
+              dedent(R"(
+        module foo;
+          // slang-format off
+          assign x = 1; // first
+          assign longname = 2; // second
+          // slang-format on
+        endmodule
+    )"));
+}
 // clang-format on

@@ -112,6 +112,16 @@ std::string dumpConfiguration(const Style& style) {
         << style.AlignConsecutiveAssignments.AcrossParameterPortList;
     out << YAML::Key << "Enabled" << YAML::Value << style.AlignConsecutiveAssignments.Enabled;
     out << YAML::EndMap;
+    out << YAML::Key << "AlignTrailingComments" << YAML::Value;
+    out << YAML::BeginMap;
+    out << YAML::Key << "AcrossComments" << YAML::Value
+        << style.AlignTrailingComments.AcrossComments;
+    out << YAML::Key << "AcrossEmptyLines" << YAML::Value
+        << style.AlignTrailingComments.AcrossEmptyLines;
+    out << YAML::Key << "AcrossParameterPortList" << YAML::Value
+        << style.AlignTrailingComments.AcrossParameterPortList;
+    out << YAML::Key << "Enabled" << YAML::Value << style.AlignTrailingComments.Enabled;
+    out << YAML::EndMap;
     out << YAML::Key << "AlignConsecutiveDeclarations" << YAML::Value;
     out << YAML::BeginMap;
     out << YAML::Key << "AcrossComments" << YAML::Value
@@ -179,6 +189,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto n = lookup(node, "AlignConsecutiveAssignments")) {
         parseAlignConsecutive(n, style.AlignConsecutiveAssignments);
+    }
+
+    if (auto n = lookup(node, "AlignTrailingComments")) {
+        parseAlignConsecutive(n, style.AlignTrailingComments);
     }
 
     if (auto n = lookup(node, "AlignConsecutiveDeclarations")) {

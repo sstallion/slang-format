@@ -926,6 +926,29 @@ size_t findAssignOperator(std::string_view line, size_t pos) {
     return npos;
 }
 
+/// Returns the position of the trailing comment start in \p line, or npos if no trailing comment is
+/// present.
+size_t findTrailingComment(std::string_view line) {
+    auto inString = false;
+    for (size_t i = 0; i < line.size(); i++) {
+        if (line[i] == '"' && (i == 0 || line[i - 1] != '\\')) {
+            inString = !inString;
+            continue;
+        }
+
+        if (inString) {
+            continue;
+        }
+
+        if (line[i] == '/' && i + 1 < line.size()) {
+            if (line[i + 1] == '/' || line[i + 1] == '*') {
+                return i;
+            }
+        }
+    }
+    return npos;
+}
+
 bool isStatementKeyword(std::string_view word) {
     constexpr std::array keywords{
         std::string_view{"always"},      std::string_view{"always_comb"},
@@ -1631,6 +1654,89 @@ bool canStartTimingGroup(const LineInfo& info) {
     return info.kind == LineKind::TimingControl;
 }
 
+bool shouldBreakTrailingCommentGroup(const LineInfo& info, const AlignState& state,
+                                     bool acrossEmpty, bool acrossComments, bool acrossIndent) {
+    if (info.kind == LineKind::Assignment || info.kind == LineKind::Declaration ||
+        info.kind == LineKind::TimingControl || info.kind == LineKind::Continuation) {
+        return state.inGroup && !acrossIndent && state.groupIndent &&
+               *state.groupIndent != info.indent;
+    }
+
+    if (info.kind == LineKind::Empty) {
+        return state.inGroup && !acrossEmpty;
+    }
+
+    if (info.kind == LineKind::Comment) {
+        return state.inGroup && !acrossComments;
+    }
+
+    if (info.kind == LineKind::PortListBoundary) {
+        return state.inGroup && !acrossIndent;
+    }
+
+    return true;
+}
+
+bool canStartTrailingCommentGroup(const LineInfo& info) {
+    return info.kind == LineKind::Assignment || info.kind == LineKind::Declaration ||
+           info.kind == LineKind::TimingControl;
+}
+
+void alignGroupTrailingComments(std::string& result, const std::vector<std::string_view>& lines,
+                                const std::vector<LineInfo>& infos, GroupRange range) {
+    size_t maxCommentCol = 0;
+    size_t commentCount = 0;
+    for (auto i = range.start; i < range.end; i++) {
+        if (infos[i].kind == LineKind::Comment || infos[i].kind == LineKind::Empty) {
+            continue;
+        }
+
+        auto commentPos = findTrailingComment(lines[i]);
+        if (commentPos == npos) {
+            continue;
+        }
+
+        commentCount++;
+
+        auto codeEnd = commentPos;
+        while (codeEnd > 0 && lines[i][codeEnd - 1] == ' ') {
+            codeEnd--;
+        }
+
+        maxCommentCol = std::max(maxCommentCol, codeEnd + 1);
+    }
+
+    for (auto i = range.start; i < range.end; i++) {
+        if (infos[i].kind == LineKind::Comment || infos[i].kind == LineKind::Empty) {
+            result.append(lines[i]);
+            result += '\n';
+            continue;
+        }
+
+        auto commentPos = findTrailingComment(lines[i]);
+        if (commentPos == npos || commentCount < 2) {
+            result.append(lines[i]);
+            result += '\n';
+            continue;
+        }
+
+        auto codeEnd = commentPos;
+        while (codeEnd > 0 && lines[i][codeEnd - 1] == ' ') {
+            codeEnd--;
+        }
+
+        result.append(lines[i].substr(0, codeEnd));
+        if (maxCommentCol > codeEnd) {
+            result.append(maxCommentCol - codeEnd, ' ');
+        }
+        else {
+            result += ' ';
+        }
+        result.append(lines[i].substr(commentPos));
+        result += '\n';
+    }
+}
+
 std::string padTimingIdent(std::string_view line, const LineInfo& info, size_t maxTypeWidth) {
     auto targetPos = info.indent + maxTypeWidth;
     auto typeTextEnd = info.identPos;
@@ -1887,6 +1993,9 @@ std::string reformat(std::string_view text, const Style& style) {
     result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments,
                                    shouldBreakAssignGroup, canStartAssignGroup, alignGroupEquals,
                                    lineDepths);
+    result = applyAlignConsecutive(result, style.AlignTrailingComments,
+                                   shouldBreakTrailingCommentGroup, canStartTrailingCommentGroup,
+                                   alignGroupTrailingComments);
 
     if (!style.OneLineFormatOffRegex.empty()) {
         std::regex const re(style.OneLineFormatOffRegex);

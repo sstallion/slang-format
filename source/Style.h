@@ -62,6 +62,9 @@ struct Style {
     /// Controls alignment of assignment operators in consecutive declarations.
     AlignConsecutiveStyle AlignConsecutiveAssignments;
 
+    /// Controls alignment of trailing comments in consecutive lines.
+    AlignConsecutiveStyle AlignTrailingComments;
+
     /// Controls alignment of signal names in consecutive declarations.
     AlignConsecutiveStyle AlignConsecutiveDeclarations;
 

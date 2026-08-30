@@ -53,7 +53,7 @@ flowchart LR
         format[Format\nSingle-pass tree walk]
 
         subgraph postprocess [Post-Processing]
-            align[Align consecutive\nassignments, declarations,\ndimensions, and\ntiming controls]
+            align[Align consecutive\nassignments, declarations,\ndimensions, timing controls,\nand trailing comments]
             formatout[Apply OneLineFormatOff]
         end
 

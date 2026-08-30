@@ -278,6 +278,62 @@ TEST(ParseConfiguration, ParsesAlignConsecutiveTimingControlsEnabled) {
     EXPECT_TRUE(style.AlignConsecutiveTimingControls.Enabled);
 }
 
+TEST(ParseConfiguration, ParsesAlignTrailingCommentsAcrossComments) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignTrailingComments:
+          AcrossComments: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignTrailingComments.AcrossComments);
+}
+
+TEST(ParseConfiguration, ParsesAlignTrailingCommentsAcrossEmptyLines) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignTrailingComments:
+          AcrossEmptyLines: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignTrailingComments.AcrossEmptyLines);
+}
+
+TEST(ParseConfiguration, ParsesAlignTrailingCommentsAcrossParameterPortList) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignTrailingComments:
+          AcrossParameterPortList: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignTrailingComments.AcrossParameterPortList);
+}
+
+TEST(ParseConfiguration, ParsesAlignTrailingCommentsEnabled) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignTrailingComments:
+          Enabled: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignTrailingComments.Enabled);
+}
+
 TEST(ParseConfiguration, ParsesAlignConsecutiveStyleAlignColon) {
     Style style;
 
@@ -486,6 +542,9 @@ TEST(DumpConfiguration, DefaultStyle) {
     auto const result = dumpConfiguration(getDefaultStyle());
     EXPECT_NE(result.find("---"), std::string::npos);
     EXPECT_NE(result.find("..."), std::string::npos);
+    EXPECT_NE(result.find("AlignConsecutiveAssignments:"), std::string::npos);
+    EXPECT_NE(result.find("AlignTrailingComments:"), std::string::npos);
+    EXPECT_NE(result.find("AlignConsecutiveDeclarations:"), std::string::npos);
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
@@ -527,6 +586,8 @@ TEST(DumpConfiguration, RoundTrip) {
     original.AlignConsecutivePackedDimensions.PadRight = true;
     original.AlignConsecutiveTimingControls.Enabled = true;
     original.AlignConsecutiveTimingControls.AcrossEmptyLines = true;
+    original.AlignTrailingComments.Enabled = true;
+    original.AlignTrailingComments.AcrossEmptyLines = true;
     original.IndentWidth = 4;
     original.ContinuationIndentWidth = 4;
     original.ParameterPortListIndentWidth = 4;
