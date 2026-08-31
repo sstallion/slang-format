@@ -792,6 +792,124 @@ TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineSingleItemWithBlock) {
     // clang-format on
 }
 
+TEST(ApplyIndentation, BreakBeforeFunctionDefault) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+        function void bar;
+          x = 1;
+        endfunction
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+          function void bar;
+            x = 1;
+          endfunction
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeFunctionExistingBlankLine) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+
+        function void bar;
+          x = 1;
+        endfunction
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+          function void bar;
+            x = 1;
+          endfunction
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeFunctionFalse) {
+    Style style;
+    style.BreakBeforeFunction = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+        function void bar;
+          x = 1;
+        endfunction
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+          function void bar;
+            x = 1;
+          endfunction
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeFunctionWithComment) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+        // comment
+        function void bar;
+          x = 1;
+        endfunction
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+          // comment
+          function void bar;
+            x = 1;
+          endfunction
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeFunctionWithTrailingComment) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1; // comment
+        function void bar;
+          x = 1;
+        endfunction
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1; // comment
+
+          function void bar;
+            x = 1;
+          endfunction
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyIndentation, BreakBeforeInitialAlways) {
     Style style;
     style.BreakBeforeInitial = BreakAfterBlockStyle::Always;
@@ -1008,6 +1126,242 @@ TEST(ApplyIndentation, BreakBeforeInitialOnlyMultilineSingleItemWithBlock) {
               y = 1;
             end
           end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeSpecifyBlockDefault) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+        specify
+          $setup(posedge clk, data, 10);
+        endspecify
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+          specify
+            $setup(posedge clk, data, 10);
+          endspecify
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeSpecifyBlockExistingBlankLine) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+
+        specify
+          $setup(posedge clk, data, 10);
+        endspecify
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+          specify
+            $setup(posedge clk, data, 10);
+          endspecify
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeSpecifyBlockFalse) {
+    Style style;
+    style.BreakBeforeSpecifyBlock = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+        specify
+          $setup(posedge clk, data, 10);
+        endspecify
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+          specify
+            $setup(posedge clk, data, 10);
+          endspecify
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeSpecifyBlockWithComment) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+        // comment
+        specify
+          $setup(posedge clk, data, 10);
+        endspecify
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+          // comment
+          specify
+            $setup(posedge clk, data, 10);
+          endspecify
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeSpecifyBlockWithTrailingComment) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1; // comment
+        specify
+          $setup(posedge clk, data, 10);
+        endspecify
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1; // comment
+
+          specify
+            $setup(posedge clk, data, 10);
+          endspecify
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeTaskDefault) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+        task bar;
+          x = 1;
+        endtask
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+          task bar;
+            x = 1;
+          endtask
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeTaskExistingBlankLine) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+
+        task bar;
+          x = 1;
+        endtask
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+          task bar;
+            x = 1;
+          endtask
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeTaskFalse) {
+    Style style;
+    style.BreakBeforeTask = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+        task bar;
+          x = 1;
+        endtask
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+          task bar;
+            x = 1;
+          endtask
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeTaskWithComment) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+        // comment
+        task bar;
+          x = 1;
+        endtask
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+          // comment
+          task bar;
+            x = 1;
+          endtask
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeTaskWithTrailingComment) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1; // comment
+        task bar;
+          x = 1;
+        endtask
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1; // comment
+
+          task bar;
+            x = 1;
+          endtask
         endmodule
     )"));
     // clang-format on

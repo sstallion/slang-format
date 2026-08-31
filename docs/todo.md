@@ -16,7 +16,7 @@
 - [x] Dump configuration (i.e. `slang-format --dump-config`)
 - [x] In-place editing (i.e. `slang-format -i`)
 - [ ] Formatting (not exhaustive):
-  - [ ] Line breaks between constructs
+  - [x] Line breaks between constructs
   - [x] Alignment:
     - [x] Names
     - [x] Dimensions

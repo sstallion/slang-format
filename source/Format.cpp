@@ -442,9 +442,46 @@ public:
 
     void handle(const GenerateRegionSyntax& r) { visitScopedBlock(r, r.endgenerate, r.members); }
 
-    void handle(const FunctionDeclarationSyntax& f) { visitScopedBlock(f, f.end, f.items); }
+    void handle(const FunctionDeclarationSyntax& f) {
+        bool const shouldBreak = (f.kind == SyntaxKind::FunctionDeclaration &&
+                                  style.BreakBeforeFunction) ||
+                                 (f.kind == SyntaxKind::TaskDeclaration && style.BreakBeforeTask);
 
-    void handle(const SpecifyBlockSyntax& s) { visitScopedBlock(s, s.endspecify, s.items); }
+        if (shouldBreak && !hasLeadingBlankLine(f.getFirstToken()) && !outputHasBlankLine()) {
+            if (hasLeadingTrailingComment(f.getFirstToken())) {
+                triviaSkip = emitLeadingTrailingComment(f.getFirstToken());
+            }
+            if (!atLineStart) {
+                forceNewline();
+            }
+            output += '\n';
+            currentLineMeta.kind = LineMetadata::Kind::Empty;
+            finalizeLine();
+            lineStart = output.size();
+            emptyLineCount = style.MaxEmptyLinesToKeep;
+        }
+
+        visitScopedBlock(f, f.end, f.items);
+    }
+
+    void handle(const SpecifyBlockSyntax& s) {
+        if (style.BreakBeforeSpecifyBlock && !hasLeadingBlankLine(s.getFirstToken()) &&
+            !outputHasBlankLine()) {
+            if (hasLeadingTrailingComment(s.getFirstToken())) {
+                triviaSkip = emitLeadingTrailingComment(s.getFirstToken());
+            }
+            if (!atLineStart) {
+                forceNewline();
+            }
+            output += '\n';
+            currentLineMeta.kind = LineMetadata::Kind::Empty;
+            finalizeLine();
+            lineStart = output.size();
+            emptyLineCount = style.MaxEmptyLinesToKeep;
+        }
+
+        visitScopedBlock(s, s.endspecify, s.items);
+    }
 
     void handle(const DataDeclarationSyntax& decl) {
         nextLineKind = LineMetadata::Kind::Declaration;

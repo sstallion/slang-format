@@ -112,6 +112,15 @@ struct Style {
     /// If true, enforce a newline before every end statement.
     bool BreakBeforeEnd = true;
 
+    /// If true, insert a blank line before function declarations.
+    bool BreakBeforeFunction = true;
+
+    /// If true, insert a blank line before specify blocks.
+    bool BreakBeforeSpecifyBlock = true;
+
+    /// If true, insert a blank line before task declarations.
+    bool BreakBeforeTask = true;
+
     /// Controls insertion of begin/end around bare statements.
     InsertBeginEndStyle InsertBeginEnd;
 

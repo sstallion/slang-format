@@ -442,6 +442,27 @@ TEST(ParseConfiguration, ParsesBreakBeforeEnd) {
     EXPECT_EQ(style.BreakBeforeEnd, false);
 }
 
+TEST(ParseConfiguration, ParsesBreakBeforeFunction) {
+    YAML::Node const node = YAML::Load("BreakBeforeFunction: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.BreakBeforeFunction, false);
+}
+
+TEST(ParseConfiguration, ParsesBreakBeforeSpecifyBlock) {
+    YAML::Node const node = YAML::Load("BreakBeforeSpecifyBlock: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.BreakBeforeSpecifyBlock, false);
+}
+
+TEST(ParseConfiguration, ParsesBreakBeforeTask) {
+    YAML::Node const node = YAML::Load("BreakBeforeTask: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.BreakBeforeTask, false);
+}
+
 TEST(ParseConfiguration, ParsesContinuationIndentWidth) {
     YAML::Node const node = YAML::Load("ContinuationIndentWidth: 4");
     Style style;
@@ -566,6 +587,9 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("BreakBeforeAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeInitial: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeEnd: true"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeFunction: true"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeSpecifyBlock: true"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeTask: true"), std::string::npos);
     EXPECT_NE(result.find("ContinuationIndentWidth: 2"), std::string::npos);
     EXPECT_NE(result.find("IndentCaseItem: true"), std::string::npos);
     EXPECT_NE(result.find("IndentWidth: 2"), std::string::npos);
@@ -587,13 +611,19 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.BreakAfterAlways = BreakAfterBlockStyle::Always;
     style.BreakBeforeAlways = BreakAfterBlockStyle::Always;
     style.BreakBeforeInitial = BreakAfterBlockStyle::Always;
+    style.BreakBeforeFunction = false;
+    style.BreakBeforeSpecifyBlock = false;
+    style.BreakBeforeTask = false;
     style.InsertBeginEnd.Enabled = true;
 
     auto const result = dumpConfiguration(style);
     EXPECT_NE(result.find("IndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: Always"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeAlways: Always"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeFunction: false"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeInitial: Always"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeSpecifyBlock: false"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeTask: false"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
 }
 
@@ -619,6 +649,9 @@ TEST(DumpConfiguration, RoundTrip) {
     original.BreakBeforeInitial = BreakAfterBlockStyle::Never;
     original.BreakAfterBegin = false;
     original.BreakBeforeEnd = false;
+    original.BreakBeforeFunction = false;
+    original.BreakBeforeSpecifyBlock = false;
+    original.BreakBeforeTask = false;
     original.OneLineFormatOffRegex = ".*test.*";
     original.InsertBeginEnd.Enabled = true;
     original.InsertBeginEnd.ControlStatements = false;

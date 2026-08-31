@@ -647,6 +647,72 @@ endmodule
 
 ---
 
+### BreakBeforeSpecifyBlock (bool)
+
+If `true`, insert a blank line before `specify` blocks. Comments immediately
+preceding the block are kept together with it; the blank line is inserted before
+the first attached comment.
+
+**Default:** `true`
+
+`BreakBeforeSpecifyBlock: true` (default):
+
+```sv
+module foo;
+  assign x = 1;
+
+  specify
+    $setup(posedge clk, data, 10);
+  endspecify
+endmodule
+```
+
+`BreakBeforeSpecifyBlock: false`:
+
+```sv
+module foo;
+  assign x = 1;
+  specify
+    $setup(posedge clk, data, 10);
+  endspecify
+endmodule
+```
+
+---
+
+### BreakBeforeTask (bool)
+
+If `true`, insert a blank line before `task` declarations. Comments immediately
+preceding the declaration are kept together with it; the blank line is inserted
+before the first attached comment.
+
+**Default:** `true`
+
+`BreakBeforeTask: true` (default):
+
+```sv
+module foo;
+  assign x = 1;
+
+  task bar;
+    x = 1;
+  endtask
+endmodule
+```
+
+`BreakBeforeTask: false`:
+
+```sv
+module foo;
+  assign x = 1;
+  task bar;
+    x = 1;
+  endtask
+endmodule
+```
+
+---
+
 ### BreakBeforeEnd (bool)
 
 If `true`, enforce a newline before every `end` token that is not already on its
@@ -669,6 +735,39 @@ endmodule
 ```sv
 module foo;
   always_comb begin x = 1; end
+endmodule
+```
+
+---
+
+### BreakBeforeFunction (bool)
+
+If `true`, insert a blank line before `function` declarations. Comments
+immediately preceding the declaration are kept together with it; the blank line
+is inserted before the first attached comment.
+
+**Default:** `true`
+
+`BreakBeforeFunction: true` (default):
+
+```sv
+module foo;
+  assign x = 1;
+
+  function void bar;
+    x = 1;
+  endfunction
+endmodule
+```
+
+`BreakBeforeFunction: false`:
+
+```sv
+module foo;
+  assign x = 1;
+  function void bar;
+    x = 1;
+  endfunction
 endmodule
 ```
 

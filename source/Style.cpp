@@ -90,6 +90,56 @@ void parseInsertBeginEnd(const YAML::Node& node, InsertBeginEndStyle& config) {
     }
 }
 
+BreakAfterBlockStyle parseBreakAfterBlock(std::string_view s) {
+    if (s == "Always") {
+        return BreakAfterBlockStyle::Always;
+    }
+
+    if (s == "OnlyMultiline") {
+        return BreakAfterBlockStyle::OnlyMultiline;
+    }
+
+    return BreakAfterBlockStyle::Never;
+}
+
+void parseBreakStyle(const YAML::Node& node, Style& style) {
+    if (auto v = lookup(node, "BreakAfterAlways")) {
+        style.BreakAfterAlways = parseBreakAfterBlock(v.as<std::string>());
+    }
+
+    if (auto v = lookup(node, "BreakAfterBegin")) {
+        style.BreakAfterBegin = v.as<bool>();
+    }
+
+    if (auto v = lookup(node, "BreakAfterInitial")) {
+        style.BreakAfterInitial = parseBreakAfterBlock(v.as<std::string>());
+    }
+
+    if (auto v = lookup(node, "BreakBeforeAlways")) {
+        style.BreakBeforeAlways = parseBreakAfterBlock(v.as<std::string>());
+    }
+
+    if (auto v = lookup(node, "BreakBeforeEnd")) {
+        style.BreakBeforeEnd = v.as<bool>();
+    }
+
+    if (auto v = lookup(node, "BreakBeforeFunction")) {
+        style.BreakBeforeFunction = v.as<bool>();
+    }
+
+    if (auto v = lookup(node, "BreakBeforeInitial")) {
+        style.BreakBeforeInitial = parseBreakAfterBlock(v.as<std::string>());
+    }
+
+    if (auto v = lookup(node, "BreakBeforeSpecifyBlock")) {
+        style.BreakBeforeSpecifyBlock = v.as<bool>();
+    }
+
+    if (auto v = lookup(node, "BreakBeforeTask")) {
+        style.BreakBeforeTask = v.as<bool>();
+    }
+}
+
 } // namespace
 
 namespace slang::format {
@@ -162,9 +212,12 @@ std::string dumpConfiguration(const Style& style) {
         << std::string{toString(style.BreakAfterInitial)};
     out << YAML::Key << "BreakBeforeAlways" << YAML::Value
         << std::string{toString(style.BreakBeforeAlways)};
+    out << YAML::Key << "BreakBeforeEnd" << YAML::Value << style.BreakBeforeEnd;
+    out << YAML::Key << "BreakBeforeFunction" << YAML::Value << style.BreakBeforeFunction;
     out << YAML::Key << "BreakBeforeInitial" << YAML::Value
         << std::string{toString(style.BreakBeforeInitial)};
-    out << YAML::Key << "BreakBeforeEnd" << YAML::Value << style.BreakBeforeEnd;
+    out << YAML::Key << "BreakBeforeSpecifyBlock" << YAML::Value << style.BreakBeforeSpecifyBlock;
+    out << YAML::Key << "BreakBeforeTask" << YAML::Value << style.BreakBeforeTask;
     out << YAML::Key << "ContinuationIndentWidth" << YAML::Value << style.ContinuationIndentWidth;
     out << YAML::Key << "IndentCaseItem" << YAML::Value << style.IndentCaseItem;
     out << YAML::Key << "IndentWidth" << YAML::Value << style.IndentWidth;
@@ -247,41 +300,7 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
         style.OneLineFormatOffRegex = v.as<std::string>();
     }
 
-    auto parseBreakAfterBlock = [](std::string_view s) {
-        if (s == "Always") {
-            return BreakAfterBlockStyle::Always;
-        }
-
-        if (s == "OnlyMultiline") {
-            return BreakAfterBlockStyle::OnlyMultiline;
-        }
-
-        return BreakAfterBlockStyle::Never;
-    };
-
-    if (auto v = lookup(node, "BreakAfterAlways")) {
-        style.BreakAfterAlways = parseBreakAfterBlock(v.as<std::string>());
-    }
-
-    if (auto v = lookup(node, "BreakAfterInitial")) {
-        style.BreakAfterInitial = parseBreakAfterBlock(v.as<std::string>());
-    }
-
-    if (auto v = lookup(node, "BreakBeforeAlways")) {
-        style.BreakBeforeAlways = parseBreakAfterBlock(v.as<std::string>());
-    }
-
-    if (auto v = lookup(node, "BreakBeforeInitial")) {
-        style.BreakBeforeInitial = parseBreakAfterBlock(v.as<std::string>());
-    }
-
-    if (auto v = lookup(node, "BreakAfterBegin")) {
-        style.BreakAfterBegin = v.as<bool>();
-    }
-
-    if (auto v = lookup(node, "BreakBeforeEnd")) {
-        style.BreakBeforeEnd = v.as<bool>();
-    }
+    parseBreakStyle(node, style);
 
     if (auto n = lookup(node, "InsertBeginEnd")) {
         parseInsertBeginEnd(n, style.InsertBeginEnd);
