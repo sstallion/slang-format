@@ -280,6 +280,7 @@ TEST(ApplyInsertBeginEnd, DoWhile) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.InitialStatements = false;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(

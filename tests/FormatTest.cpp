@@ -527,6 +527,7 @@ TEST(ApplyIndentation, BreakAfterBeginWithAlways) {
 TEST(ApplyIndentation, BreakAfterInitialNever) {
     Style style;
     style.BreakAfterInitial = BreakAfterBlockStyle::Never;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -549,6 +550,7 @@ TEST(ApplyIndentation, BreakAfterInitialNever) {
 TEST(ApplyIndentation, BreakAfterInitialOnlyMultilineMultiStatement) {
     Style style;
     style.BreakAfterInitial = BreakAfterBlockStyle::OnlyMultiline;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -660,6 +662,32 @@ TEST(ApplyIndentation, BreakBeforeAlwaysAlwaysWithComment) {
     // clang-format on
 }
 
+TEST(ApplyIndentation, BreakBeforeAlwaysAlwaysWithTrailingComment) {
+    Style style;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Always;
+    style.BreakAfterAlways = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #5 clk = ~clk; // 100 MHz
+        always_comb begin
+          x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          always #5 clk = ~clk; // 100 MHz
+
+          always_comb begin
+            x = 1;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyIndentation, BreakBeforeAlwaysNever) {
     Style style;
     style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
@@ -757,6 +785,227 @@ TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineSingleItemWithBlock) {
           always_ff @(posedge clk_i) begin
             if (x == 0) begin
               y <= 1;
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeInitialAlways) {
+    Style style;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::Always;
+    style.BreakAfterInitial = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin
+          x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            x = 1;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeInitialAlwaysExistingBlankLine) {
+    Style style;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::Always;
+    style.BreakAfterInitial = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+        initial begin
+          x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            x = 1;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeInitialAlwaysTimingControl) {
+    Style style;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::Always;
+    style.BreakAfterInitial = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial #10 x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial #10 x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeInitialAlwaysWithComment) {
+    Style style;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::Always;
+    style.BreakAfterInitial = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        // comment
+        initial begin
+          x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          // comment
+          initial begin
+            x = 1;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeInitialAlwaysWithTrailingComment) {
+    Style style;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::Always;
+    style.BreakAfterInitial = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #20 dclk = ~dclk; //  25 MHz
+        initial begin
+          x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #20 dclk = ~dclk; //  25 MHz
+
+          initial begin
+            x = 1;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeInitialNever) {
+    Style style;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::Never;
+    style.BreakAfterInitial = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin
+          x = 1;
+          y = 2;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            x = 1;
+            y = 2;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeInitialOnlyMultilineMultiStatement) {
+    Style style;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::OnlyMultiline;
+    style.BreakAfterInitial = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin x = 1;
+          y = 2;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            x = 1;
+            y = 2;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeInitialOnlyMultilineSingleStatement) {
+    Style style;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::OnlyMultiline;
+    style.BreakAfterInitial = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin x = y; end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            x = y;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeInitialOnlyMultilineSingleItemWithBlock) {
+    Style style;
+    style.BreakBeforeInitial = BreakAfterBlockStyle::OnlyMultiline;
+    style.BreakAfterInitial = BreakAfterBlockStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin
+          x = 1;
+          y = 2;
+        end
+        initial begin
+          if (x == 0) begin
+            y = 1;
+          end
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            x = 1;
+            y = 2;
+          end
+
+          initial begin
+            if (x == 0) begin
+              y = 1;
             end
           end
         endmodule

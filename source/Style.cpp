@@ -162,6 +162,8 @@ std::string dumpConfiguration(const Style& style) {
         << std::string{toString(style.BreakAfterInitial)};
     out << YAML::Key << "BreakBeforeAlways" << YAML::Value
         << std::string{toString(style.BreakBeforeAlways)};
+    out << YAML::Key << "BreakBeforeInitial" << YAML::Value
+        << std::string{toString(style.BreakBeforeInitial)};
     out << YAML::Key << "BreakBeforeEnd" << YAML::Value << style.BreakBeforeEnd;
     out << YAML::Key << "ContinuationIndentWidth" << YAML::Value << style.ContinuationIndentWidth;
     out << YAML::Key << "IndentCaseItem" << YAML::Value << style.IndentCaseItem;
@@ -267,6 +269,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto v = lookup(node, "BreakBeforeAlways")) {
         style.BreakBeforeAlways = parseBreakAfterBlock(v.as<std::string>());
+    }
+
+    if (auto v = lookup(node, "BreakBeforeInitial")) {
+        style.BreakBeforeInitial = parseBreakAfterBlock(v.as<std::string>());
     }
 
     if (auto v = lookup(node, "BreakAfterBegin")) {

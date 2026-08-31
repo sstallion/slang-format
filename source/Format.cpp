@@ -204,6 +204,25 @@ public:
         if (isAlwaysBlockKind(proc.kind) &&
             shouldBreakBeforeProcedural(style.BreakBeforeAlways, *proc.statement) &&
             !hasLeadingBlankLine(proc.getFirstToken()) && !outputHasBlankLine()) {
+            if (hasLeadingTrailingComment(proc.getFirstToken())) {
+                triviaSkip = emitLeadingTrailingComment(proc.getFirstToken());
+            }
+            if (!atLineStart) {
+                forceNewline();
+            }
+            output += '\n';
+            currentLineMeta.kind = LineMetadata::Kind::Empty;
+            finalizeLine();
+            lineStart = output.size();
+            emptyLineCount = style.MaxEmptyLinesToKeep;
+        }
+
+        if (isInitialBlockKind(proc.kind) &&
+            shouldBreakBeforeProcedural(style.BreakBeforeInitial, *proc.statement) &&
+            !hasLeadingBlankLine(proc.getFirstToken()) && !outputHasBlankLine()) {
+            if (hasLeadingTrailingComment(proc.getFirstToken())) {
+                triviaSkip = emitLeadingTrailingComment(proc.getFirstToken());
+            }
             if (!atLineStart) {
                 forceNewline();
             }
@@ -524,6 +543,7 @@ private:
     bool portItemNextIndent = false;
     bool formatEnabled = true;
     unsigned emptyLineCount = 0;
+    size_t triviaSkip = 0;
     std::optional<std::regex> offRegex;
     std::optional<LineMetadata::Kind> nextLineKind;
 
@@ -534,6 +554,34 @@ private:
 
         return std::ranges::any_of(tok.trivia(),
                                    [](const auto& t) { return t.kind == TriviaKind::EndOfLine; });
+    }
+
+    static bool hasLeadingTrailingComment(Token tok) {
+        if (!tok) {
+            return false;
+        }
+
+        for (const auto& t : tok.trivia()) {
+            if (t.kind == TriviaKind::EndOfLine) {
+                return false;
+            }
+            if (t.kind == TriviaKind::LineComment || t.kind == TriviaKind::BlockComment) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    size_t emitLeadingTrailingComment(Token tok) {
+        size_t consumed = 0;
+        for (const auto& t : tok.trivia()) {
+            emitTrivia(t);
+            consumed++;
+            if (t.kind == TriviaKind::EndOfLine) {
+                break;
+            }
+        }
+        return consumed;
     }
 
     // Returns true if the token's leading trivia contains a blank line (two consecutive EndOfLine
@@ -663,9 +711,11 @@ private:
             return;
         }
 
-        for (const auto& t : tok.trivia()) {
-            emitTrivia(t);
+        auto trivia = tok.trivia();
+        for (size_t i = triviaSkip; i < trivia.size(); i++) {
+            emitTrivia(trivia[i]);
         }
+        triviaSkip = 0;
 
         auto raw = tok.rawText();
         if (formatEnabled && atLineStart && !raw.empty()) {
