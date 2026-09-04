@@ -47,6 +47,8 @@ paths:
   natural boundary such as the start or end of a block.
 - Do not suppress Clang-Tidy or IWYU warnings and errors unless explicitly
   authorized by the user.
+- Never compare boolean expressions explicitly (e.g. `some_bool == true`);
+  always use the shortest possible form when evaluating boolean expressions.
 
 ### Includes
 
