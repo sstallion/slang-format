@@ -25,7 +25,7 @@
     - [x] Delays
     - [x] Trailing comments
   - [x] Multiple assignments
-  - [ ] MSB vs. LSB ranges
+  - [x] MSB vs. LSB ranges
   - [ ] Timing control
     - [ ] Require parenthesis
     - [ ] Commas vs. `or`

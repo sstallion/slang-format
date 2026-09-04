@@ -558,21 +558,21 @@ TEST(ParseConfiguration, ParsesPackedDimensionBoundsLSBFirst) {
     YAML::Node const node = YAML::Load("PackedDimensionBounds: LSBFirst");
     Style style;
     parseConfiguration(node, style);
-    EXPECT_EQ(style.PackedDimensionBounds, PackedDimensionBoundsStyle::LSBFirst);
+    EXPECT_EQ(style.PackedDimensionBounds, DimensionBoundsStyle::LSBFirst);
 }
 
 TEST(ParseConfiguration, ParsesPackedDimensionBoundsMSBFirst) {
     YAML::Node const node = YAML::Load("PackedDimensionBounds: MSBFirst");
     Style style;
     parseConfiguration(node, style);
-    EXPECT_EQ(style.PackedDimensionBounds, PackedDimensionBoundsStyle::MSBFirst);
+    EXPECT_EQ(style.PackedDimensionBounds, DimensionBoundsStyle::MSBFirst);
 }
 
 TEST(ParseConfiguration, ParsesPackedDimensionBoundsPreserve) {
     YAML::Node const node = YAML::Load("PackedDimensionBounds: Preserve");
     Style style;
     parseConfiguration(node, style);
-    EXPECT_EQ(style.PackedDimensionBounds, PackedDimensionBoundsStyle::Preserve);
+    EXPECT_EQ(style.PackedDimensionBounds, DimensionBoundsStyle::Preserve);
 }
 
 TEST(ParseConfiguration, ParsesParameterPortListIndentWidth) {
@@ -580,6 +580,27 @@ TEST(ParseConfiguration, ParsesParameterPortListIndentWidth) {
     Style style;
     parseConfiguration(node, style);
     EXPECT_EQ(style.ParameterPortListIndentWidth, 4U);
+}
+
+TEST(ParseConfiguration, ParsesUnpackedDimensionBoundsLSBFirst) {
+    YAML::Node const node = YAML::Load("UnpackedDimensionBounds: LSBFirst");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.UnpackedDimensionBounds, DimensionBoundsStyle::LSBFirst);
+}
+
+TEST(ParseConfiguration, ParsesUnpackedDimensionBoundsMSBFirst) {
+    YAML::Node const node = YAML::Load("UnpackedDimensionBounds: MSBFirst");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.UnpackedDimensionBounds, DimensionBoundsStyle::MSBFirst);
+}
+
+TEST(ParseConfiguration, ParsesUnpackedDimensionBoundsPreserve) {
+    YAML::Node const node = YAML::Load("UnpackedDimensionBounds: Preserve");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.UnpackedDimensionBounds, DimensionBoundsStyle::Preserve);
 }
 
 TEST(ParseConfiguration, RejectsScalar) {
@@ -618,6 +639,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("OneLineFormatOffRegex: \"\""), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: Preserve"), std::string::npos);
     EXPECT_NE(result.find("ParameterPortListIndentWidth: 2"), std::string::npos);
+    EXPECT_NE(result.find("UnpackedDimensionBounds: Preserve"), std::string::npos);
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
     EXPECT_NE(result.find("AlignColon: false"), std::string::npos);
     EXPECT_NE(result.find("PadLeft: false"), std::string::npos);
@@ -637,7 +659,8 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.BreakBeforeSpecifyBlock = false;
     style.BreakBeforeTask = false;
     style.InsertBeginEnd.Enabled = true;
-    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
 
     auto const result = dumpConfiguration(style);
     EXPECT_NE(result.find("IndentWidth: 4"), std::string::npos);
@@ -649,6 +672,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("BreakBeforeTask: false"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
+    EXPECT_NE(result.find("UnpackedDimensionBounds: LSBFirst"), std::string::npos);
 }
 
 TEST(DumpConfiguration, RoundTrip) {
@@ -677,7 +701,8 @@ TEST(DumpConfiguration, RoundTrip) {
     original.BreakBeforeSpecifyBlock = false;
     original.BreakBeforeTask = false;
     original.OneLineFormatOffRegex = ".*test.*";
-    original.PackedDimensionBounds = PackedDimensionBoundsStyle::LSBFirst;
+    original.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
+    original.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
     original.InsertBeginEnd.Enabled = true;
     original.InsertBeginEnd.ControlStatements = false;
     original.InsertBeginEnd.AlwaysStatements = false;

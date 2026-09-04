@@ -13,7 +13,7 @@ using namespace slang::format;
 
 TEST(ApplyPackedDimensionBounds, EqualBoundsPreserved) {
     Style style;
-    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -30,7 +30,7 @@ TEST(ApplyPackedDimensionBounds, EqualBoundsPreserved) {
 
 TEST(ApplyPackedDimensionBounds, ImplicitType) {
     Style style;
-    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -49,7 +49,7 @@ TEST(ApplyPackedDimensionBounds, ImplicitType) {
 
 TEST(ApplyPackedDimensionBounds, LSBFirstPreservesCorrectOrder) {
     Style style;
-    style.PackedDimensionBounds = PackedDimensionBoundsStyle::LSBFirst;
+    style.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -66,7 +66,7 @@ TEST(ApplyPackedDimensionBounds, LSBFirstPreservesCorrectOrder) {
 
 TEST(ApplyPackedDimensionBounds, LSBFirstSwapsWhenNeeded) {
     Style style;
-    style.PackedDimensionBounds = PackedDimensionBoundsStyle::LSBFirst;
+    style.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -83,7 +83,7 @@ TEST(ApplyPackedDimensionBounds, LSBFirstSwapsWhenNeeded) {
 
 TEST(ApplyPackedDimensionBounds, MSBFirstPreservesCorrectOrder) {
     Style style;
-    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -100,7 +100,7 @@ TEST(ApplyPackedDimensionBounds, MSBFirstPreservesCorrectOrder) {
 
 TEST(ApplyPackedDimensionBounds, MSBFirstSwapsWhenNeeded) {
     Style style;
-    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -117,7 +117,7 @@ TEST(ApplyPackedDimensionBounds, MSBFirstSwapsWhenNeeded) {
 
 TEST(ApplyPackedDimensionBounds, MultipleDimensions) {
     Style style;
-    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -134,7 +134,7 @@ TEST(ApplyPackedDimensionBounds, MultipleDimensions) {
 
 TEST(ApplyPackedDimensionBounds, NonLiteralBoundsPreserved) {
     Style style;
-    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -151,7 +151,7 @@ TEST(ApplyPackedDimensionBounds, NonLiteralBoundsPreserved) {
 
 TEST(ApplyPackedDimensionBounds, PreserveDoesNothing) {
     Style style;
-    style.PackedDimensionBounds = PackedDimensionBoundsStyle::Preserve;
+    style.PackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -168,7 +168,160 @@ TEST(ApplyPackedDimensionBounds, PreserveDoesNothing) {
 
 TEST(ApplyPackedDimensionBounds, UnpackedDimensionSkipped) {
     Style style;
-    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:7];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x [0:7];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyUnpackedDimensionBounds, EqualBoundsPreserved) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:0];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x [0:0];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyUnpackedDimensionBounds, LSBFirstPreservesCorrectOrder) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:7];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x [0:7];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyUnpackedDimensionBounds, LSBFirstSwapsWhenNeeded) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [7:0];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x [0:7];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyUnpackedDimensionBounds, MSBFirstPreservesCorrectOrder) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [7:0];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x [7:0];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyUnpackedDimensionBounds, MSBFirstSwapsWhenNeeded) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:7];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x [7:0];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyUnpackedDimensionBounds, MultipleDimensions) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:7][0:3];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x [7:0][3:0];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyUnpackedDimensionBounds, NonLiteralBoundsPreserved) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [N-1:0];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x [N-1:0];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyUnpackedDimensionBounds, PackedDimensionSkipped) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:7] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [0:7] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyUnpackedDimensionBounds, PreserveDoesNothing) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(

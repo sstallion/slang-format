@@ -1029,6 +1029,7 @@ std::string reformat(std::string_view text, const Style& style) {
     auto tree = SyntaxTree::fromText(text, sm, "source");
     tree = applyBeginEndInsertion(tree, style);
     tree = applyPackedDimensionBounds(tree, style);
+    tree = applyUnpackedDimensionBounds(tree, style);
     FormatPrinter printer(style);
 
     auto [result, lineMetadata] = printer.print(*tree);

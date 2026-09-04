@@ -141,11 +141,14 @@ bool isPackedDimensionParent(SyntaxKind kind) {
            StructUnionTypeSyntax::isKind(kind) || EnumTypeSyntax::isKind(kind);
 }
 
+bool isUnpackedDimensionParent(SyntaxKind kind) {
+    return DeclaratorSyntax::isKind(kind);
+}
+
 /// Rewrites packed dimension ranges to enforce bound ordering.
 class PackedDimensionRewriter : public SyntaxRewriter<PackedDimensionRewriter> {
 public:
-    explicit PackedDimensionRewriter(PackedDimensionBoundsStyle boundsStyle) :
-        boundsStyle(boundsStyle) {}
+    explicit PackedDimensionRewriter(DimensionBoundsStyle boundsStyle) : boundsStyle(boundsStyle) {}
 
     void handle(const VariableDimensionSyntax& dim) {
         if (dim.specifier == nullptr ||
@@ -184,10 +187,10 @@ public:
         }
 
         bool shouldSwap = false;
-        if (boundsStyle == PackedDimensionBoundsStyle::MSBFirst) {
+        if (boundsStyle == DimensionBoundsStyle::MSBFirst) {
             shouldSwap = static_cast<bool>(leftVal < rightVal);
         }
-        else if (boundsStyle == PackedDimensionBoundsStyle::LSBFirst) {
+        else if (boundsStyle == DimensionBoundsStyle::LSBFirst) {
             shouldSwap = static_cast<bool>(leftVal > rightVal);
         }
 
@@ -204,7 +207,73 @@ public:
     }
 
 private:
-    PackedDimensionBoundsStyle boundsStyle;
+    DimensionBoundsStyle boundsStyle;
+};
+
+/// Rewrites unpacked dimension ranges to enforce bound ordering.
+class UnpackedDimensionRewriter : public SyntaxRewriter<UnpackedDimensionRewriter> {
+public:
+    explicit UnpackedDimensionRewriter(DimensionBoundsStyle boundsStyle) :
+        boundsStyle(boundsStyle) {}
+
+    void handle(const VariableDimensionSyntax& dim) {
+        if (dim.specifier == nullptr ||
+            dim.specifier->kind != SyntaxKind::RangeDimensionSpecifier) {
+            visitDefault(dim);
+            return;
+        }
+
+        if (dim.parent == nullptr || !isUnpackedDimensionParent(dim.parent->kind)) {
+            visitDefault(dim);
+            return;
+        }
+
+        auto const& rangeSpec = dim.specifier->as<RangeDimensionSpecifierSyntax>();
+        if (rangeSpec.selector->kind != SyntaxKind::SimpleRangeSelect) {
+            visitDefault(dim);
+            return;
+        }
+
+        auto const& sel = rangeSpec.selector->as<RangeSelectSyntax>();
+        if (sel.left->kind != SyntaxKind::IntegerLiteralExpression ||
+            sel.right->kind != SyntaxKind::IntegerLiteralExpression) {
+            visitDefault(dim);
+            return;
+        }
+
+        auto const& leftLit = sel.left->as<LiteralExpressionSyntax>();
+        auto const& rightLit = sel.right->as<LiteralExpressionSyntax>();
+
+        auto leftVal = leftLit.literal.intValue();
+        auto rightVal = rightLit.literal.intValue();
+
+        if (leftVal.hasUnknown() || rightVal.hasUnknown()) {
+            visitDefault(dim);
+            return;
+        }
+
+        bool shouldSwap = false;
+        if (boundsStyle == DimensionBoundsStyle::MSBFirst) {
+            shouldSwap = static_cast<bool>(leftVal < rightVal);
+        }
+        else if (boundsStyle == DimensionBoundsStyle::LSBFirst) {
+            shouldSwap = static_cast<bool>(leftVal > rightVal);
+        }
+
+        if (!shouldSwap) {
+            visitDefault(dim);
+            return;
+        }
+
+        auto* newLeft = deepClone(*sel.right, alloc);
+        auto* newRight = deepClone(*sel.left, alloc);
+
+        auto& newRange = factory.rangeSelect(sel.kind, *newLeft, sel.range, *newRight);
+        replace(sel, newRange);
+    }
+
+private:
+    DimensionBoundsStyle boundsStyle;
 };
 
 } // namespace
@@ -232,11 +301,21 @@ std::shared_ptr<SyntaxTree> applyBeginEndInsertion(std::shared_ptr<SyntaxTree> t
 
 std::shared_ptr<SyntaxTree> applyPackedDimensionBounds(std::shared_ptr<SyntaxTree> tree,
                                                        const Style& style) {
-    if (style.PackedDimensionBounds == PackedDimensionBoundsStyle::Preserve) {
+    if (style.PackedDimensionBounds == DimensionBoundsStyle::Preserve) {
         return tree;
     }
 
     PackedDimensionRewriter rewriter(style.PackedDimensionBounds);
+    return rewriter.transform(tree);
+}
+
+std::shared_ptr<SyntaxTree> applyUnpackedDimensionBounds(std::shared_ptr<SyntaxTree> tree,
+                                                         const Style& style) {
+    if (style.UnpackedDimensionBounds == DimensionBoundsStyle::Preserve) {
+        return tree;
+    }
+
+    UnpackedDimensionRewriter rewriter(style.UnpackedDimensionBounds);
     return rewriter.transform(tree);
 }
 
