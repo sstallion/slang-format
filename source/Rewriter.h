@@ -17,6 +17,11 @@ namespace slang::format {
 std::shared_ptr<slang::syntax::SyntaxTree> applyBeginEndInsertion(
     std::shared_ptr<slang::syntax::SyntaxTree> tree, const Style& style);
 
+/// Rewrites \p tree to normalize event expression separators according to \p style. Returns the
+/// original tree if no changes are needed.
+std::shared_ptr<slang::syntax::SyntaxTree> applyEventSeparator(
+    std::shared_ptr<slang::syntax::SyntaxTree> tree, const Style& style);
+
 /// Rewrites \p tree to normalize packed dimension bound ordering according to \p style. Returns the
 /// original tree if no changes are needed.
 std::shared_ptr<slang::syntax::SyntaxTree> applyPackedDimensionBounds(

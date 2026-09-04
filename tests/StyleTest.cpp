@@ -470,6 +470,27 @@ TEST(ParseConfiguration, ParsesContinuationIndentWidth) {
     EXPECT_EQ(style.ContinuationIndentWidth, 4U);
 }
 
+TEST(ParseConfiguration, ParsesEventSeparatorComma) {
+    YAML::Node const node = YAML::Load("EventSeparator: Comma");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Comma);
+}
+
+TEST(ParseConfiguration, ParsesEventSeparatorOr) {
+    YAML::Node const node = YAML::Load("EventSeparator: Or");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Or);
+}
+
+TEST(ParseConfiguration, ParsesEventSeparatorPreserve) {
+    YAML::Node const node = YAML::Load("EventSeparator: Preserve");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Preserve);
+}
+
 TEST(ParseConfiguration, ParsesIndentCaseItem) {
     YAML::Node const node = YAML::Load("IndentCaseItem: false");
     Style style;
@@ -633,6 +654,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("BreakBeforeSpecifyBlock: true"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeTask: true"), std::string::npos);
     EXPECT_NE(result.find("ContinuationIndentWidth: 2"), std::string::npos);
+    EXPECT_NE(result.find("EventSeparator: Preserve"), std::string::npos);
     EXPECT_NE(result.find("IndentCaseItem: true"), std::string::npos);
     EXPECT_NE(result.find("IndentWidth: 2"), std::string::npos);
     EXPECT_NE(result.find("MaxEmptyLinesToKeep: 1"), std::string::npos);
@@ -658,6 +680,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.BreakBeforeFunction = false;
     style.BreakBeforeSpecifyBlock = false;
     style.BreakBeforeTask = false;
+    style.EventSeparator = EventSeparatorStyle::Comma;
     style.InsertBeginEnd.Enabled = true;
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
     style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
@@ -670,6 +693,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("BreakBeforeInitial: Always"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeSpecifyBlock: false"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeTask: false"), std::string::npos);
+    EXPECT_NE(result.find("EventSeparator: Comma"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
     EXPECT_NE(result.find("UnpackedDimensionBounds: LSBFirst"), std::string::npos);
@@ -700,6 +724,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.BreakBeforeFunction = false;
     original.BreakBeforeSpecifyBlock = false;
     original.BreakBeforeTask = false;
+    original.EventSeparator = EventSeparatorStyle::Or;
     original.OneLineFormatOffRegex = ".*test.*";
     original.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
     original.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;

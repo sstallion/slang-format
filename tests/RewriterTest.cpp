@@ -11,6 +11,177 @@
 
 using namespace slang::format;
 
+TEST(ApplyEventSeparator, CommaPreservesExistingComma) {
+    Style style;
+    style.EventSeparator = EventSeparatorStyle::Comma;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk, negedge rst)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk, negedge rst)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyEventSeparator, CommaRewritesOrToComma) {
+    Style style;
+    style.EventSeparator = EventSeparatorStyle::Comma;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk or negedge rst)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk, negedge rst)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyEventSeparator, EdgeQualifiedSignals) {
+    Style style;
+    style.EventSeparator = EventSeparatorStyle::Or;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk, negedge rst)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk or negedge rst)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyEventSeparator, IffClause) {
+    Style style;
+    style.EventSeparator = EventSeparatorStyle::Comma;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk iff en or negedge rst)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk iff en, negedge rst)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyEventSeparator, MixedSeparators) {
+    Style style;
+    style.EventSeparator = EventSeparatorStyle::Comma;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk or negedge rst, a)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk, negedge rst, a)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyEventSeparator, MultipleSignals) {
+    Style style;
+    style.EventSeparator = EventSeparatorStyle::Comma;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always @(a or b or c)
+        x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always @(a, b, c)
+            x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyEventSeparator, OrPreservesExistingOr) {
+    Style style;
+    style.EventSeparator = EventSeparatorStyle::Or;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk or negedge rst)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk or negedge rst)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyEventSeparator, OrRewritesCommaToOr) {
+    Style style;
+    style.EventSeparator = EventSeparatorStyle::Or;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk, negedge rst)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk or negedge rst)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyEventSeparator, PreserveDoesNothing) {
+    Style style;
+    style.EventSeparator = EventSeparatorStyle::Preserve;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk or negedge rst)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk or negedge rst)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyPackedDimensionBounds, EqualBoundsPreserved) {
     Style style;
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;

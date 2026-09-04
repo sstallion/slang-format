@@ -803,6 +803,63 @@ endmodule
 
 ---
 
+### EventSeparator (EventSeparatorStyle)
+
+Controls the separator used between signals in event expressions (sensitivity
+lists). When set to `Comma` or `Or`, slang-format rewrites the separator in
+`@(...)` event expressions to use the specified style.
+
+**Default:** `Preserve`
+
+| Value      | Description                         |
+| ---------- | ----------------------------------- |
+| `Comma`    | Rewrite `or` separators to `,`.     |
+| `Or`       | Rewrite `,` separators to `or`.     |
+| `Preserve` | Separators are left as-is.          |
+
+`Comma` - `or` keywords rewritten to commas:
+
+```sv
+// Before
+module foo;
+  always_ff @(posedge clk or negedge rst)
+    x <= 1;
+endmodule
+
+// After
+module foo;
+  always_ff @(posedge clk, negedge rst)
+    x <= 1;
+endmodule
+```
+
+`Or` - commas rewritten to `or` keywords:
+
+```sv
+// Before
+module foo;
+  always_ff @(posedge clk, negedge rst)
+    x <= 1;
+endmodule
+
+// After
+module foo;
+  always_ff @(posedge clk or negedge rst)
+    x <= 1;
+endmodule
+```
+
+`Preserve` (default) - separators are left unchanged:
+
+```sv
+module foo;
+  always_ff @(posedge clk or negedge rst)
+    x <= 1;
+endmodule
+```
+
+---
+
 ### IndentCaseItem (bool)
 
 If `true`, indent statements that follow a `case` label when they appear on the

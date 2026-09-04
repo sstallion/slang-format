@@ -48,6 +48,18 @@ constexpr std::string_view toString(DimensionBoundsStyle style) {
     return "Preserve";
 }
 
+constexpr std::string_view toString(EventSeparatorStyle style) {
+    switch (style) {
+        case EventSeparatorStyle::Comma:
+            return "Comma";
+        case EventSeparatorStyle::Or:
+            return "Or";
+        case EventSeparatorStyle::Preserve:
+            return "Preserve";
+    }
+    return "Preserve";
+}
+
 /// Returns the YAML node for \p key within \p node, or null if not present.
 template<typename Key>
 YAML::Node lookup(const YAML::Node& node, Key key) {
@@ -124,6 +136,18 @@ DimensionBoundsStyle parseDimensionBounds(std::string_view s) {
     }
 
     return DimensionBoundsStyle::Preserve;
+}
+
+EventSeparatorStyle parseEventSeparator(std::string_view s) {
+    if (s == "Comma") {
+        return EventSeparatorStyle::Comma;
+    }
+
+    if (s == "Or") {
+        return EventSeparatorStyle::Or;
+    }
+
+    return EventSeparatorStyle::Preserve;
 }
 
 void parseBreakStyle(const YAML::Node& node, Style& style) {
@@ -243,6 +267,8 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::Key << "BreakBeforeSpecifyBlock" << YAML::Value << style.BreakBeforeSpecifyBlock;
     out << YAML::Key << "BreakBeforeTask" << YAML::Value << style.BreakBeforeTask;
     out << YAML::Key << "ContinuationIndentWidth" << YAML::Value << style.ContinuationIndentWidth;
+    out << YAML::Key << "EventSeparator" << YAML::Value
+        << std::string{toString(style.EventSeparator)};
     out << YAML::Key << "IndentCaseItem" << YAML::Value << style.IndentCaseItem;
     out << YAML::Key << "IndentWidth" << YAML::Value << style.IndentWidth;
     out << YAML::Key << "InsertBeginEnd" << YAML::Value;
@@ -322,6 +348,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto v = lookup(node, "IndentCaseItem")) {
         style.IndentCaseItem = v.as<bool>();
+    }
+
+    if (auto v = lookup(node, "EventSeparator")) {
+        style.EventSeparator = parseEventSeparator(v.as<std::string>());
     }
 
     if (auto v = lookup(node, "OneLineFormatOffRegex")) {

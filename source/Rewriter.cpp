@@ -136,6 +136,48 @@ private:
     }
 };
 
+/// Rewrites event expression separators to use a consistent style.
+class EventSeparatorRewriter : public SyntaxRewriter<EventSeparatorRewriter> {
+public:
+    explicit EventSeparatorRewriter(EventSeparatorStyle sepStyle) : sepStyle(sepStyle) {}
+
+    void handle(const BinaryEventExpressionSyntax& expr) {
+        auto const opKind = expr.operatorToken.kind;
+
+        parsing::TokenKind targetKind{};
+        std::string_view targetText;
+
+        if (sepStyle == EventSeparatorStyle::Comma && opKind == parsing::TokenKind::OrKeyword) {
+            targetKind = parsing::TokenKind::Comma;
+            targetText = ",";
+        }
+        else if (sepStyle == EventSeparatorStyle::Or && opKind == parsing::TokenKind::Comma) {
+            targetKind = parsing::TokenKind::OrKeyword;
+            targetText = "or";
+        }
+        else {
+            visitDefault(expr);
+            return;
+        }
+
+        auto* newLeft = deepClone(*expr.left, alloc);
+        auto* newRight = deepClone(*expr.right, alloc);
+
+        std::span<const parsing::Trivia> trivia;
+        if (targetKind == parsing::TokenKind::OrKeyword) {
+            trivia = {&SingleSpace, 1};
+        }
+
+        auto newOp = makeToken(targetKind, targetText, trivia);
+
+        auto& newExpr = factory.binaryEventExpression(*newLeft, newOp, *newRight);
+        replace(expr, newExpr);
+    }
+
+private:
+    EventSeparatorStyle sepStyle;
+};
+
 bool isPackedDimensionParent(SyntaxKind kind) {
     return IntegerTypeSyntax::isKind(kind) || ImplicitTypeSyntax::isKind(kind) ||
            StructUnionTypeSyntax::isKind(kind) || EnumTypeSyntax::isKind(kind);
@@ -289,6 +331,25 @@ std::shared_ptr<SyntaxTree> applyBeginEndInsertion(std::shared_ptr<SyntaxTree> t
     for (;;) {
         BeginEndInserter inserter(style);
         auto newTree = inserter.transform(tree);
+        if (newTree == tree) {
+            break;
+        }
+
+        tree = newTree;
+    }
+
+    return tree;
+}
+
+std::shared_ptr<SyntaxTree> applyEventSeparator(std::shared_ptr<SyntaxTree> tree,
+                                                const Style& style) {
+    if (style.EventSeparator == EventSeparatorStyle::Preserve) {
+        return tree;
+    }
+
+    for (;;) {
+        EventSeparatorRewriter rewriter(style.EventSeparator);
+        auto newTree = rewriter.transform(tree);
         if (newTree == tree) {
             break;
         }

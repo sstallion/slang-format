@@ -42,6 +42,8 @@ enum class BreakAfterBlockStyle { Never, Always, OnlyMultiline };
 
 enum class DimensionBoundsStyle { LSBFirst, MSBFirst, Preserve };
 
+enum class EventSeparatorStyle { Comma, Or, Preserve };
+
 /// Controls automatic insertion of begin/end around statement bodies.
 struct InsertBeginEndStyle {
     /// If false, disables all begin/end insertion regardless of other options.
@@ -88,6 +90,9 @@ struct Style {
 
     /// Number of spaces for parameter port list items in module declarations.
     unsigned ParameterPortListIndentWidth = 2;
+
+    /// Controls the separator used in event expressions.
+    EventSeparatorStyle EventSeparator = EventSeparatorStyle::Preserve;
 
     /// If true, indent statements following a case label when they appear on
     /// the next line.

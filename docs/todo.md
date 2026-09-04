@@ -28,6 +28,6 @@
   - [x] MSB vs. LSB ranges
   - [ ] Timing control
     - [ ] Require parenthesis
-    - [ ] Commas vs. `or`
+    - [x] Commas vs. `or`
 - [x] Installation and packaging using CMake
 - [x] Full releases including packaging
