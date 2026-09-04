@@ -33,6 +33,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.h.in
 
 add_library(${PROJECT_NAME}-object OBJECT
             ${SOURCE_DIR}/Align.cpp
+            ${SOURCE_DIR}/FileLoader.cpp
             ${SOURCE_DIR}/Format.cpp
             ${SOURCE_DIR}/Ignore.cpp
             ${SOURCE_DIR}/Rewriter.cpp
@@ -55,6 +56,7 @@ if(BUILD_TESTING)
   add_subdirectory(${FIXTURES_DIR})
 
   add_executable(${PROJECT_NAME}-tests
+                 ${TESTS_DIR}/AlignTest.cpp
                  ${TESTS_DIR}/FormatTest.cpp
                  ${TESTS_DIR}/IgnoreTest.cpp
                  ${TESTS_DIR}/RewriterTest.cpp

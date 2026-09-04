@@ -446,7 +446,7 @@ endmodule
 
 ---
 
-### BreakAfterAlways (BreakAfterBlockStyle)
+### BreakAfterAlways (BlockBreakStyle)
 
 Controls whether slang-format inserts a newline between an `always`,
 `always_comb`, `always_ff`, or `always_latch` header and its body.
@@ -516,7 +516,7 @@ endmodule
 
 ---
 
-### BreakAfterInitial (BreakAfterBlockStyle)
+### BreakAfterInitial (BlockBreakStyle)
 
 Controls whether slang-format inserts a newline between an `initial` or `final`
 header and its body. Accepts the same values as
@@ -555,7 +555,7 @@ endmodule
 
 ---
 
-### BreakBeforeAlways (BreakAfterBlockStyle)
+### BreakBeforeAlways (BlockBreakStyle)
 
 Controls whether slang-format inserts a blank line before an `always`,
 `always_comb`, `always_ff`, or `always_latch` block. Comments immediately
@@ -601,7 +601,7 @@ endmodule
 
 ---
 
-### BreakBeforeInitial (BreakAfterBlockStyle)
+### BreakBeforeInitial (BlockBreakStyle)
 
 Controls whether slang-format inserts a blank line before an `initial` or
 `final` block. Comments immediately preceding the block are kept together with

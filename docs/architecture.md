@@ -18,6 +18,8 @@ slang-format/
 ├── source/
 │   ├── Align.cpp         # Alignment post-processing
 │   ├── Align.h           # Public interface for alignment post-processing
+│   ├── FileLoader.cpp    # Directory hierarchy file search
+│   ├── FileLoader.h      # FileLoader type alias and directory walk utility
 │   ├── Format.cpp        # Single-pass formatting and post-processing
 │   ├── Format.h          # Public interface for formatting and post-processing
 │   ├── Ignore.cpp        # Ignore file lookup and pattern matching
@@ -30,6 +32,7 @@ slang-format/
 │   └── main.cpp          # Entry point; command-line processing and output
 └── tests/
     ├── fixtures/         # CTest integration test scripts
+    ├── AlignTest.cpp     # Alignment post-processing tests
     ├── FormatTest.cpp    # Formatting and post-processing tests
     ├── IgnoreTest.cpp    # Ignore file lookup and pattern matching tests
     ├── RewriterTest.cpp  # Syntax rewriting tests

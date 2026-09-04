@@ -28,11 +28,15 @@ using namespace std::literals;
 
 namespace {
 
+[[noreturn]] void throwFileError(const std::filesystem::path& path) {
+    const std::error_code ec{errno, std::system_category()};
+    throw std::runtime_error{path.string() + ": " + ec.message()};
+}
+
 std::vector<std::string> readFileList(const std::filesystem::path& path) {
     std::ifstream stream{path};
     if (!stream) {
-        const std::error_code ec{errno, std::system_category()};
-        throw std::runtime_error{path.string() + ": " + ec.message()};
+        throwFileError(path);
     }
 
     std::vector<std::string> result;
@@ -84,8 +88,7 @@ void listIgnoredFiles(const std::vector<std::string>& files) {
 std::string readFile(const std::filesystem::path& path) {
     std::ifstream stream{path};
     if (!stream) {
-        const std::error_code ec{errno, std::system_category()};
-        throw std::runtime_error{path.string() + ": " + ec.message()};
+        throwFileError(path);
     }
     return {std::istreambuf_iterator<char>{stream}, std::istreambuf_iterator<char>{}};
 }
@@ -93,8 +96,7 @@ std::string readFile(const std::filesystem::path& path) {
 void writeFile(const std::filesystem::path& path, const std::string& content) {
     std::ofstream stream{path, std::ios::trunc};
     if (!stream) {
-        const std::error_code ec{errno, std::system_category()};
-        throw std::runtime_error{path.string() + ": " + ec.message()};
+        throwFileError(path);
     }
     stream << content;
 }
@@ -129,8 +131,7 @@ int formatFiles(std::string_view programName, const std::vector<std::string>& fi
             else {
                 std::ifstream stream{path};
                 if (!stream) {
-                    const std::error_code ec{errno, std::system_category()};
-                    throw std::runtime_error{path.string() + ": " + ec.message()};
+                    throwFileError(path);
                 }
                 std::cout << reformat(stream, style);
             }

@@ -202,35 +202,13 @@ public:
 
     void handle(const ProceduralBlockSyntax& proc) {
         if (isAlwaysBlockKind(proc.kind) &&
-            shouldBreakBeforeProcedural(style.BreakBeforeAlways, *proc.statement) &&
-            !hasLeadingBlankLine(proc.getFirstToken()) && !outputHasBlankLine()) {
-            if (hasLeadingTrailingComment(proc.getFirstToken())) {
-                triviaSkip = emitLeadingTrailingComment(proc.getFirstToken());
-            }
-            if (!atLineStart) {
-                forceNewline();
-            }
-            output += '\n';
-            currentLineMeta.kind = LineMetadata::Kind::Empty;
-            finalizeLine();
-            lineStart = output.size();
-            emptyLineCount = style.MaxEmptyLinesToKeep;
+            shouldBreakBeforeProcedural(style.BreakBeforeAlways, *proc.statement)) {
+            insertBlankLineBefore(proc.getFirstToken());
         }
 
         if (isInitialBlockKind(proc.kind) &&
-            shouldBreakBeforeProcedural(style.BreakBeforeInitial, *proc.statement) &&
-            !hasLeadingBlankLine(proc.getFirstToken()) && !outputHasBlankLine()) {
-            if (hasLeadingTrailingComment(proc.getFirstToken())) {
-                triviaSkip = emitLeadingTrailingComment(proc.getFirstToken());
-            }
-            if (!atLineStart) {
-                forceNewline();
-            }
-            output += '\n';
-            currentLineMeta.kind = LineMetadata::Kind::Empty;
-            finalizeLine();
-            lineStart = output.size();
-            emptyLineCount = style.MaxEmptyLinesToKeep;
+            shouldBreakBeforeProcedural(style.BreakBeforeInitial, *proc.statement)) {
+            insertBlankLineBefore(proc.getFirstToken());
         }
 
         if (proc.kind == SyntaxKind::AlwaysBlock &&
@@ -245,7 +223,7 @@ public:
 
         emitToken(proc.keyword);
 
-        auto brkStyle = BreakAfterBlockStyle::Never;
+        auto brkStyle = BlockBreakStyle::Never;
         if (isAlwaysBlockKind(proc.kind)) {
             brkStyle = style.BreakAfterAlways;
         }
@@ -447,37 +425,16 @@ public:
                                   style.BreakBeforeFunction) ||
                                  (f.kind == SyntaxKind::TaskDeclaration && style.BreakBeforeTask);
 
-        if (shouldBreak && !hasLeadingBlankLine(f.getFirstToken()) && !outputHasBlankLine()) {
-            if (hasLeadingTrailingComment(f.getFirstToken())) {
-                triviaSkip = emitLeadingTrailingComment(f.getFirstToken());
-            }
-            if (!atLineStart) {
-                forceNewline();
-            }
-            output += '\n';
-            currentLineMeta.kind = LineMetadata::Kind::Empty;
-            finalizeLine();
-            lineStart = output.size();
-            emptyLineCount = style.MaxEmptyLinesToKeep;
+        if (shouldBreak) {
+            insertBlankLineBefore(f.getFirstToken());
         }
 
         visitScopedBlock(f, f.end, f.items);
     }
 
     void handle(const SpecifyBlockSyntax& s) {
-        if (style.BreakBeforeSpecifyBlock && !hasLeadingBlankLine(s.getFirstToken()) &&
-            !outputHasBlankLine()) {
-            if (hasLeadingTrailingComment(s.getFirstToken())) {
-                triviaSkip = emitLeadingTrailingComment(s.getFirstToken());
-            }
-            if (!atLineStart) {
-                forceNewline();
-            }
-            output += '\n';
-            currentLineMeta.kind = LineMetadata::Kind::Empty;
-            finalizeLine();
-            lineStart = output.size();
-            emptyLineCount = style.MaxEmptyLinesToKeep;
+        if (style.BreakBeforeSpecifyBlock) {
+            insertBlankLineBefore(s.getFirstToken());
         }
 
         visitScopedBlock(s, s.endspecify, s.items);
@@ -665,6 +622,26 @@ private:
         atLineStart = true;
     }
 
+    void insertBlankLineBefore(Token firstToken) {
+        if (hasLeadingBlankLine(firstToken) || outputHasBlankLine()) {
+            return;
+        }
+
+        if (hasLeadingTrailingComment(firstToken)) {
+            triviaSkip = emitLeadingTrailingComment(firstToken);
+        }
+
+        if (!atLineStart) {
+            forceNewline();
+        }
+
+        output += '\n';
+        currentLineMeta.kind = LineMetadata::Kind::Empty;
+        finalizeLine();
+        lineStart = output.size();
+        emptyLineCount = style.MaxEmptyLinesToKeep;
+    }
+
     void emitTrivia(const Trivia& t) {
         if (t.kind == TriviaKind::EndOfLine) {
             if (atLineStart) {
@@ -839,7 +816,7 @@ private:
 
     // Handle a procedural block body: unwrap timing control, apply forced
     // break, then visitBody.
-    void visitProceduralBody(const StatementSyntax& stmt, BreakAfterBlockStyle brkStyle) {
+    void visitProceduralBody(const StatementSyntax& stmt, BlockBreakStyle brkStyle) {
         const auto* body = &stmt;
         if (stmt.kind == SyntaxKind::TimingControlStatement) {
             const auto& tcs = stmt.as<TimingControlStatementSyntax>();
@@ -864,9 +841,8 @@ private:
         visitBody(*body);
     }
 
-    static bool shouldBreakAfterProcedural(BreakAfterBlockStyle brkStyle,
-                                           const StatementSyntax& body) {
-        if (brkStyle == BreakAfterBlockStyle::Never) {
+    static bool shouldBreakAfterProcedural(BlockBreakStyle brkStyle, const StatementSyntax& body) {
+        if (brkStyle == BlockBreakStyle::Never) {
             return false;
         }
 
@@ -883,7 +859,7 @@ private:
             }
         }
 
-        if (brkStyle == BreakAfterBlockStyle::Always) {
+        if (brkStyle == BlockBreakStyle::Always) {
             return true;
         }
 
@@ -905,9 +881,8 @@ private:
         return containsBlock(body);
     }
 
-    static bool shouldBreakBeforeProcedural(BreakAfterBlockStyle brkStyle,
-                                            const StatementSyntax& stmt) {
-        if (brkStyle == BreakAfterBlockStyle::Never) {
+    static bool shouldBreakBeforeProcedural(BlockBreakStyle brkStyle, const StatementSyntax& stmt) {
+        if (brkStyle == BlockBreakStyle::Never) {
             return false;
         }
 
@@ -916,7 +891,7 @@ private:
             body = stmt.as<TimingControlStatementSyntax>().statement;
         }
 
-        if (brkStyle == BreakAfterBlockStyle::Always) {
+        if (brkStyle == BlockBreakStyle::Always) {
             return true;
         }
 

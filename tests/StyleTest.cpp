@@ -404,7 +404,7 @@ TEST(ParseConfiguration, ParsesBreakAfterAlways) {
     YAML::Node const node = YAML::Load("BreakAfterAlways: Always");
     Style style;
     parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakAfterAlways, BreakAfterBlockStyle::Always);
+    EXPECT_EQ(style.BreakAfterAlways, BlockBreakStyle::Always);
 }
 
 TEST(ParseConfiguration, ParsesBreakAfterBegin) {
@@ -418,21 +418,21 @@ TEST(ParseConfiguration, ParsesBreakAfterInitial) {
     YAML::Node const node = YAML::Load("BreakAfterInitial: Always");
     Style style;
     parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakAfterInitial, BreakAfterBlockStyle::Always);
+    EXPECT_EQ(style.BreakAfterInitial, BlockBreakStyle::Always);
 }
 
 TEST(ParseConfiguration, ParsesBreakBeforeAlways) {
     YAML::Node const node = YAML::Load("BreakBeforeAlways: Always");
     Style style;
     parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakBeforeAlways, BreakAfterBlockStyle::Always);
+    EXPECT_EQ(style.BreakBeforeAlways, BlockBreakStyle::Always);
 }
 
 TEST(ParseConfiguration, ParsesBreakBeforeInitial) {
     YAML::Node const node = YAML::Load("BreakBeforeInitial: Always");
     Style style;
     parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakBeforeInitial, BreakAfterBlockStyle::Always);
+    EXPECT_EQ(style.BreakBeforeInitial, BlockBreakStyle::Always);
 }
 
 TEST(ParseConfiguration, ParsesBreakBeforeEnd) {
@@ -735,9 +735,9 @@ TEST(DumpConfiguration, DefaultStyle) {
 TEST(DumpConfiguration, NonDefaultValues) {
     Style style;
     style.IndentWidth = 4;
-    style.BreakAfterAlways = BreakAfterBlockStyle::Always;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Always;
-    style.BreakBeforeInitial = BreakAfterBlockStyle::Always;
+    style.BreakAfterAlways = BlockBreakStyle::Always;
+    style.BreakBeforeAlways = BlockBreakStyle::Always;
+    style.BreakBeforeInitial = BlockBreakStyle::Always;
     style.BreakBeforeFunction = false;
     style.BreakBeforeSpecifyBlock = false;
     style.BreakBeforeTask = false;
@@ -780,10 +780,10 @@ TEST(DumpConfiguration, RoundTrip) {
     original.ParameterPortListIndentWidth = 4;
     original.MaxEmptyLinesToKeep = 3;
     original.IndentCaseItem = false;
-    original.BreakAfterAlways = BreakAfterBlockStyle::Never;
-    original.BreakAfterInitial = BreakAfterBlockStyle::Always;
-    original.BreakBeforeAlways = BreakAfterBlockStyle::Never;
-    original.BreakBeforeInitial = BreakAfterBlockStyle::Never;
+    original.BreakAfterAlways = BlockBreakStyle::Never;
+    original.BreakAfterInitial = BlockBreakStyle::Always;
+    original.BreakBeforeAlways = BlockBreakStyle::Never;
+    original.BreakBeforeInitial = BlockBreakStyle::Never;
     original.BreakAfterBegin = false;
     original.BreakBeforeEnd = false;
     original.BreakBeforeFunction = false;

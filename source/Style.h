@@ -3,9 +3,9 @@
 
 #pragma once
 
+#include "FileLoader.h"
+
 #include <filesystem>
-#include <functional>
-#include <optional>
 #include <string>
 
 #include <yaml-cpp/yaml.h>
@@ -38,7 +38,7 @@ struct AlignConsecutiveStyle {
     bool operator==(const AlignConsecutiveStyle&) const = default;
 };
 
-enum class BreakAfterBlockStyle { Never, Always, OnlyMultiline };
+enum class BlockBreakStyle { Never, Always, OnlyMultiline };
 
 enum class DimensionBoundsStyle { LSBFirst, MSBFirst, Preserve };
 
@@ -126,16 +126,16 @@ struct Style {
     DimensionBoundsStyle UnpackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
     /// Controls insertion of a newline between always and its body.
-    BreakAfterBlockStyle BreakAfterAlways = BreakAfterBlockStyle::OnlyMultiline;
+    BlockBreakStyle BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
     /// Controls insertion of a newline between initial and its body.
-    BreakAfterBlockStyle BreakAfterInitial = BreakAfterBlockStyle::OnlyMultiline;
+    BlockBreakStyle BreakAfterInitial = BlockBreakStyle::OnlyMultiline;
 
     /// Controls insertion of a blank line before always and its body.
-    BreakAfterBlockStyle BreakBeforeAlways = BreakAfterBlockStyle::OnlyMultiline;
+    BlockBreakStyle BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
 
     /// Controls insertion of a blank line before initial and its body.
-    BreakAfterBlockStyle BreakBeforeInitial = BreakAfterBlockStyle::OnlyMultiline;
+    BlockBreakStyle BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
 
     /// If true, enforce a newline after every begin statement.
     bool BreakAfterBegin = true;
@@ -169,9 +169,6 @@ std::string dumpConfiguration(const Style& style);
 
 /// Parses a YAML node into \p style. Throws std::runtime_error on error.
 void parseConfiguration(const YAML::Node& node, Style& style);
-
-/// Returns file content, or std::nullopt if the file does not exist.
-using FileLoader = std::function<std::optional<std::string>(const std::filesystem::path&)>;
 
 /// Searches for a configuration file starting from \p searchDir, walking up
 /// the directory hierarchy to the root. Returns the default style if no

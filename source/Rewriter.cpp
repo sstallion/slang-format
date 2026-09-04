@@ -187,10 +187,13 @@ bool isUnpackedDimensionParent(SyntaxKind kind) {
     return DeclaratorSyntax::isKind(kind);
 }
 
-/// Rewrites packed dimension ranges to enforce bound ordering.
-class PackedDimensionRewriter : public SyntaxRewriter<PackedDimensionRewriter> {
+/// Rewrites dimension ranges to enforce bound ordering.
+class DimensionBoundsRewriter : public SyntaxRewriter<DimensionBoundsRewriter> {
 public:
-    explicit PackedDimensionRewriter(DimensionBoundsStyle boundsStyle) : boundsStyle(boundsStyle) {}
+    using ParentPredicate = bool (*)(SyntaxKind);
+
+    DimensionBoundsRewriter(DimensionBoundsStyle boundsStyle, ParentPredicate parentPred) :
+        boundsStyle(boundsStyle), parentPred(parentPred) {}
 
     void handle(const VariableDimensionSyntax& dim) {
         if (dim.specifier == nullptr ||
@@ -199,7 +202,7 @@ public:
             return;
         }
 
-        if (dim.parent == nullptr || !isPackedDimensionParent(dim.parent->kind)) {
+        if (dim.parent == nullptr || !parentPred(dim.parent->kind)) {
             visitDefault(dim);
             return;
         }
@@ -250,72 +253,7 @@ public:
 
 private:
     DimensionBoundsStyle boundsStyle;
-};
-
-/// Rewrites unpacked dimension ranges to enforce bound ordering.
-class UnpackedDimensionRewriter : public SyntaxRewriter<UnpackedDimensionRewriter> {
-public:
-    explicit UnpackedDimensionRewriter(DimensionBoundsStyle boundsStyle) :
-        boundsStyle(boundsStyle) {}
-
-    void handle(const VariableDimensionSyntax& dim) {
-        if (dim.specifier == nullptr ||
-            dim.specifier->kind != SyntaxKind::RangeDimensionSpecifier) {
-            visitDefault(dim);
-            return;
-        }
-
-        if (dim.parent == nullptr || !isUnpackedDimensionParent(dim.parent->kind)) {
-            visitDefault(dim);
-            return;
-        }
-
-        auto const& rangeSpec = dim.specifier->as<RangeDimensionSpecifierSyntax>();
-        if (rangeSpec.selector->kind != SyntaxKind::SimpleRangeSelect) {
-            visitDefault(dim);
-            return;
-        }
-
-        auto const& sel = rangeSpec.selector->as<RangeSelectSyntax>();
-        if (sel.left->kind != SyntaxKind::IntegerLiteralExpression ||
-            sel.right->kind != SyntaxKind::IntegerLiteralExpression) {
-            visitDefault(dim);
-            return;
-        }
-
-        auto const& leftLit = sel.left->as<LiteralExpressionSyntax>();
-        auto const& rightLit = sel.right->as<LiteralExpressionSyntax>();
-
-        auto leftVal = leftLit.literal.intValue();
-        auto rightVal = rightLit.literal.intValue();
-
-        if (leftVal.hasUnknown() || rightVal.hasUnknown()) {
-            visitDefault(dim);
-            return;
-        }
-
-        bool shouldSwap = false;
-        if (boundsStyle == DimensionBoundsStyle::MSBFirst) {
-            shouldSwap = static_cast<bool>(leftVal < rightVal);
-        }
-        else if (boundsStyle == DimensionBoundsStyle::LSBFirst) {
-            shouldSwap = static_cast<bool>(leftVal > rightVal);
-        }
-
-        if (!shouldSwap) {
-            visitDefault(dim);
-            return;
-        }
-
-        auto* newLeft = deepClone(*sel.right, alloc);
-        auto* newRight = deepClone(*sel.left, alloc);
-
-        auto& newRange = factory.rangeSelect(sel.kind, *newLeft, sel.range, *newRight);
-        replace(sel, newRange);
-    }
-
-private:
-    DimensionBoundsStyle boundsStyle;
+    ParentPredicate parentPred;
 };
 
 /// Rewrites the syntax tree to insert parentheses around timing constructs.
@@ -412,6 +350,25 @@ private:
 
 } // namespace
 
+namespace {
+
+template<typename Rewriter, typename... Args>
+std::shared_ptr<SyntaxTree> transformUntilConverged(std::shared_ptr<SyntaxTree> tree,
+                                                    const Args&... args) {
+    for (;;) {
+        Rewriter rewriter(args...);
+        auto newTree = rewriter.transform(tree);
+        if (newTree == tree) {
+            break;
+        }
+
+        tree = newTree;
+    }
+    return tree;
+}
+
+} // namespace
+
 namespace slang::format {
 
 std::shared_ptr<SyntaxTree> applyBeginEndInsertion(std::shared_ptr<SyntaxTree> tree,
@@ -420,17 +377,7 @@ std::shared_ptr<SyntaxTree> applyBeginEndInsertion(std::shared_ptr<SyntaxTree> t
         return tree;
     }
 
-    for (;;) {
-        BeginEndInserter inserter(style);
-        auto newTree = inserter.transform(tree);
-        if (newTree == tree) {
-            break;
-        }
-
-        tree = newTree;
-    }
-
-    return tree;
+    return transformUntilConverged<BeginEndInserter>(tree, style);
 }
 
 std::shared_ptr<SyntaxTree> applyEventSeparator(std::shared_ptr<SyntaxTree> tree,
@@ -439,17 +386,7 @@ std::shared_ptr<SyntaxTree> applyEventSeparator(std::shared_ptr<SyntaxTree> tree
         return tree;
     }
 
-    for (;;) {
-        EventSeparatorRewriter rewriter(style.EventSeparator);
-        auto newTree = rewriter.transform(tree);
-        if (newTree == tree) {
-            break;
-        }
-
-        tree = newTree;
-    }
-
-    return tree;
+    return transformUntilConverged<EventSeparatorRewriter>(tree, style.EventSeparator);
 }
 
 std::shared_ptr<SyntaxTree> applyPackedDimensionBounds(std::shared_ptr<SyntaxTree> tree,
@@ -458,7 +395,7 @@ std::shared_ptr<SyntaxTree> applyPackedDimensionBounds(std::shared_ptr<SyntaxTre
         return tree;
     }
 
-    PackedDimensionRewriter rewriter(style.PackedDimensionBounds);
+    DimensionBoundsRewriter rewriter(style.PackedDimensionBounds, isPackedDimensionParent);
     return rewriter.transform(tree);
 }
 
@@ -468,7 +405,7 @@ std::shared_ptr<SyntaxTree> applyUnpackedDimensionBounds(std::shared_ptr<SyntaxT
         return tree;
     }
 
-    UnpackedDimensionRewriter rewriter(style.UnpackedDimensionBounds);
+    DimensionBoundsRewriter rewriter(style.UnpackedDimensionBounds, isUnpackedDimensionParent);
     return rewriter.transform(tree);
 }
 
@@ -479,17 +416,7 @@ std::shared_ptr<SyntaxTree> applyInsertParens(std::shared_ptr<SyntaxTree> tree,
         return tree;
     }
 
-    for (;;) {
-        ParenInserter inserter(style);
-        auto newTree = inserter.transform(tree);
-        if (newTree == tree) {
-            break;
-        }
-
-        tree = newTree;
-    }
-
-    return tree;
+    return transformUntilConverged<ParenInserter>(tree, style);
 }
 
 } // namespace slang::format

@@ -9,6 +9,7 @@
 #include <cctype>
 #include <cstddef>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -17,91 +18,19 @@ using namespace slang::format;
 
 namespace {
 
-enum class LineKind {
-    Assignment,
-    Continuation,
-    Declaration,
-    Comment,
-    Empty,
-    PortListBoundary,
-    TimingControl,
-    Other
-};
-
-struct LineInfo {
-    LineKind kind;
-    size_t indent;
-    size_t typeWidth; ///< Distance from indent to identifier start.
-    size_t identPos;  ///< Absolute position of identifier in the line.
-    size_t equalsPos; ///< Position of '=' in declaration, or npos if absent.
-    size_t dimPos;    ///< Position of first '[' after type keyword, or npos if absent.
-    unsigned depth;   ///< AST nesting depth at the line's emission point.
-};
+using Kind = LineMetadata::Kind;
 
 constexpr auto npos = std::string_view::npos;
 
-LineInfo makeEmpty() {
-    return {.kind = LineKind::Empty,
-            .indent = 0,
-            .typeWidth = 0,
-            .identPos = 0,
-            .equalsPos = npos,
-            .dimPos = npos,
-            .depth = 0};
-}
-
-LineInfo makeComment(size_t indent) {
-    return {.kind = LineKind::Comment,
-            .indent = indent,
-            .typeWidth = 0,
-            .identPos = 0,
-            .equalsPos = npos,
-            .dimPos = npos,
-            .depth = 0};
-}
-
-LineInfo makePortListBoundary(size_t indent) {
-    return {.kind = LineKind::PortListBoundary,
-            .indent = indent,
-            .typeWidth = 0,
-            .identPos = 0,
-            .equalsPos = npos,
-            .dimPos = npos,
-            .depth = 0};
-}
-
-LineInfo makeOther(size_t indent) {
-    return {.kind = LineKind::Other,
-            .indent = indent,
-            .typeWidth = 0,
-            .identPos = 0,
-            .equalsPos = npos,
-            .dimPos = npos,
-            .depth = 0};
-}
-
-LineKind toLineKind(LineMetadata::Kind mk) {
-    using MK = LineMetadata::Kind;
-    switch (mk) {
-        case MK::Assignment:
-            return LineKind::Assignment;
-        case MK::Comment:
-            return LineKind::Comment;
-        case MK::Continuation:
-            return LineKind::Continuation;
-        case MK::Declaration:
-            return LineKind::Declaration;
-        case MK::Empty:
-            return LineKind::Empty;
-        case MK::PortListBoundary:
-            return LineKind::PortListBoundary;
-        case MK::TimingControl:
-            return LineKind::TimingControl;
-        case MK::Other:
-            return LineKind::Other;
-    }
-    return LineKind::Other;
-}
+struct LineInfo {
+    Kind kind;
+    size_t indent = 0;
+    size_t typeWidth = 0;    ///< Distance from indent to identifier start.
+    size_t identPos = 0;     ///< Absolute position of identifier in the line.
+    size_t equalsPos = npos; ///< Position of '=' in declaration, or npos if absent.
+    size_t dimPos = npos;    ///< Position of first '[' after type keyword, or npos if absent.
+    unsigned depth = 0;      ///< AST nesting depth at the line's emission point.
+};
 
 constexpr std::array TypeKeywords{
     std::string_view{"bit"},      std::string_view{"byte"},      std::string_view{"int"},
@@ -403,11 +332,9 @@ size_t findDimPos(std::string_view line, size_t pos, std::string_view firstWord)
 }
 
 LineInfo classifyTimingControl(std::string_view line, size_t indentEnd) {
-    auto const other = makeOther(indentEnd);
-
     auto afterKeyword = skipSpaces(line, indentEnd + std::string_view{"always"}.size());
     if (afterKeyword >= line.size() || line[afterKeyword] != '#') {
-        return other;
+        return {.kind = Kind::Other, .indent = indentEnd};
     }
 
     auto afterDelay = skipTimingControl(line, afterKeyword);
@@ -415,16 +342,16 @@ LineInfo classifyTimingControl(std::string_view line, size_t indentEnd) {
     if (identStart >= line.size() ||
         (std::isalpha(static_cast<unsigned char>(line[identStart])) == 0 &&
          line[identStart] != '_')) {
-        return other;
+        return {.kind = Kind::Other, .indent = indentEnd};
     }
 
     auto afterLHS = skipAssignmentLHS(line, identStart);
     auto opPos = findAssignOperator(line, skipSpaces(line, afterLHS));
     if (opPos == npos) {
-        return other;
+        return {.kind = Kind::Other, .indent = indentEnd};
     }
 
-    return {.kind = LineKind::TimingControl,
+    return {.kind = Kind::TimingControl,
             .indent = indentEnd,
             .typeWidth = identStart - indentEnd,
             .identPos = identStart,
@@ -435,27 +362,27 @@ LineInfo classifyTimingControl(std::string_view line, size_t indentEnd) {
 
 LineInfo classifyLine(std::string_view line, bool formatOff) {
     if (line.empty() || line.find_first_not_of(' ') == std::string_view::npos) {
-        return makeEmpty();
+        return {.kind = Kind::Empty};
     }
 
     auto indentEnd = line.find_first_not_of(' ');
     auto content = line.substr(indentEnd);
 
     if (content.starts_with("//") || content.starts_with("/*")) {
-        return makeComment(indentEnd);
+        return {.kind = Kind::Comment, .indent = indentEnd};
     }
 
     if (content == ") (" || content == ");" || content == ")" || content == "#(") {
-        return makePortListBoundary(indentEnd);
+        return {.kind = Kind::PortListBoundary, .indent = indentEnd};
     }
 
     if (formatOff) {
-        return makeOther(indentEnd);
+        return {.kind = Kind::Other, .indent = indentEnd};
     }
 
     auto firstWord = extractWord(content, 0);
     if (firstWord.empty()) {
-        return makeOther(indentEnd);
+        return {.kind = Kind::Other, .indent = indentEnd};
     }
 
     if (firstWord == "always") {
@@ -479,22 +406,22 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
             identStart = skipSpaces(line, indentEnd + firstWord.size());
         }
         else if (isStatementKeyword(firstWord)) {
-            return makeOther(indentEnd);
+            return {.kind = Kind::Other, .indent = indentEnd};
         }
 
         if (identStart >= line.size() ||
             (std::isalpha(static_cast<unsigned char>(line[identStart])) == 0 &&
              line[identStart] != '_')) {
-            return makeOther(indentEnd);
+            return {.kind = Kind::Other, .indent = indentEnd};
         }
 
         auto afterLHS = skipAssignmentLHS(line, identStart);
         auto opPos = findAssignOperator(line, skipSpaces(line, afterLHS));
         if (opPos == npos) {
-            return makeOther(indentEnd);
+            return {.kind = Kind::Other, .indent = indentEnd};
         }
 
-        return {.kind = LineKind::Assignment,
+        return {.kind = Kind::Assignment,
                 .indent = indentEnd,
                 .typeWidth = 0,
                 .identPos = identStart,
@@ -506,11 +433,11 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
     pos = skipSpaces(line, pos);
     if (pos >= line.size() ||
         (std::isalpha(static_cast<unsigned char>(line[pos])) == 0 && line[pos] != '_')) {
-        return makeOther(indentEnd);
+        return {.kind = Kind::Other, .indent = indentEnd};
     }
 
     auto eqPos = findEquals(line, pos);
-    return {.kind = LineKind::Declaration,
+    return {.kind = Kind::Declaration,
             .indent = indentEnd,
             .typeWidth = pos - indentEnd,
             .identPos = pos,
@@ -554,14 +481,14 @@ void alignGroup(std::string& result, const std::vector<std::string_view>& lines,
     size_t maxTypeWidth = 0;
     std::optional<size_t> groupIndent;
     for (size_t i = range.start; i < range.end; i++) {
-        if (infos[i].kind == LineKind::Declaration) {
+        if (infos[i].kind == Kind::Declaration) {
             declCount++;
             maxTypeWidth = std::max(maxTypeWidth, infos[i].typeWidth);
             if (!groupIndent) {
                 groupIndent = infos[i].indent;
             }
         }
-        else if (infos[i].kind == LineKind::Continuation) {
+        else if (infos[i].kind == Kind::Continuation) {
             declCount++;
         }
     }
@@ -569,7 +496,7 @@ void alignGroup(std::string& result, const std::vector<std::string_view>& lines,
     auto targetAbsCol = groupIndent.value_or(0) + maxTypeWidth;
 
     for (size_t i = range.start; i < range.end; i++) {
-        if (infos[i].kind == LineKind::Declaration && declCount >= 2) {
+        if (infos[i].kind == Kind::Declaration && declCount >= 2) {
             auto line = lines[i];
             auto indent = infos[i].indent;
             auto identPos = infos[i].identPos;
@@ -581,7 +508,7 @@ void alignGroup(std::string& result, const std::vector<std::string_view>& lines,
             result.append(targetPos - (typeTextEnd - indent) - indent, ' ');
             result.append(line.substr(identPos));
         }
-        else if (infos[i].kind == LineKind::Continuation && declCount >= 2) {
+        else if (infos[i].kind == Kind::Continuation && declCount >= 2) {
             auto line = lines[i];
             auto indent = infos[i].indent;
 
@@ -608,30 +535,69 @@ struct AlignState {
     std::optional<unsigned> groupDepth;
 };
 
+struct GroupBreakConfig {
+    std::span<const Kind> memberKinds;
+    bool continuationPassThrough = true;
+    bool depthScoped = false;
+    bool indentAlwaysBreaks = false;
+    bool portListAware = true;
+};
+
+bool isMemberKind(Kind kind, std::span<const Kind> memberKinds) {
+    return std::ranges::find(memberKinds, kind) != memberKinds.end();
+}
+
 bool shouldBreakGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
-                      bool acrossComments, bool acrossIndent) {
-    if (info.kind == LineKind::Continuation) {
+                      bool acrossComments, bool acrossIndent, const GroupBreakConfig& config) {
+    if (info.kind == Kind::Continuation && config.continuationPassThrough) {
         return false;
     }
 
-    if (info.kind == LineKind::Declaration) {
+    if (isMemberKind(info.kind, config.memberKinds) ||
+        (info.kind == Kind::Continuation && !config.continuationPassThrough)) {
+        if (config.depthScoped && state.inGroup && state.groupDepth &&
+            *state.groupDepth != info.depth) {
+            return false;
+        }
+
+        if (config.indentAlwaysBreaks) {
+            return state.inGroup && state.groupIndent && *state.groupIndent != info.indent;
+        }
+
         return state.inGroup && !acrossIndent && state.groupIndent &&
                *state.groupIndent != info.indent;
     }
 
-    if (info.kind == LineKind::Empty) {
+    if (info.kind == Kind::Empty) {
         return state.inGroup && !acrossEmpty;
     }
 
-    if (info.kind == LineKind::Comment) {
+    if (info.kind == Kind::Comment) {
         return state.inGroup && !acrossComments;
     }
 
-    if (info.kind == LineKind::PortListBoundary) {
+    if (info.kind == Kind::PortListBoundary && config.portListAware) {
         return state.inGroup && !acrossIndent;
     }
 
+    if (config.depthScoped) {
+        return state.inGroup && state.groupDepth && info.depth < *state.groupDepth;
+    }
+
     return true;
+}
+
+bool canStartGroup(const LineInfo& info, const GroupBreakConfig& config) {
+    return isMemberKind(info.kind, config.memberKinds);
+}
+
+bool shouldBreakDimGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
+                         bool acrossComments, bool acrossIndent, const GroupBreakConfig& config) {
+    if ((info.kind == Kind::Declaration || info.kind == Kind::Continuation) &&
+        info.dimPos == npos) {
+        return false;
+    }
+    return shouldBreakGroup(info, state, acrossEmpty, acrossComments, acrossIndent, config);
 }
 
 struct DimContent {
@@ -783,7 +749,7 @@ std::vector<std::vector<DimContent>> collectDimContents(const std::vector<std::s
                                                         GroupRange range) {
     std::vector<std::vector<DimContent>> allDims;
     for (size_t i = range.start; i < range.end; i++) {
-        if (infos[i].kind == LineKind::Declaration && infos[i].dimPos != npos) {
+        if (infos[i].kind == Kind::Declaration && infos[i].dimPos != npos) {
             allDims.push_back(parseDimContents(lines[i], infos[i].dimPos));
         }
         else {
@@ -799,11 +765,11 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
     size_t dimCount = 0;
     size_t maxDimCol = 0;
     for (size_t i = range.start; i < range.end; i++) {
-        if (infos[i].kind == LineKind::Declaration && infos[i].dimPos != npos) {
+        if (infos[i].kind == Kind::Declaration && infos[i].dimPos != npos) {
             dimCount++;
             maxDimCol = std::max(maxDimCol, infos[i].dimPos);
         }
-        else if (infos[i].kind == LineKind::Declaration) {
+        else if (infos[i].kind == Kind::Declaration) {
             maxDimCol = std::max(maxDimCol, infos[i].identPos);
         }
     }
@@ -819,7 +785,7 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
 
     size_t dimIdx = 0;
     for (size_t i = range.start; i < range.end; i++) {
-        if (infos[i].kind == LineKind::Declaration && infos[i].dimPos != npos && dimCount >= 2) {
+        if (infos[i].kind == Kind::Declaration && infos[i].dimPos != npos && dimCount >= 2) {
             auto line = lines[i];
             auto dp = infos[i].dimPos;
 
@@ -848,8 +814,8 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
 }
 
 bool isAlignableKind(const LineInfo& info) {
-    return info.kind == LineKind::Assignment || info.kind == LineKind::Declaration ||
-           info.kind == LineKind::Continuation;
+    return info.kind == Kind::Assignment || info.kind == Kind::Declaration ||
+           info.kind == Kind::Continuation;
 }
 
 void alignGroupEquals(std::string& result, const std::vector<std::string_view>& lines,
@@ -906,111 +872,12 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
     }
 }
 
-bool shouldBreakDimGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
-                         bool acrossComments, bool acrossIndent) {
-    if ((info.kind == LineKind::Declaration || info.kind == LineKind::Continuation) &&
-        info.dimPos == npos) {
-        return false;
-    }
-    return shouldBreakGroup(info, state, acrossEmpty, acrossComments, acrossIndent);
-}
-
-bool canStartDeclGroup(const LineInfo& info) {
-    return info.kind == LineKind::Declaration;
-}
-
-bool canStartDimGroup(const LineInfo& info) {
-    return info.kind == LineKind::Declaration;
-}
-
-bool shouldBreakAssignGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
-                            bool acrossComments, bool acrossIndent) {
-    if (info.kind == LineKind::Continuation) {
-        return false;
-    }
-
-    if (info.kind == LineKind::Assignment || info.kind == LineKind::Declaration) {
-        if (state.inGroup && state.groupDepth && *state.groupDepth != info.depth) {
-            return false;
-        }
-        return state.inGroup && !acrossIndent && state.groupIndent &&
-               *state.groupIndent != info.indent;
-    }
-
-    if (info.kind == LineKind::Empty) {
-        return state.inGroup && !acrossEmpty;
-    }
-
-    if (info.kind == LineKind::Comment) {
-        return state.inGroup && !acrossComments;
-    }
-
-    if (info.kind == LineKind::PortListBoundary) {
-        return state.inGroup && !acrossIndent;
-    }
-
-    return state.inGroup && state.groupDepth && info.depth < *state.groupDepth;
-}
-
-bool canStartAssignGroup(const LineInfo& info) {
-    return info.kind == LineKind::Assignment || info.kind == LineKind::Declaration;
-}
-
-bool shouldBreakTimingGroup(const LineInfo& info, const AlignState& state, bool acrossEmpty,
-                            bool acrossComments, bool /*acrossIndent*/) {
-    if (info.kind == LineKind::TimingControl) {
-        return state.inGroup && state.groupIndent && *state.groupIndent != info.indent;
-    }
-
-    if (info.kind == LineKind::Empty) {
-        return state.inGroup && !acrossEmpty;
-    }
-
-    if (info.kind == LineKind::Comment) {
-        return state.inGroup && !acrossComments;
-    }
-
-    return true;
-}
-
-bool canStartTimingGroup(const LineInfo& info) {
-    return info.kind == LineKind::TimingControl;
-}
-
-bool shouldBreakTrailingCommentGroup(const LineInfo& info, const AlignState& state,
-                                     bool acrossEmpty, bool acrossComments, bool acrossIndent) {
-    if (info.kind == LineKind::Assignment || info.kind == LineKind::Declaration ||
-        info.kind == LineKind::TimingControl || info.kind == LineKind::Continuation) {
-        return state.inGroup && !acrossIndent && state.groupIndent &&
-               *state.groupIndent != info.indent;
-    }
-
-    if (info.kind == LineKind::Empty) {
-        return state.inGroup && !acrossEmpty;
-    }
-
-    if (info.kind == LineKind::Comment) {
-        return state.inGroup && !acrossComments;
-    }
-
-    if (info.kind == LineKind::PortListBoundary) {
-        return state.inGroup && !acrossIndent;
-    }
-
-    return true;
-}
-
-bool canStartTrailingCommentGroup(const LineInfo& info) {
-    return info.kind == LineKind::Assignment || info.kind == LineKind::Declaration ||
-           info.kind == LineKind::TimingControl;
-}
-
 void alignGroupTrailingComments(std::string& result, const std::vector<std::string_view>& lines,
                                 const std::vector<LineInfo>& infos, GroupRange range) {
     size_t maxCommentCol = 0;
     size_t commentCount = 0;
     for (auto i = range.start; i < range.end; i++) {
-        if (infos[i].kind == LineKind::Comment || infos[i].kind == LineKind::Empty) {
+        if (infos[i].kind == Kind::Comment || infos[i].kind == Kind::Empty) {
             continue;
         }
 
@@ -1027,7 +894,7 @@ void alignGroupTrailingComments(std::string& result, const std::vector<std::stri
     }
 
     for (auto i = range.start; i < range.end; i++) {
-        if (infos[i].kind == LineKind::Comment || infos[i].kind == LineKind::Empty) {
+        if (infos[i].kind == Kind::Comment || infos[i].kind == Kind::Empty) {
             result.append(lines[i]);
             result += '\n';
             continue;
@@ -1072,7 +939,7 @@ void alignTimingIdentsAndEquals(std::string& result, const std::vector<std::stri
     padded.reserve(range.end - range.start);
     size_t maxEqualsCol = 0;
     for (auto i = range.start; i < range.end; i++) {
-        if (infos[i].kind != LineKind::TimingControl) {
+        if (infos[i].kind != Kind::TimingControl) {
             padded.emplace_back(lines[i]);
             continue;
         }
@@ -1087,7 +954,7 @@ void alignTimingIdentsAndEquals(std::string& result, const std::vector<std::stri
 
     size_t idx = 0;
     for (auto i = range.start; i < range.end; i++, idx++) {
-        if (infos[i].kind != LineKind::TimingControl) {
+        if (infos[i].kind != Kind::TimingControl) {
             result.append(padded[idx]);
             result += '\n';
             continue;
@@ -1111,7 +978,7 @@ void alignGroupTiming(std::string& result, const std::vector<std::string_view>& 
     size_t count = 0;
     size_t maxTypeWidth = 0;
     for (auto i = range.start; i < range.end; i++) {
-        if (infos[i].kind != LineKind::TimingControl) {
+        if (infos[i].kind != Kind::TimingControl) {
             continue;
         }
         count++;
@@ -1132,12 +999,12 @@ void alignGroupTiming(std::string& result, const std::vector<std::string_view>& 
 bool followsDeclaration(const std::vector<LineInfo>& infos, size_t i) {
     for (auto j = i; j > 0; j--) {
         auto prevKind = infos[j - 1].kind;
-        if (prevKind == LineKind::Assignment || prevKind == LineKind::Declaration ||
-            prevKind == LineKind::Continuation) {
+        if (prevKind == Kind::Assignment || prevKind == Kind::Declaration ||
+            prevKind == Kind::Continuation) {
             return true;
         }
 
-        if (prevKind == LineKind::Empty || prevKind == LineKind::Comment) {
+        if (prevKind == Kind::Empty || prevKind == Kind::Comment) {
             continue;
         }
 
@@ -1149,7 +1016,7 @@ bool followsDeclaration(const std::vector<LineInfo>& infos, size_t i) {
 void reclassifyContinuationLines(const std::vector<std::string_view>& lines,
                                  std::vector<LineInfo>& infos) {
     for (size_t i = 1; i < infos.size(); i++) {
-        if (infos[i].kind != LineKind::Other && infos[i].kind != LineKind::Assignment) {
+        if (infos[i].kind != Kind::Other && infos[i].kind != Kind::Assignment) {
             continue;
         }
 
@@ -1158,7 +1025,7 @@ void reclassifyContinuationLines(const std::vector<std::string_view>& lines,
         }
 
         auto indentEnd = lines[i].find_first_not_of(' ');
-        infos[i] = {.kind = LineKind::Continuation,
+        infos[i] = {.kind = Kind::Continuation,
                     .indent = indentEnd,
                     .typeWidth = 0,
                     .identPos = indentEnd,
@@ -1185,9 +1052,8 @@ std::vector<LineInfo> classifyLines(const std::vector<std::string_view>& lines,
         if (i < lineMetadata.size()) {
             info.depth = lineMetadata[i].depth;
 
-            auto metaKind = toLineKind(lineMetadata[i].kind);
-            if (!formatOff && metaKind != LineKind::Other) {
-                info.kind = metaKind;
+            if (!formatOff && lineMetadata[i].kind != Kind::Other) {
+                info.kind = lineMetadata[i].kind;
             }
         }
         infos.push_back(info);
@@ -1197,10 +1063,14 @@ std::vector<LineInfo> classifyLines(const std::vector<std::string_view>& lines,
     return infos;
 }
 
-template<typename BreakPred, typename StartPred, typename AlignFn>
+using BreakPred = bool (*)(const LineInfo&, const AlignState&, bool, bool, bool,
+                           const GroupBreakConfig&);
+
+template<typename AlignFn>
 std::string applyAlignConsecutive(const std::string& output,
-                                  const AlignConsecutiveStyle& alignStyle, BreakPred shouldBreak,
-                                  StartPred canStart, AlignFn alignFn,
+                                  const AlignConsecutiveStyle& alignStyle,
+                                  const GroupBreakConfig& config, BreakPred breakPred,
+                                  AlignFn alignFn,
                                   const std::vector<LineMetadata>& lineMetadata = {}) {
     if (!alignStyle.Enabled) {
         return output;
@@ -1232,7 +1102,8 @@ std::string applyAlignConsecutive(const std::string& output,
 
     for (size_t i = 0; i < lines.size(); i++) {
         auto& info = infos[i];
-        auto const breakGroup = shouldBreak(info, state, acrossEmpty, acrossComments, acrossIndent);
+        auto const breakGroup = breakPred(info, state, acrossEmpty, acrossComments, acrossIndent,
+                                          config);
 
         if (breakGroup && state.inGroup) {
             alignFn(result, lines, infos, {.start = state.groupStart, .end = i});
@@ -1241,7 +1112,7 @@ std::string applyAlignConsecutive(const std::string& output,
             state.groupDepth.reset();
         }
 
-        if (canStart(info) && !state.inGroup) {
+        if (canStartGroup(info, config) && !state.inGroup) {
             state.groupStart = i;
             state.inGroup = true;
             state.groupIndent = info.indent;
@@ -1270,24 +1141,35 @@ namespace slang::format {
 
 std::string applyAlignment(const std::string& output, const Style& style,
                            const std::vector<LineMetadata>& lineMetadata) {
+    static constexpr std::array declKinds{Kind::Declaration};
+    static constexpr std::array assignKinds{Kind::Assignment, Kind::Declaration};
+    static constexpr std::array timingKinds{Kind::TimingControl};
+    static constexpr std::array trailingKinds{Kind::Assignment, Kind::Declaration,
+                                              Kind::TimingControl};
+
+    static constexpr GroupBreakConfig declConfig{.memberKinds = declKinds};
+    static constexpr GroupBreakConfig dimConfig{.memberKinds = declKinds};
+    static constexpr GroupBreakConfig assignConfig{.memberKinds = assignKinds, .depthScoped = true};
+    static constexpr GroupBreakConfig timingConfig{.memberKinds = timingKinds,
+                                                   .indentAlwaysBreaks = true,
+                                                   .portListAware = false};
+    static constexpr GroupBreakConfig trailingConfig{.memberKinds = trailingKinds,
+                                                     .continuationPassThrough = false};
+
     auto dimAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
                                const std::vector<LineInfo>& inf, GroupRange rng) {
         alignGroupDimensions(r, l, inf, rng, style.AlignConsecutivePackedDimensions);
     };
-    auto result = applyAlignConsecutive(output, style.AlignConsecutivePackedDimensions,
-                                        shouldBreakDimGroup, canStartDimGroup, dimAlignFn,
-                                        lineMetadata);
-    result = applyAlignConsecutive(result, style.AlignConsecutiveDeclarations, shouldBreakGroup,
-                                   canStartDeclGroup, alignGroup, lineMetadata);
-    result = applyAlignConsecutive(result, style.AlignConsecutiveTimingControls,
-                                   shouldBreakTimingGroup, canStartTimingGroup, alignGroupTiming,
-                                   lineMetadata);
-    result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments,
-                                   shouldBreakAssignGroup, canStartAssignGroup, alignGroupEquals,
-                                   lineMetadata);
-    result = applyAlignConsecutive(result, style.AlignTrailingComments,
-                                   shouldBreakTrailingCommentGroup, canStartTrailingCommentGroup,
-                                   alignGroupTrailingComments, lineMetadata);
+    auto result = applyAlignConsecutive(output, style.AlignConsecutivePackedDimensions, dimConfig,
+                                        shouldBreakDimGroup, dimAlignFn, lineMetadata);
+    result = applyAlignConsecutive(result, style.AlignConsecutiveDeclarations, declConfig,
+                                   shouldBreakGroup, alignGroup, lineMetadata);
+    result = applyAlignConsecutive(result, style.AlignConsecutiveTimingControls, timingConfig,
+                                   shouldBreakGroup, alignGroupTiming, lineMetadata);
+    result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments, assignConfig,
+                                   shouldBreakGroup, alignGroupEquals, lineMetadata);
+    result = applyAlignConsecutive(result, style.AlignTrailingComments, trailingConfig,
+                                   shouldBreakGroup, alignGroupTrailingComments, lineMetadata);
     return result;
 }
 

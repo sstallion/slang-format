@@ -511,7 +511,7 @@ TEST(ApplyInsertBeginEnd, AlreadyWrapped) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.AlwaysStatements = false;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -618,7 +618,7 @@ TEST(ApplyInsertBeginEnd, AlwaysStatementsDisabled) {
 TEST(ApplyInsertBeginEnd, AlwaysWithControlStatement) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -642,7 +642,7 @@ TEST(ApplyInsertBeginEnd, AlwaysWithControlStatement) {
 TEST(ApplyInsertBeginEnd, AlwaysWithNestedControl) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -667,7 +667,7 @@ TEST(ApplyInsertBeginEnd, CaseItem) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.AlwaysStatements = false;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -696,7 +696,7 @@ TEST(ApplyInsertBeginEnd, CaseItem) {
 
 TEST(ApplyInsertBeginEnd, CaseItemAlreadyWrapped) {
     Style style;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -746,7 +746,7 @@ TEST(ApplyInsertBeginEnd, DeepNesting) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.AlwaysStatements = false;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -776,7 +776,7 @@ TEST(ApplyInsertBeginEnd, DoWhile) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.InitialStatements = false;
-    style.BreakBeforeInitial = BreakAfterBlockStyle::Never;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -802,7 +802,7 @@ TEST(ApplyInsertBeginEnd, ElseIf) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.AlwaysStatements = false;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -877,7 +877,7 @@ TEST(ApplyInsertBeginEnd, ForLoop) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.AlwaysStatements = false;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -901,7 +901,7 @@ TEST(ApplyInsertBeginEnd, IfElse) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.AlwaysStatements = false;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -930,7 +930,7 @@ TEST(ApplyInsertBeginEnd, IfSingleStatement) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.AlwaysStatements = false;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1015,7 +1015,7 @@ TEST(ApplyInsertBeginEnd, NestedIf) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.AlwaysStatements = false;
-    style.BreakBeforeAlways = BreakAfterBlockStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(

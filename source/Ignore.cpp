@@ -1,6 +1,7 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
+#include "FileLoader.h"
 #include "Ignore.h"
 
 #include <array>
@@ -11,7 +12,6 @@
 #include <optional>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 #include <slang/text/Glob.h>
@@ -20,7 +20,7 @@ using namespace slang::format;
 
 namespace {
 
-constexpr std::array IgnoreFileNames{
+constexpr std::array<std::string_view, 2> IgnoreFileNames{
     ".slang-format-ignore",
     "_slang-format-ignore",
 };
@@ -82,25 +82,6 @@ std::vector<IgnoreEntry> parseIgnoreFile(std::string_view content) {
     return entries;
 }
 
-std::optional<std::pair<std::filesystem::path, std::string>> findIgnoreFile(
-    const std::filesystem::path& searchDir, const FileLoader& loader) {
-    for (std::filesystem::path path = searchDir;; path = path.parent_path()) {
-        for (std::string_view const name : IgnoreFileNames) {
-            auto candidate = path / name;
-            if (auto content = loader(candidate)) {
-                return std::pair{path, std::move(*content)};
-            }
-        }
-
-        auto parent = path.parent_path();
-        if (parent == path) {
-            break;
-        }
-    }
-
-    return std::nullopt;
-}
-
 } // namespace
 
 namespace slang::format {
@@ -119,12 +100,13 @@ bool isIgnored(const std::filesystem::path& filePath, FileLoader loader) {
         };
     }
 
-    auto result = findIgnoreFile(filePath.parent_path(), loader);
+    auto result = findFileInHierarchy(filePath.parent_path(), IgnoreFileNames, loader);
     if (!result) {
         return false;
     }
 
-    auto& [ignoreDir, content] = *result;
+    auto& [ignorePath, content] = *result;
+    auto ignoreDir = ignorePath.parent_path();
     auto entries = parseIgnoreFile(content);
 
     auto relativePath = std::filesystem::relative(filePath, ignoreDir);
