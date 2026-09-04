@@ -5,8 +5,6 @@
 #include "Style.h"
 #include "TestHelper.h"
 
-#include <string>
-
 #include <gtest/gtest.h>
 
 using namespace slang::format;
