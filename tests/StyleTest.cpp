@@ -554,6 +554,27 @@ TEST(ParseConfiguration, ParsesOneLineFormatOffRegex) {
     EXPECT_EQ(style.OneLineFormatOffRegex, ".*foo.*");
 }
 
+TEST(ParseConfiguration, ParsesPackedDimensionBoundsLSBFirst) {
+    YAML::Node const node = YAML::Load("PackedDimensionBounds: LSBFirst");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.PackedDimensionBounds, PackedDimensionBoundsStyle::LSBFirst);
+}
+
+TEST(ParseConfiguration, ParsesPackedDimensionBoundsMSBFirst) {
+    YAML::Node const node = YAML::Load("PackedDimensionBounds: MSBFirst");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.PackedDimensionBounds, PackedDimensionBoundsStyle::MSBFirst);
+}
+
+TEST(ParseConfiguration, ParsesPackedDimensionBoundsPreserve) {
+    YAML::Node const node = YAML::Load("PackedDimensionBounds: Preserve");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.PackedDimensionBounds, PackedDimensionBoundsStyle::Preserve);
+}
+
 TEST(ParseConfiguration, ParsesParameterPortListIndentWidth) {
     YAML::Node const node = YAML::Load("ParameterPortListIndentWidth: 4");
     Style style;
@@ -595,6 +616,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("IndentWidth: 2"), std::string::npos);
     EXPECT_NE(result.find("MaxEmptyLinesToKeep: 1"), std::string::npos);
     EXPECT_NE(result.find("OneLineFormatOffRegex: \"\""), std::string::npos);
+    EXPECT_NE(result.find("PackedDimensionBounds: Preserve"), std::string::npos);
     EXPECT_NE(result.find("ParameterPortListIndentWidth: 2"), std::string::npos);
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
     EXPECT_NE(result.find("AlignColon: false"), std::string::npos);
@@ -615,6 +637,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.BreakBeforeSpecifyBlock = false;
     style.BreakBeforeTask = false;
     style.InsertBeginEnd.Enabled = true;
+    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
 
     auto const result = dumpConfiguration(style);
     EXPECT_NE(result.find("IndentWidth: 4"), std::string::npos);
@@ -625,6 +648,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("BreakBeforeSpecifyBlock: false"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeTask: false"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
+    EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
 }
 
 TEST(DumpConfiguration, RoundTrip) {
@@ -653,6 +677,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.BreakBeforeSpecifyBlock = false;
     original.BreakBeforeTask = false;
     original.OneLineFormatOffRegex = ".*test.*";
+    original.PackedDimensionBounds = PackedDimensionBoundsStyle::LSBFirst;
     original.InsertBeginEnd.Enabled = true;
     original.InsertBeginEnd.ControlStatements = false;
     original.InsertBeginEnd.AlwaysStatements = false;

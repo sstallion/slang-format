@@ -8,6 +8,7 @@
 #include <memory>
 #include <span>
 
+#include <slang/numeric/SVInt.h>
 #include <slang/parsing/Token.h>
 #include <slang/parsing/TokenKind.h>
 #include <slang/syntax/AllSyntax.h>
@@ -135,6 +136,77 @@ private:
     }
 };
 
+bool isPackedDimensionParent(SyntaxKind kind) {
+    return IntegerTypeSyntax::isKind(kind) || ImplicitTypeSyntax::isKind(kind) ||
+           StructUnionTypeSyntax::isKind(kind) || EnumTypeSyntax::isKind(kind);
+}
+
+/// Rewrites packed dimension ranges to enforce bound ordering.
+class PackedDimensionRewriter : public SyntaxRewriter<PackedDimensionRewriter> {
+public:
+    explicit PackedDimensionRewriter(PackedDimensionBoundsStyle boundsStyle) :
+        boundsStyle(boundsStyle) {}
+
+    void handle(const VariableDimensionSyntax& dim) {
+        if (dim.specifier == nullptr ||
+            dim.specifier->kind != SyntaxKind::RangeDimensionSpecifier) {
+            visitDefault(dim);
+            return;
+        }
+
+        if (dim.parent == nullptr || !isPackedDimensionParent(dim.parent->kind)) {
+            visitDefault(dim);
+            return;
+        }
+
+        auto const& rangeSpec = dim.specifier->as<RangeDimensionSpecifierSyntax>();
+        if (rangeSpec.selector->kind != SyntaxKind::SimpleRangeSelect) {
+            visitDefault(dim);
+            return;
+        }
+
+        auto const& sel = rangeSpec.selector->as<RangeSelectSyntax>();
+        if (sel.left->kind != SyntaxKind::IntegerLiteralExpression ||
+            sel.right->kind != SyntaxKind::IntegerLiteralExpression) {
+            visitDefault(dim);
+            return;
+        }
+
+        auto const& leftLit = sel.left->as<LiteralExpressionSyntax>();
+        auto const& rightLit = sel.right->as<LiteralExpressionSyntax>();
+
+        auto leftVal = leftLit.literal.intValue();
+        auto rightVal = rightLit.literal.intValue();
+
+        if (leftVal.hasUnknown() || rightVal.hasUnknown()) {
+            visitDefault(dim);
+            return;
+        }
+
+        bool shouldSwap = false;
+        if (boundsStyle == PackedDimensionBoundsStyle::MSBFirst) {
+            shouldSwap = static_cast<bool>(leftVal < rightVal);
+        }
+        else if (boundsStyle == PackedDimensionBoundsStyle::LSBFirst) {
+            shouldSwap = static_cast<bool>(leftVal > rightVal);
+        }
+
+        if (!shouldSwap) {
+            visitDefault(dim);
+            return;
+        }
+
+        auto* newLeft = deepClone(*sel.right, alloc);
+        auto* newRight = deepClone(*sel.left, alloc);
+
+        auto& newRange = factory.rangeSelect(sel.kind, *newLeft, sel.range, *newRight);
+        replace(sel, newRange);
+    }
+
+private:
+    PackedDimensionBoundsStyle boundsStyle;
+};
+
 } // namespace
 
 namespace slang::format {
@@ -156,6 +228,16 @@ std::shared_ptr<SyntaxTree> applyBeginEndInsertion(std::shared_ptr<SyntaxTree> t
     }
 
     return tree;
+}
+
+std::shared_ptr<SyntaxTree> applyPackedDimensionBounds(std::shared_ptr<SyntaxTree> tree,
+                                                       const Style& style) {
+    if (style.PackedDimensionBounds == PackedDimensionBoundsStyle::Preserve) {
+        return tree;
+    }
+
+    PackedDimensionRewriter rewriter(style.PackedDimensionBounds);
+    return rewriter.transform(tree);
 }
 
 } // namespace slang::format

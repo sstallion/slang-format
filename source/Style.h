@@ -40,6 +40,8 @@ struct AlignConsecutiveStyle {
 
 enum class BreakAfterBlockStyle { Never, Always, OnlyMultiline };
 
+enum class PackedDimensionBoundsStyle { LSBFirst, MSBFirst, Preserve };
+
 /// Controls automatic insertion of begin/end around statement bodies.
 struct InsertBeginEndStyle {
     /// If false, disables all begin/end insertion regardless of other options.
@@ -93,6 +95,9 @@ struct Style {
 
     /// Disables formatting for any line matching this pattern.
     std::string OneLineFormatOffRegex;
+
+    /// Controls the order of packed dimension bounds.
+    PackedDimensionBoundsStyle PackedDimensionBounds = PackedDimensionBoundsStyle::Preserve;
 
     /// Controls insertion of a newline between always and its body.
     BreakAfterBlockStyle BreakAfterAlways = BreakAfterBlockStyle::OnlyMultiline;

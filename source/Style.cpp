@@ -36,6 +36,18 @@ constexpr std::string_view toString(BreakAfterBlockStyle style) {
     return "Never";
 }
 
+constexpr std::string_view toString(PackedDimensionBoundsStyle style) {
+    switch (style) {
+        case PackedDimensionBoundsStyle::LSBFirst:
+            return "LSBFirst";
+        case PackedDimensionBoundsStyle::MSBFirst:
+            return "MSBFirst";
+        case PackedDimensionBoundsStyle::Preserve:
+            return "Preserve";
+    }
+    return "Preserve";
+}
+
 /// Returns the YAML node for \p key within \p node, or null if not present.
 template<typename Key>
 YAML::Node lookup(const YAML::Node& node, Key key) {
@@ -100,6 +112,18 @@ BreakAfterBlockStyle parseBreakAfterBlock(std::string_view s) {
     }
 
     return BreakAfterBlockStyle::Never;
+}
+
+PackedDimensionBoundsStyle parsePackedDimensionBounds(std::string_view s) {
+    if (s == "LSBFirst") {
+        return PackedDimensionBoundsStyle::LSBFirst;
+    }
+
+    if (s == "MSBFirst") {
+        return PackedDimensionBoundsStyle::MSBFirst;
+    }
+
+    return PackedDimensionBoundsStyle::Preserve;
 }
 
 void parseBreakStyle(const YAML::Node& node, Style& style) {
@@ -232,6 +256,8 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::EndMap;
     out << YAML::Key << "MaxEmptyLinesToKeep" << YAML::Value << style.MaxEmptyLinesToKeep;
     out << YAML::Key << "OneLineFormatOffRegex" << YAML::Value << style.OneLineFormatOffRegex;
+    out << YAML::Key << "PackedDimensionBounds" << YAML::Value
+        << std::string{toString(style.PackedDimensionBounds)};
     out << YAML::Key << "ParameterPortListIndentWidth" << YAML::Value
         << style.ParameterPortListIndentWidth;
     out << YAML::EndMap;
@@ -298,6 +324,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto v = lookup(node, "OneLineFormatOffRegex")) {
         style.OneLineFormatOffRegex = v.as<std::string>();
+    }
+
+    if (auto v = lookup(node, "PackedDimensionBounds")) {
+        style.PackedDimensionBounds = parsePackedDimensionBounds(v.as<std::string>());
     }
 
     parseBreakStyle(node, style);

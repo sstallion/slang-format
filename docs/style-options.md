@@ -1006,6 +1006,61 @@ endmodule
 
 ---
 
+### PackedDimensionBounds (PackedDimensionBoundsStyle)
+
+Controls the ordering of bounds in packed dimension ranges. When set to
+`MSBFirst` or `LSBFirst`, slang-format swaps the left and right bounds of
+packed dimension ranges so that the larger or smaller value appears first,
+respectively. Only dimensions where both bounds are integer literals are
+affected; dimensions with non-literal expressions (e.g. parameters, binary
+expressions) are left unchanged.
+
+**Default:** `Preserve`
+
+| Value      | Description                                    |
+| ---------- | ---------------------------------------------- |
+| `LSBFirst` | The smaller value appears as the left bound.   |
+| `MSBFirst` | The larger value appears as the left bound.    |
+| `Preserve` | Bounds are left as-is.                         |
+
+`MSBFirst` - larger value placed on the left:
+
+```sv
+// Before
+module foo;
+  logic [0:7] x;
+endmodule
+
+// After
+module foo;
+  logic [7:0] x;
+endmodule
+```
+
+`LSBFirst` - smaller value placed on the left:
+
+```sv
+// Before
+module foo;
+  logic [7:0] x;
+endmodule
+
+// After
+module foo;
+  logic [0:7] x;
+endmodule
+```
+
+`Preserve` (default) - bounds are left unchanged:
+
+```sv
+module foo;
+  logic [0:7] x;
+endmodule
+```
+
+---
+
 ### ParameterPortListIndentWidth (unsigned)
 
 Number of spaces used to indent items in a module ANSI port declaration. When

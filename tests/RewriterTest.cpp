@@ -11,6 +11,178 @@
 
 using namespace slang::format;
 
+TEST(ApplyPackedDimensionBounds, EqualBoundsPreserved) {
+    Style style;
+    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [0:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyPackedDimensionBounds, ImplicitType) {
+    Style style;
+    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo(
+        input [0:7] x
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo(
+          input [7:0] x
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyPackedDimensionBounds, LSBFirstPreservesCorrectOrder) {
+    Style style;
+    style.PackedDimensionBounds = PackedDimensionBoundsStyle::LSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:7] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [0:7] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyPackedDimensionBounds, LSBFirstSwapsWhenNeeded) {
+    Style style;
+    style.PackedDimensionBounds = PackedDimensionBoundsStyle::LSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [7:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [0:7] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyPackedDimensionBounds, MSBFirstPreservesCorrectOrder) {
+    Style style;
+    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [7:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyPackedDimensionBounds, MSBFirstSwapsWhenNeeded) {
+    Style style;
+    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:7] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyPackedDimensionBounds, MultipleDimensions) {
+    Style style;
+    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:7][0:3] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0][3:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyPackedDimensionBounds, NonLiteralBoundsPreserved) {
+    Style style;
+    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [N-1:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [N-1:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyPackedDimensionBounds, PreserveDoesNothing) {
+    Style style;
+    style.PackedDimensionBounds = PackedDimensionBoundsStyle::Preserve;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:7] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [0:7] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyPackedDimensionBounds, UnpackedDimensionSkipped) {
+    Style style;
+    style.PackedDimensionBounds = PackedDimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:7];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x [0:7];
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyInsertBeginEnd, AlreadyWrapped) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
