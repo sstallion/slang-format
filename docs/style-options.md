@@ -1007,6 +1007,97 @@ endmodule
 
 ---
 
+### InsertParens (InsertParensStyle)
+
+Controls whether slang-format inserts parentheses around timing constructs.
+Each sub-option independently controls its scope; there is no master switch.
+
+**Default:**
+
+```yaml
+InsertParens:
+  Delays: false
+  ExpressionEvents: false
+  ImplicitEvents: false
+  NamedEvents: false
+```
+
+#### Delays (bool)
+
+If `true`, insert parentheses around bare delay expressions.
+
+**Default:** `false`
+
+```sv
+// Before
+module foo;
+  always #5 clk = ~clk;
+endmodule
+
+// After
+module foo;
+  always #(5) clk = ~clk;
+endmodule
+```
+
+#### ExpressionEvents (bool)
+
+If `true`, insert parentheses around bare event expressions.
+
+**Default:** `false`
+
+```sv
+// Before
+module foo;
+  always_ff @posedge clk
+    x <= 1;
+endmodule
+
+// After
+module foo;
+  always_ff @(posedge clk)
+    x <= 1;
+endmodule
+```
+
+#### ImplicitEvents (bool)
+
+If `true`, insert parentheses around bare implicit event lists.
+
+**Default:** `false`
+
+```sv
+// Before
+module foo;
+  always @* x = 1;
+endmodule
+
+// After
+module foo;
+  always @(*) x = 1;
+endmodule
+```
+
+#### NamedEvents (bool)
+
+If `true`, insert parentheses around bare named event references.
+
+**Default:** `false`
+
+```sv
+// Before
+module foo;
+  always @signal x = 1;
+endmodule
+
+// After
+module foo;
+  always @(signal) x = 1;
+endmodule
+```
+
+---
+
 ### MaxEmptyLinesToKeep (unsigned)
 
 Maximum number of consecutive empty lines to keep. slang-format collapses any

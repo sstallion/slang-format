@@ -15,7 +15,7 @@
 - [x] Ignore patterns (i.e. `.slang-format-ignore` and `slang-format --list-ignored`)
 - [x] Dump configuration (i.e. `slang-format --dump-config`)
 - [x] In-place editing (i.e. `slang-format -i`)
-- [ ] Formatting (not exhaustive):
+- [x] Basic formatting (not exhaustive):
   - [x] Line breaks between constructs
   - [x] Alignment:
     - [x] Names
@@ -26,8 +26,8 @@
     - [x] Trailing comments
   - [x] Multiple assignments
   - [x] MSB vs. LSB ranges
-  - [ ] Timing control
-    - [ ] Require parenthesis
+  - [x] Timing control
+    - [x] Require parenthesis
     - [x] Commas vs. `or`
 - [x] Installation and packaging using CMake
 - [x] Full releases including packaging

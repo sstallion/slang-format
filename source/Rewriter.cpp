@@ -318,6 +318,98 @@ private:
     DimensionBoundsStyle boundsStyle;
 };
 
+/// Rewrites the syntax tree to insert parentheses around timing constructs.
+class ParenInserter : public SyntaxRewriter<ParenInserter> {
+public:
+    explicit ParenInserter(const Style& style) : style(style) {}
+
+    void handle(const DelaySyntax& delay) {
+        if (!style.InsertParens.Delays) {
+            visitDefault(delay);
+            return;
+        }
+
+        if (delay.delayValue->kind == SyntaxKind::ParenthesizedExpression) {
+            visitDefault(delay);
+            return;
+        }
+
+        auto* newValue = static_cast<ExpressionSyntax*>(deepClone(*delay.delayValue, alloc));
+        auto hash = delay.hash.deepClone(alloc);
+        auto openParen = makeToken(parsing::TokenKind::OpenParenthesis, "(");
+        auto closeParen = makeToken(parsing::TokenKind::CloseParenthesis, ")");
+        auto& parenExpr = factory.parenthesizedExpression(openParen, *newValue, closeParen);
+
+        auto& newDelay = factory.delay(delay.kind, hash, parenExpr);
+        replace(delay, newDelay);
+    }
+
+    void handle(const EventControlSyntax& ctrl) {
+        if (!style.InsertParens.NamedEvents) {
+            visitDefault(ctrl);
+            return;
+        }
+
+        if (ctrl.eventName->kind == SyntaxKind::ParenthesizedExpression) {
+            visitDefault(ctrl);
+            return;
+        }
+
+        auto* nameCopy = static_cast<ExpressionSyntax*>(deepClone(*ctrl.eventName, alloc));
+        auto at = ctrl.at.deepClone(alloc);
+        auto openParen = makeToken(parsing::TokenKind::OpenParenthesis, "(");
+        auto closeParen = makeToken(parsing::TokenKind::CloseParenthesis, ")");
+        auto& parenExpr = factory.parenthesizedExpression(openParen, *nameCopy, closeParen);
+
+        auto& newCtrl = factory.eventControl(at, parenExpr);
+        replace(ctrl, newCtrl);
+    }
+
+    void handle(const EventControlWithExpressionSyntax& ctrl) {
+        if (!style.InsertParens.ExpressionEvents) {
+            visitDefault(ctrl);
+            return;
+        }
+
+        if (ctrl.expr->kind == SyntaxKind::ParenthesizedEventExpression) {
+            visitDefault(ctrl);
+            return;
+        }
+
+        auto* exprCopy = static_cast<EventExpressionSyntax*>(deepClone(*ctrl.expr, alloc));
+        auto at = ctrl.at.deepClone(alloc);
+        auto openParen = makeToken(parsing::TokenKind::OpenParenthesis, "(");
+        auto closeParen = makeToken(parsing::TokenKind::CloseParenthesis, ")");
+        auto& parenExpr = factory.parenthesizedEventExpression(openParen, *exprCopy, closeParen);
+
+        auto& newCtrl = factory.eventControlWithExpression(at, parenExpr);
+        replace(ctrl, newCtrl);
+    }
+
+    void handle(const ImplicitEventControlSyntax& ctrl) {
+        if (!style.InsertParens.ImplicitEvents) {
+            visitDefault(ctrl);
+            return;
+        }
+
+        if (ctrl.openParen) {
+            visitDefault(ctrl);
+            return;
+        }
+
+        auto at = ctrl.at.deepClone(alloc);
+        auto star = ctrl.star.deepClone(alloc);
+        auto openParen = makeToken(parsing::TokenKind::OpenParenthesis, "(");
+        auto closeParen = makeToken(parsing::TokenKind::CloseParenthesis, ")");
+
+        auto& newCtrl = factory.implicitEventControl(at, openParen, star, closeParen);
+        replace(ctrl, newCtrl);
+    }
+
+private:
+    const Style& style;
+};
+
 } // namespace
 
 namespace slang::format {
@@ -378,6 +470,26 @@ std::shared_ptr<SyntaxTree> applyUnpackedDimensionBounds(std::shared_ptr<SyntaxT
 
     UnpackedDimensionRewriter rewriter(style.UnpackedDimensionBounds);
     return rewriter.transform(tree);
+}
+
+std::shared_ptr<SyntaxTree> applyInsertParens(std::shared_ptr<SyntaxTree> tree,
+                                              const Style& style) {
+    if (!style.InsertParens.Delays && !style.InsertParens.ExpressionEvents &&
+        !style.InsertParens.ImplicitEvents && !style.InsertParens.NamedEvents) {
+        return tree;
+    }
+
+    for (;;) {
+        ParenInserter inserter(style);
+        auto newTree = inserter.transform(tree);
+        if (newTree == tree) {
+            break;
+        }
+
+        tree = newTree;
+    }
+
+    return tree;
 }
 
 } // namespace slang::format

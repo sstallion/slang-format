@@ -561,6 +561,62 @@ TEST(ParseConfiguration, ParsesInsertBeginEndInitialStatements) {
     EXPECT_FALSE(style.InsertBeginEnd.InitialStatements);
 }
 
+TEST(ParseConfiguration, ParsesInsertParensDelays) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        InsertParens:
+          Delays: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.InsertParens.Delays);
+}
+
+TEST(ParseConfiguration, ParsesInsertParensExpressionEvents) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        InsertParens:
+          ExpressionEvents: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.InsertParens.ExpressionEvents);
+}
+
+TEST(ParseConfiguration, ParsesInsertParensImplicitEvents) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        InsertParens:
+          ImplicitEvents: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.InsertParens.ImplicitEvents);
+}
+
+TEST(ParseConfiguration, ParsesInsertParensNamedEvents) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        InsertParens:
+          NamedEvents: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.InsertParens.NamedEvents);
+}
+
 TEST(ParseConfiguration, ParsesMaxEmptyLinesToKeep) {
     YAML::Node const node = YAML::Load("MaxEmptyLinesToKeep: 2");
     Style style;
@@ -669,6 +725,11 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("ControlStatements: true"), std::string::npos);
     EXPECT_NE(result.find("AlwaysStatements: true"), std::string::npos);
     EXPECT_NE(result.find("InitialStatements: true"), std::string::npos);
+    EXPECT_NE(result.find("InsertParens:"), std::string::npos);
+    EXPECT_NE(result.find("Delays: false"), std::string::npos);
+    EXPECT_NE(result.find("ExpressionEvents: false"), std::string::npos);
+    EXPECT_NE(result.find("ImplicitEvents: false"), std::string::npos);
+    EXPECT_NE(result.find("NamedEvents: false"), std::string::npos);
 }
 
 TEST(DumpConfiguration, NonDefaultValues) {
@@ -682,6 +743,10 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.BreakBeforeTask = false;
     style.EventSeparator = EventSeparatorStyle::Comma;
     style.InsertBeginEnd.Enabled = true;
+    style.InsertParens.Delays = true;
+    style.InsertParens.ExpressionEvents = true;
+    style.InsertParens.ImplicitEvents = true;
+    style.InsertParens.NamedEvents = true;
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
     style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
 
@@ -732,6 +797,10 @@ TEST(DumpConfiguration, RoundTrip) {
     original.InsertBeginEnd.ControlStatements = false;
     original.InsertBeginEnd.AlwaysStatements = false;
     original.InsertBeginEnd.InitialStatements = false;
+    original.InsertParens.Delays = true;
+    original.InsertParens.ExpressionEvents = true;
+    original.InsertParens.ImplicitEvents = true;
+    original.InsertParens.NamedEvents = true;
 
     auto const yaml = dumpConfiguration(original);
     YAML::Node const node = YAML::Load(yaml);

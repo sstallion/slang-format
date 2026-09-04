@@ -61,6 +61,24 @@ struct InsertBeginEndStyle {
     bool operator==(const InsertBeginEndStyle&) const = default;
 };
 
+/// Controls automatic insertion of parentheses around timing constructs.
+struct InsertParensStyle {
+    /// If true, insert parentheses around delay expressions (e.g. `#15` to `#(15)`).
+    bool Delays = false;
+
+    /// If true, insert parentheses around event expressions (e.g. `@posedge clk` to `@(posedge
+    /// clk)`).
+    bool ExpressionEvents = false;
+
+    /// If true, insert parentheses around implicit event lists (e.g. `@*` to `@(*)`).
+    bool ImplicitEvents = false;
+
+    /// If true, insert parentheses around named event expressions (e.g. `@signal` to `@(signal)`).
+    bool NamedEvents = false;
+
+    bool operator==(const InsertParensStyle&) const = default;
+};
+
 /// Defines all formatting style options.
 struct Style {
     /// Controls alignment of assignment operators in consecutive declarations.
@@ -136,6 +154,9 @@ struct Style {
 
     /// Controls insertion of begin/end around bare statements.
     InsertBeginEndStyle InsertBeginEnd;
+
+    /// Controls insertion of parentheses around timing constructs.
+    InsertParensStyle InsertParens;
 
     bool operator==(const Style&) const = default;
 };

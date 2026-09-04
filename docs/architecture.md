@@ -50,7 +50,7 @@ flowchart LR
 
     subgraph formatter [Formatter]
         parse[Parse\nSyntaxTree::fromText]
-        rewrite[Rewrite\nbegin/end insertion]
+        rewrite[Rewrite\ninsertion]
         converged{Converged?}
         format[Format\nSingle-pass tree walk]
 

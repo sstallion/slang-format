@@ -32,4 +32,9 @@ std::shared_ptr<slang::syntax::SyntaxTree> applyPackedDimensionBounds(
 std::shared_ptr<slang::syntax::SyntaxTree> applyUnpackedDimensionBounds(
     std::shared_ptr<slang::syntax::SyntaxTree> tree, const Style& style);
 
+/// Rewrites \p tree to insert parentheses around timing constructs according to \p style. Returns
+/// the original tree if no changes are needed.
+std::shared_ptr<slang::syntax::SyntaxTree> applyInsertParens(
+    std::shared_ptr<slang::syntax::SyntaxTree> tree, const Style& style);
+
 } // namespace slang::format

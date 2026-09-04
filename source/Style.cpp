@@ -114,6 +114,24 @@ void parseInsertBeginEnd(const YAML::Node& node, InsertBeginEndStyle& config) {
     }
 }
 
+void parseInsertParens(const YAML::Node& node, InsertParensStyle& config) {
+    if (auto v = lookup(node, "Delays")) {
+        config.Delays = v.as<bool>();
+    }
+
+    if (auto v = lookup(node, "ExpressionEvents")) {
+        config.ExpressionEvents = v.as<bool>();
+    }
+
+    if (auto v = lookup(node, "ImplicitEvents")) {
+        config.ImplicitEvents = v.as<bool>();
+    }
+
+    if (auto v = lookup(node, "NamedEvents")) {
+        config.NamedEvents = v.as<bool>();
+    }
+}
+
 BreakAfterBlockStyle parseBreakAfterBlock(std::string_view s) {
     if (s == "Always") {
         return BreakAfterBlockStyle::Always;
@@ -280,6 +298,13 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::Key << "InitialStatements" << YAML::Value
         << style.InsertBeginEnd.InitialStatements;
     out << YAML::EndMap;
+    out << YAML::Key << "InsertParens" << YAML::Value;
+    out << YAML::BeginMap;
+    out << YAML::Key << "Delays" << YAML::Value << style.InsertParens.Delays;
+    out << YAML::Key << "ExpressionEvents" << YAML::Value << style.InsertParens.ExpressionEvents;
+    out << YAML::Key << "ImplicitEvents" << YAML::Value << style.InsertParens.ImplicitEvents;
+    out << YAML::Key << "NamedEvents" << YAML::Value << style.InsertParens.NamedEvents;
+    out << YAML::EndMap;
     out << YAML::Key << "MaxEmptyLinesToKeep" << YAML::Value << style.MaxEmptyLinesToKeep;
     out << YAML::Key << "OneLineFormatOffRegex" << YAML::Value << style.OneLineFormatOffRegex;
     out << YAML::Key << "PackedDimensionBounds" << YAML::Value
@@ -370,6 +395,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto n = lookup(node, "InsertBeginEnd")) {
         parseInsertBeginEnd(n, style.InsertBeginEnd);
+    }
+
+    if (auto n = lookup(node, "InsertParens")) {
+        parseInsertParens(n, style.InsertParens);
     }
 }
 

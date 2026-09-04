@@ -1037,3 +1037,163 @@ TEST(ApplyInsertBeginEnd, NestedIf) {
     )"));
     // clang-format on
 }
+
+TEST(ApplyInsertParens, AllDisabledDoesNothing) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always @* x = 1;
+        always @signal x = 1;
+        always #5 clk = ~clk;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always @* x = 1;
+          always @signal x = 1;
+          always #5 clk = ~clk;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyInsertParens, Delays) {
+    Style style;
+    style.InsertParens.Delays = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #5 clk = ~clk;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #(5) clk = ~clk;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyInsertParens, DelaysPreservesExisting) {
+    Style style;
+    style.InsertParens.Delays = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #(5) clk = ~clk;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #(5) clk = ~clk;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyInsertParens, ExpressionEvents) {
+    Style style;
+    style.InsertParens.ExpressionEvents = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyInsertParens, ExpressionEventsPreservesExisting) {
+    Style style;
+    style.InsertParens.ExpressionEvents = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyInsertParens, ImplicitEvents) {
+    Style style;
+    style.InsertParens.ImplicitEvents = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always @* x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always @(*) x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyInsertParens, ImplicitEventsPreservesExisting) {
+    Style style;
+    style.InsertParens.ImplicitEvents = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always @(*) x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always @(*) x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyInsertParens, NamedEvents) {
+    Style style;
+    style.InsertParens.NamedEvents = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always @signal x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always @(signal) x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyInsertParens, NamedEventsPreservesExisting) {
+    Style style;
+    style.InsertParens.NamedEvents = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always @(signal) x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always @(signal) x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
