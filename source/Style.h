@@ -128,6 +128,10 @@ struct Style {
     /// If true, normalizes whitespace around semicolons to a single trailing space.
     bool SpaceAfterSemicolon = false;
 
+    /// If true, normalizes whitespace inside parentheses to a single space
+    /// after ( and before ).
+    bool SpacesInParens = false;
+
     /// Controls the order of unpacked dimension bounds.
     DimensionBoundsStyle UnpackedDimensionBounds = DimensionBoundsStyle::Preserve;
 

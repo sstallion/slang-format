@@ -679,6 +679,13 @@ TEST(ParseConfiguration, ParsesSpaceAfterSemicolon) {
     EXPECT_TRUE(style.SpaceAfterSemicolon);
 }
 
+TEST(ParseConfiguration, ParsesSpacesInParens) {
+    YAML::Node const node = YAML::Load("SpacesInParens: true");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_TRUE(style.SpacesInParens);
+}
+
 TEST(ParseConfiguration, ParsesUnpackedDimensionBoundsLSBFirst) {
     YAML::Node const node = YAML::Load("UnpackedDimensionBounds: LSBFirst");
     Style style;
@@ -739,6 +746,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("ParameterPortListIndentWidth: 0"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterComma: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: false"), std::string::npos);
+    EXPECT_NE(result.find("SpacesInParens: false"), std::string::npos);
     EXPECT_NE(result.find("UnpackedDimensionBounds: Preserve"), std::string::npos);
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
     EXPECT_NE(result.find("AlignColon: false"), std::string::npos);
@@ -772,6 +780,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
     style.SpaceAfterComma = true;
     style.SpaceAfterSemicolon = true;
+    style.SpacesInParens = true;
     style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
 
     auto const result = dumpConfiguration(style);
@@ -787,6 +796,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterComma: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: true"), std::string::npos);
+    EXPECT_NE(result.find("SpacesInParens: true"), std::string::npos);
     EXPECT_NE(result.find("UnpackedDimensionBounds: LSBFirst"), std::string::npos);
 }
 
@@ -820,6 +830,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
     original.SpaceAfterComma = true;
     original.SpaceAfterSemicolon = true;
+    original.SpacesInParens = true;
     original.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
     original.InsertBeginEnd.Enabled = true;
     original.InsertBeginEnd.ControlStatements = false;

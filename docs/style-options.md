@@ -1302,6 +1302,39 @@ endmodule
 
 ---
 
+### SpacesInParens (bool)
+
+If `true`, normalizes whitespace inside parentheses. Whitespace following an
+opening parenthesis is replaced with a single space and a single space is
+inserted before a closing parenthesis. Multiple spaces are collapsed to a single
+space. Newlines are not affected.
+
+**Default:** `false`
+
+`SpacesInParens: false` (default):
+
+```sv
+module foo;
+  initial begin
+    if (a) begin
+    end
+  end
+endmodule
+```
+
+`SpacesInParens: true`:
+
+```sv
+module foo;
+  initial begin
+    if ( a ) begin
+    end
+  end
+endmodule
+```
+
+---
+
 ### UnpackedDimensionBounds (DimensionBoundsStyle)
 
 Controls the ordering of bounds in unpacked dimension ranges. When set to

@@ -540,8 +540,11 @@ private:
     size_t triviaSkip = 0;
     bool afterComma = false;
     bool afterSemicolon = false;
+    bool afterOpenParen = false;
     bool spaceAfterCommaEmitted = false;
     bool spaceAfterSemicolonEmitted = false;
+    bool spaceAfterOpenParenEmitted = false;
+    bool spaceBeforeCloseParenPending = false;
     std::optional<std::regex> offRegex;
     std::optional<LineMetadata::Kind> nextLineKind;
 
@@ -650,6 +653,8 @@ private:
         if (t.kind == TriviaKind::EndOfLine) {
             afterComma = false;
             afterSemicolon = false;
+            afterOpenParen = false;
+            spaceBeforeCloseParenPending = false;
 
             if (atLineStart) {
                 // Blank line.
@@ -687,6 +692,11 @@ private:
             emitSpaceAfterSemicolon();
         }
         afterSemicolon = false;
+
+        if (afterOpenParen) {
+            emitSpaceAfterOpenParen();
+        }
+        afterOpenParen = false;
 
         auto raw = t.getRawText();
 
@@ -735,6 +745,10 @@ private:
             emitSpaceAfterSemicolon();
             return;
         }
+        if (afterOpenParen) {
+            emitSpaceAfterOpenParen();
+            return;
+        }
         output += t.getRawText();
     }
 
@@ -749,6 +763,13 @@ private:
         if (!spaceAfterSemicolonEmitted) {
             output += ' ';
             spaceAfterSemicolonEmitted = true;
+        }
+    }
+
+    void emitSpaceAfterOpenParen() {
+        if (!spaceAfterOpenParenEmitted) {
+            output += ' ';
+            spaceAfterOpenParenEmitted = true;
         }
     }
 
@@ -774,6 +795,18 @@ private:
         atLineStart = false;
     }
 
+    void emitDeferredSpaces() {
+        if (afterComma) {
+            emitSpaceAfterComma();
+        }
+        if (afterSemicolon) {
+            emitSpaceAfterSemicolon();
+        }
+        if (afterOpenParen) {
+            emitSpaceAfterOpenParen();
+        }
+    }
+
     void emitToken(Token tok) {
         if (!tok || tok.isMissing()) {
             return;
@@ -786,12 +819,7 @@ private:
         triviaSkip = 0;
 
         if (!atLineStart) {
-            if (afterComma) {
-                emitSpaceAfterComma();
-            }
-            if (afterSemicolon) {
-                emitSpaceAfterSemicolon();
-            }
+            emitDeferredSpaces();
         }
 
         auto raw = tok.rawText();
@@ -829,6 +857,12 @@ private:
             stripTrailingSpaces();
         }
 
+        if (formatEnabled && !atLineStart && spaceBeforeCloseParenPending &&
+            tok.kind == TokenKind::CloseParenthesis) {
+            stripTrailingSpaces();
+            output += ' ';
+        }
+
         output += raw;
         lineDepth = depth;
         nextIsPrimary = false;
@@ -836,8 +870,14 @@ private:
         afterComma = formatEnabled && style.SpaceAfterComma && tok.kind == TokenKind::Comma;
         afterSemicolon = formatEnabled && style.SpaceAfterSemicolon &&
                          tok.kind == TokenKind::Semicolon;
+        afterOpenParen = formatEnabled && style.SpacesInParens &&
+                         tok.kind == TokenKind::OpenParenthesis;
+        if (afterOpenParen) {
+            spaceBeforeCloseParenPending = true;
+        }
         spaceAfterCommaEmitted = false;
         spaceAfterSemicolonEmitted = false;
+        spaceAfterOpenParenEmitted = false;
     }
 
     // Emit all elements and separators of a SeparatedSyntaxList.

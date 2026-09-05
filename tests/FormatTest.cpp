@@ -2127,3 +2127,178 @@ TEST(SpaceAfterSemicolon, RemovesBefore) {
     )"));
     // clang-format on
 }
+
+TEST(SpacesInParens, Collapses) {
+    Style style;
+    style.SpacesInParens = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            if (  a  ) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            if ( a ) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInParens, Disabled) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            if (a) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            if (a) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInParens, FormatOff) {
+    Style style;
+    style.SpacesInParens = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            // slang-format off
+            if (a) begin
+            end
+            // slang-format on
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            // slang-format off
+            if (a) begin
+            end
+            // slang-format on
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInParens, Inserts) {
+    Style style;
+    style.SpacesInParens = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            if (a) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            if ( a ) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInParens, NormalizesAround) {
+    Style style;
+    style.SpacesInParens = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0  ;  i < 4  ;  i++) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            for ( int i = 0  ;  i < 4  ;  i++ ) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInParens, PreservesNewlines) {
+    Style style;
+    style.ParameterPortListIndentWidth = 2;
+    style.SpacesInParens = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo(
+          input a,
+          input b
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo(
+          input a,
+          input b
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInParens, RemovesBefore) {
+    Style style;
+    style.SpacesInParens = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            if (  a  ) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            if ( a ) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
