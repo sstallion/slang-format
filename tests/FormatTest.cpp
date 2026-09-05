@@ -1778,3 +1778,129 @@ TEST(ApplyIndentation, PortListIndented) {
     )"));
     // clang-format on
 }
+
+TEST(SpaceAfterComma, Collapses) {
+    Style style;
+    style.SpaceAfterComma = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign {a,  b,  c} = d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign {a, b, c} = d;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterComma, Disabled) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign {a,b,c} = d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign {a,b,c} = d;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterComma, FormatOff) {
+    Style style;
+    style.SpaceAfterComma = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          // slang-format off
+          assign {a,b,c} = d;
+          // slang-format on
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // slang-format off
+          assign {a,b,c} = d;
+          // slang-format on
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterComma, Inserts) {
+    Style style;
+    style.SpaceAfterComma = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign {a,b,c} = d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign {a, b, c} = d;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterComma, NormalizesAround) {
+    Style style;
+    style.SpaceAfterComma = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign {a  ,  b  ,  c} = d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign {a, b, c} = d;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterComma, PreservesNewlines) {
+    Style style;
+    style.SpaceAfterComma = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo(
+          input a,
+          input b
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo(
+          input a,
+          input b
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterComma, RemovesBefore) {
+    Style style;
+    style.SpaceAfterComma = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign {a , b , c} = d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign {a, b, c} = d;
+        endmodule
+    )"));
+    // clang-format on
+}

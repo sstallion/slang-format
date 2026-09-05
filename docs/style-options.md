@@ -1244,6 +1244,32 @@ endmodule
 
 ---
 
+### SpaceAfterComma (bool)
+
+If `true`, normalizes whitespace around commas. Whitespace preceding a comma is
+removed and a single space is inserted after. Multiple spaces following a comma
+are collapsed to a single space. Newlines are not affected.
+
+**Default:** `false`
+
+`SpaceAfterComma: false` (default):
+
+```sv
+module foo;
+  assign {a,b,c} = d;
+endmodule
+```
+
+`SpaceAfterComma: true`:
+
+```sv
+module foo;
+  assign {a, b, c} = d;
+endmodule
+```
+
+---
+
 ### UnpackedDimensionBounds (DimensionBoundsStyle)
 
 Controls the ordering of bounds in unpacked dimension ranges. When set to

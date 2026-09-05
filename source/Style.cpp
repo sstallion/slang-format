@@ -300,6 +300,7 @@ std::string dumpConfiguration(const Style& style) {
         << std::string{toString(style.PackedDimensionBounds)};
     out << YAML::Key << "ParameterPortListIndentWidth" << YAML::Value
         << style.ParameterPortListIndentWidth;
+    out << YAML::Key << "SpaceAfterComma" << YAML::Value << style.SpaceAfterComma;
     out << YAML::Key << "UnpackedDimensionBounds" << YAML::Value
         << std::string{toString(style.UnpackedDimensionBounds)};
     out << YAML::EndMap;
@@ -374,6 +375,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto v = node["PackedDimensionBounds"]) {
         style.PackedDimensionBounds = parseDimensionBounds(v.as<std::string>());
+    }
+
+    if (auto v = node["SpaceAfterComma"]) {
+        style.SpaceAfterComma = v.as<bool>();
     }
 
     if (auto v = node["UnpackedDimensionBounds"]) {

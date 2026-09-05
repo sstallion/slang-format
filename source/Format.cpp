@@ -538,6 +538,8 @@ private:
     bool formatEnabled = true;
     unsigned emptyLineCount = 0;
     size_t triviaSkip = 0;
+    bool afterComma = false;
+    bool spaceAfterCommaEmitted = false;
     std::optional<std::regex> offRegex;
     std::optional<LineMetadata::Kind> nextLineKind;
 
@@ -644,6 +646,8 @@ private:
 
     void emitTrivia(const Trivia& t) {
         if (t.kind == TriviaKind::EndOfLine) {
+            afterComma = false;
+
             if (atLineStart) {
                 // Blank line.
                 emptyLineCount++;
@@ -667,12 +671,14 @@ private:
         }
 
         if (t.kind == TriviaKind::Whitespace) {
-            if (atLineStart && formatEnabled) {
-                return; // leading whitespace replaced by computed indent
-            }
-            output += t.getRawText();
+            emitWhitespaceTrivia(t);
             return;
         }
+
+        if (afterComma) {
+            emitSpaceAfterComma();
+        }
+        afterComma = false;
 
         auto raw = t.getRawText();
 
@@ -709,6 +715,24 @@ private:
         output += raw;
     }
 
+    void emitWhitespaceTrivia(const Trivia& t) {
+        if (atLineStart && formatEnabled) {
+            return;
+        }
+        if (afterComma) {
+            emitSpaceAfterComma();
+            return;
+        }
+        output += t.getRawText();
+    }
+
+    void emitSpaceAfterComma() {
+        if (!spaceAfterCommaEmitted) {
+            output += ' ';
+            spaceAfterCommaEmitted = true;
+        }
+    }
+
     // Emit computed indentation directly into output; used for comment trivia
     // and raw text.
     void emitIndentRaw() {
@@ -730,6 +754,10 @@ private:
             emitTrivia(trivia[i]);
         }
         triviaSkip = 0;
+
+        if (afterComma && !atLineStart) {
+            emitSpaceAfterComma();
+        }
 
         auto raw = tok.rawText();
         if (formatEnabled && atLineStart && !raw.empty()) {
@@ -762,10 +790,19 @@ private:
             atLineStart = false;
         }
 
+        if (formatEnabled && style.SpaceAfterComma && tok.kind == TokenKind::Comma &&
+            !atLineStart) {
+            while (output.size() > lineStart && output.back() == ' ') {
+                output.pop_back();
+            }
+        }
+
         output += raw;
         lineDepth = depth;
         nextIsPrimary = false;
         emptyLineCount = 0;
+        afterComma = formatEnabled && style.SpaceAfterComma && tok.kind == TokenKind::Comma;
+        spaceAfterCommaEmitted = false;
     }
 
     // Emit all elements and separators of a SeparatedSyntaxList.

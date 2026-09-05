@@ -122,6 +122,9 @@ struct Style {
     /// Controls the order of packed dimension bounds.
     DimensionBoundsStyle PackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
+    /// If true, normalizes whitespace around commas to a single trailing space.
+    bool SpaceAfterComma = false;
+
     /// Controls the order of unpacked dimension bounds.
     DimensionBoundsStyle UnpackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
