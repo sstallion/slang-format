@@ -1270,6 +1270,38 @@ endmodule
 
 ---
 
+### SpaceAfterSemicolon (bool)
+
+If `true`, normalizes whitespace around semicolons. Whitespace preceding a
+semicolon is removed and a single space is inserted after. Multiple spaces
+following a semicolon are collapsed to a single space. Newlines are not affected.
+
+**Default:** `false`
+
+`SpaceAfterSemicolon: false` (default):
+
+```sv
+module foo;
+  initial begin
+    for (int i = 0;i < 4;i++) begin
+    end
+  end
+endmodule
+```
+
+`SpaceAfterSemicolon: true`:
+
+```sv
+module foo;
+  initial begin
+    for (int i = 0; i < 4; i++) begin
+    end
+  end
+endmodule
+```
+
+---
+
 ### UnpackedDimensionBounds (DimensionBoundsStyle)
 
 Controls the ordering of bounds in unpacked dimension ranges. When set to

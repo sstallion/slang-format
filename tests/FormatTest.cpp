@@ -1904,3 +1904,175 @@ TEST(SpaceAfterComma, RemovesBefore) {
     )"));
     // clang-format on
 }
+
+TEST(SpaceAfterSemicolon, Collapses) {
+    Style style;
+    style.SpaceAfterSemicolon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0;  i < 4;  i++) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0; i < 4; i++) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterSemicolon, Disabled) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0;i < 4;i++) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0;i < 4;i++) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterSemicolon, FormatOff) {
+    Style style;
+    style.SpaceAfterSemicolon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            // slang-format off
+            for (int i = 0;i < 4;i++) begin
+            end
+            // slang-format on
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            // slang-format off
+            for (int i = 0;i < 4;i++) begin
+            end
+            // slang-format on
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterSemicolon, Inserts) {
+    Style style;
+    style.SpaceAfterSemicolon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0;i < 4;i++) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0; i < 4; i++) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterSemicolon, NormalizesAround) {
+    Style style;
+    style.SpaceAfterSemicolon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0  ;  i < 4  ;  i++) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0; i < 4; i++) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterSemicolon, PreservesNewlines) {
+    Style style;
+    style.SpaceAfterSemicolon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign a = 1;
+          assign b = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign a = 1;
+          assign b = 2;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterSemicolon, RemovesBefore) {
+    Style style;
+    style.SpaceAfterSemicolon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0 ; i < 4 ; i++) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0; i < 4; i++) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}

@@ -91,20 +91,19 @@ forcing a break between the header and body. Setting `BreakAfterAlways` and
 Verible normalizes all inter-token whitespace via context-sensitive rules. The
 complete rule set, as implemented in `token-annotator.cc`, includes:
 
-- 1 space after `,` and `;`; 0 before
-- 0 space inside `()`, `[]`, `{}`
-- 1 space around binary and assignment operators (`+`, `-`, `*`, `=`, `<=`,
-  `+=`, etc.)
-- 0 space for unary prefix and postfix operators (`!`, `~`, `++`, `--`)
-- 1 space around ternary `?` and `:`
-- 0 space around cast `'` (e.g. `int'(x)`)
-- 0 space around `.` and `::`
-- 1 space between control-flow keywords (`if`, `for`, `while`, etc.) and `(`
-- 0 space between function/method name and `(`
-- 1 space between module instance name and `(`
-- 0 space after `@`
-- 0 space inside based numeric literals (e.g. `16'hFF`)
-- Minimum 2 spaces before trailing end-of-line comments
+- [x] 1 space after `,` and `;`; 0 before
+- [ ] 0 space inside `()`, `[]`, `{}`
+- [ ] 1 space around binary and assignment operators (`+`, `-`, `*`, `=`, `<=`, `+=`, etc.)
+- [ ] 0 space for unary prefix and postfix operators (`!`, `~`, `++`, `--`)
+- [ ] 1 space around ternary `?` and `:`
+- [ ] 0 space around cast `'` (e.g. `int'(x)`)
+- [ ] 0 space around `.` and `::`
+- [ ] 1 space between control-flow keywords (`if`, `for`, `while`, etc.) and `(`
+- [ ] 0 space between function/method name and `(`
+- [ ] 1 space between module instance name and `(`
+- [ ] 0 space after `@`
+- [ ] 0 space inside based numeric literals (e.g. `16'hFF`)
+- [ ] Minimum 2 spaces before trailing end-of-line comments
 
 slang-format preserves inter-token whitespace verbatim. In `Format.cpp`, the
 `emitTrivia` method passes non-leading `Whitespace` trivia through to the output

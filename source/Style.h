@@ -125,6 +125,9 @@ struct Style {
     /// If true, normalizes whitespace around commas to a single trailing space.
     bool SpaceAfterComma = false;
 
+    /// If true, normalizes whitespace around semicolons to a single trailing space.
+    bool SpaceAfterSemicolon = false;
+
     /// Controls the order of unpacked dimension bounds.
     DimensionBoundsStyle UnpackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
