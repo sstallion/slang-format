@@ -31,3 +31,13 @@
     - [x] Commas vs. `or`
 - [x] Installation and packaging using CMake
 - [x] Full releases including packaging
+- [ ] Verible compatibility
+  - [ ] Token spacing normalization
+  - [ ] `end else begin` compaction
+  - [ ] Join `begin` to controlling keyword
+  - [ ] Mandatory line break before bare `else`
+  - [ ] Scope construct coverage (`class`, `covergroup`)
+  - [ ] Hierarchical instance formatting
+  - [ ] Format-off pragma compatibility (`verilog_format`)
+  - [ ] Line terminator auto-detection
+  - [ ] Preprocessor directive line breaks
