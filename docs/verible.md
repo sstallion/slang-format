@@ -25,20 +25,19 @@ two tools and drives the largest gap identified below.
 The following Verible defaults are already produced by slang-format's default
 configuration with no changes needed:
 
-| Verible Default                   | slang-format Equivalent                              |
-| --------------------------------- | ---------------------------------------------------- |
-| `indentation_spaces: 2`           | `IndentWidth: 2`                                     |
-| Module body indented              | `ModuleDeclarationSyntax` handles all four kinds     |
-| Case item indentation             | `IndentCaseItem: true`                               |
-| Nested control flow               | `visitBody()` increments depth per scope level       |
-| Content on new line after `begin` | `BreakAfterBegin: true`                              |
-| Newline before `end`              | `BreakBeforeEnd: true`                               |
-| Max 1 consecutive empty line      | `MaxEmptyLinesToKeep: 1`                             |
-| No auto begin/end insertion       | `InsertBeginEnd.Enabled: false`                      |
-| No parenthesis insertion          | All `InsertParens` fields false                      |
-| Event separator preserved         | `EventSeparator: Preserve`                           |
-| Dimension bounds preserved        | `PackedDimensionBounds: Preserve`                    |
-| Alignment off                     | All `AlignConsecutive*` disabled                     |
+| Verible Default                        | slang-format Equivalent                              |
+| -------------------------------------- | ---------------------------------------------------- |
+| `indentation_spaces: 2`                | `IndentWidth: 2`                                     |
+| Module body indented                   | `ModuleDeclarationSyntax` handles all four kinds     |
+| Nested control flow                    | `visitBody()` increments depth per scope level       |
+| Max 1 consecutive empty line           | `MaxEmptyLinesToKeep: 1`                             |
+| No auto begin/end insertion            | `InsertBeginEnd.Enabled: false`                      |
+| No parenthesis insertion               | All `InsertParens` fields false                      |
+| No blank line before `function`/`task` | `BreakBeforeFunction: false` and `BreakBeforeTask: false` |
+| No blank line before `specify`         | `BreakBeforeSpecifyBlock: false`                     |
+| Event separator preserved              | `EventSeparator: Preserve`                           |
+| Dimension bounds preserved             | `PackedDimensionBounds: Preserve`                    |
+| Alignment off                          | All `AlignConsecutive*` disabled                     |
 
 In slang's syntax tree, `ModuleDeclarationSyntax` covers `module`, `interface`,
 `package`, and `program` declarations via a unified `isKind()` predicate. All
@@ -53,36 +52,33 @@ configuration values without any code changes:
 | -------------------------------------------- | ----------------------------------- |
 | Port declarations at 4-space indent          | `ParameterPortListIndentWidth: 4`   |
 | Continuation lines at 4-space indent         | `ContinuationIndentWidth: 4`        |
+| Case item indentation                        | `IndentCaseItem: true`              |
+| Content on new line after `begin`            | `BreakAfterBegin: true`             |
+| Newline before `end`                         | `BreakBeforeEnd: true`              |
 | No blank line before `always`/`initial`      | `BreakBeforeAlways: Never`          |
 |                                              | `BreakBeforeInitial: Never`         |
 | No break between header and body             | `BreakAfterAlways: Never`           |
 |                                              | `BreakAfterInitial: Never`          |
-| No blank line before `function`/`task`       | `BreakBeforeFunction: false`        |
-|                                              | `BreakBeforeTask: false`            |
-| No blank line before `specify`               | `BreakBeforeSpecifyBlock: false`    |
 
 A `.slang-format` preset for the configuration-only portion would be:
 
 ```yaml
 BreakAfterAlways: Never
+BreakAfterBegin: true
 BreakAfterInitial: Never
 BreakBeforeAlways: Never
-BreakBeforeFunction: false
+BreakBeforeEnd: true
 BreakBeforeInitial: Never
-BreakBeforeSpecifyBlock: false
-BreakBeforeTask: false
 ContinuationIndentWidth: 4
+IndentCaseItem: true
 ParameterPortListIndentWidth: 4
 ```
 
-Verible does not force blank lines before `function`, `task`, or `specify`
-blocks; its general spacing heuristics and blank-line preservation handle
-separation. slang-format's defaults insert these blank lines, so they must be
-disabled for Verible emulation.
-
-Similarly, Verible keeps `always_comb begin` on a single line rather than
-forcing a break between the header and body. Setting `BreakAfterAlways` and
-`BreakAfterInitial` to `Never` matches this behavior.
+Verible keeps `always_comb begin` on a single line rather than forcing a break
+between the header and body. Setting `BreakAfterAlways` and `BreakAfterInitial`
+to `Never` matches this behavior. Verible also enforces content on a new line
+after `begin` and a newline before `end`, requires case item indentation, and
+uses 4-space continuation and port list indentation.
 
 ## Missing Features
 

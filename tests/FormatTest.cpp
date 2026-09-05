@@ -12,7 +12,7 @@
 using namespace slang::format;
 
 TEST(ApplyEmptyLineLimits, EmptyLinesAtEndOfInput) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -31,7 +31,7 @@ TEST(ApplyEmptyLineLimits, EmptyLinesAtEndOfInput) {
 }
 
 TEST(ApplyEmptyLineLimits, FormatOffSkipsCollapse) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -86,7 +86,7 @@ TEST(ApplyEmptyLineLimits, LimitZeroRemovesAllEmptyLines) {
 }
 
 TEST(ApplyEmptyLineLimits, NoEmptyLines) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -104,7 +104,7 @@ TEST(ApplyEmptyLineLimits, NoEmptyLines) {
 }
 
 TEST(ApplyEmptyLineLimits, SingleEmptyLinePreserved) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -148,7 +148,7 @@ TEST(ApplyEmptyLineLimits, ThreeEmptyLinesCollapsedToTwo) {
 }
 
 TEST(ApplyEmptyLineLimits, TwoEmptyLinesCollapsedToOne) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -169,7 +169,7 @@ TEST(ApplyEmptyLineLimits, TwoEmptyLinesCollapsedToOne) {
 }
 
 TEST(ApplyIndentation, AlwaysBodyWithoutBegin) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -187,7 +187,7 @@ TEST(ApplyIndentation, AlwaysBodyWithoutBegin) {
 }
 
 TEST(ApplyIndentation, BeginEndBlock) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -207,7 +207,7 @@ TEST(ApplyIndentation, BeginEndBlock) {
 }
 
 TEST(ApplyIndentation, BlankLinesEmittedWithoutIndent) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -286,6 +286,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysAlwaysTimingControl) {
 TEST(ApplyIndentation, BreakAfterAlwaysNone) {
     Style style;
     style.BreakAfterAlways = BlockBreakStyle::Never;
+    style.BreakAfterBegin = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
@@ -309,7 +310,9 @@ TEST(ApplyIndentation, BreakAfterAlwaysNone) {
 TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalWithBlocks) {
     Style style;
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
+    style.BreakAfterBegin = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
+    style.BreakBeforeEnd = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -332,6 +335,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalWithBlocks) {
 TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineMultiStatement) {
     Style style;
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
+    style.BreakAfterBegin = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
@@ -373,6 +377,8 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineSimpleIf) {
 TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineSingleLine) {
     Style style;
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -392,6 +398,8 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineSingleLine) {
 TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineSingleStatement) {
     Style style;
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -409,7 +417,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineSingleStatement) {
 }
 
 TEST(ApplyIndentation, BreakAfterBeginAlreadyNewline) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -447,7 +455,9 @@ TEST(ApplyIndentation, BreakAfterBeginDisabled) {
 }
 
 TEST(ApplyIndentation, BreakAfterBeginInlineBlock) {
-    Style const style;
+    Style style;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -466,7 +476,9 @@ TEST(ApplyIndentation, BreakAfterBeginInlineBlock) {
 
 TEST(ApplyIndentation, BreakAfterBeginNested) {
     Style style;
+    style.BreakAfterBegin = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
+    style.BreakBeforeEnd = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -507,6 +519,8 @@ TEST(ApplyIndentation, BreakAfterBeginOnly) {
 TEST(ApplyIndentation, BreakAfterBeginWithAlways) {
     Style style;
     style.BreakAfterAlways = BlockBreakStyle::Always;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -526,6 +540,7 @@ TEST(ApplyIndentation, BreakAfterBeginWithAlways) {
 
 TEST(ApplyIndentation, BreakAfterInitialNever) {
     Style style;
+    style.BreakAfterBegin = true;
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::Never;
 
@@ -549,6 +564,7 @@ TEST(ApplyIndentation, BreakAfterInitialNever) {
 
 TEST(ApplyIndentation, BreakAfterInitialOnlyMultilineMultiStatement) {
     Style style;
+    style.BreakAfterBegin = true;
     style.BreakAfterInitial = BlockBreakStyle::OnlyMultiline;
     style.BreakBeforeInitial = BlockBreakStyle::Never;
 
@@ -714,8 +730,9 @@ TEST(ApplyIndentation, BreakBeforeAlwaysNever) {
 
 TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineMultiStatement) {
     Style style;
-    style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
     style.BreakAfterAlways = BlockBreakStyle::Never;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -738,8 +755,10 @@ TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineMultiStatement) {
 
 TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineSingleStatement) {
     Style style;
-    style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
     style.BreakAfterAlways = BlockBreakStyle::Never;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
+    style.BreakBeforeEnd = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -793,7 +812,9 @@ TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineSingleItemWithBlock) {
 }
 
 TEST(ApplyIndentation, BreakBeforeFunctionDefault) {
-    Style const style;
+    Style style;
+    style.BreakBeforeFunction = true;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -816,7 +837,8 @@ TEST(ApplyIndentation, BreakBeforeFunctionDefault) {
 }
 
 TEST(ApplyIndentation, BreakBeforeFunctionExistingBlankLine) {
-    Style const style;
+    Style style;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -842,6 +864,7 @@ TEST(ApplyIndentation, BreakBeforeFunctionExistingBlankLine) {
 TEST(ApplyIndentation, BreakBeforeFunctionFalse) {
     Style style;
     style.BreakBeforeFunction = false;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -863,7 +886,9 @@ TEST(ApplyIndentation, BreakBeforeFunctionFalse) {
 }
 
 TEST(ApplyIndentation, BreakBeforeFunctionWithComment) {
-    Style const style;
+    Style style;
+    style.BreakBeforeFunction = true;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -888,7 +913,9 @@ TEST(ApplyIndentation, BreakBeforeFunctionWithComment) {
 }
 
 TEST(ApplyIndentation, BreakBeforeFunctionWithTrailingComment) {
-    Style const style;
+    Style style;
+    style.BreakBeforeFunction = true;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1053,8 +1080,9 @@ TEST(ApplyIndentation, BreakBeforeInitialNever) {
 
 TEST(ApplyIndentation, BreakBeforeInitialOnlyMultilineMultiStatement) {
     Style style;
-    style.BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
+    style.BreakAfterBegin = true;
     style.BreakAfterInitial = BlockBreakStyle::Never;
+    style.BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1077,8 +1105,10 @@ TEST(ApplyIndentation, BreakBeforeInitialOnlyMultilineMultiStatement) {
 
 TEST(ApplyIndentation, BreakBeforeInitialOnlyMultilineSingleStatement) {
     Style style;
-    style.BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
+    style.BreakAfterBegin = true;
     style.BreakAfterInitial = BlockBreakStyle::Never;
+    style.BreakBeforeEnd = true;
+    style.BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1132,7 +1162,9 @@ TEST(ApplyIndentation, BreakBeforeInitialOnlyMultilineSingleItemWithBlock) {
 }
 
 TEST(ApplyIndentation, BreakBeforeSpecifyBlockDefault) {
-    Style const style;
+    Style style;
+    style.BreakBeforeSpecifyBlock = true;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1155,7 +1187,8 @@ TEST(ApplyIndentation, BreakBeforeSpecifyBlockDefault) {
 }
 
 TEST(ApplyIndentation, BreakBeforeSpecifyBlockExistingBlankLine) {
-    Style const style;
+    Style style;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1181,6 +1214,7 @@ TEST(ApplyIndentation, BreakBeforeSpecifyBlockExistingBlankLine) {
 TEST(ApplyIndentation, BreakBeforeSpecifyBlockFalse) {
     Style style;
     style.BreakBeforeSpecifyBlock = false;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1202,7 +1236,9 @@ TEST(ApplyIndentation, BreakBeforeSpecifyBlockFalse) {
 }
 
 TEST(ApplyIndentation, BreakBeforeSpecifyBlockWithComment) {
-    Style const style;
+    Style style;
+    style.BreakBeforeSpecifyBlock = true;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1227,7 +1263,9 @@ TEST(ApplyIndentation, BreakBeforeSpecifyBlockWithComment) {
 }
 
 TEST(ApplyIndentation, BreakBeforeSpecifyBlockWithTrailingComment) {
-    Style const style;
+    Style style;
+    style.BreakBeforeSpecifyBlock = true;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1250,7 +1288,9 @@ TEST(ApplyIndentation, BreakBeforeSpecifyBlockWithTrailingComment) {
 }
 
 TEST(ApplyIndentation, BreakBeforeTaskDefault) {
-    Style const style;
+    Style style;
+    style.BreakBeforeTask = true;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1273,7 +1313,8 @@ TEST(ApplyIndentation, BreakBeforeTaskDefault) {
 }
 
 TEST(ApplyIndentation, BreakBeforeTaskExistingBlankLine) {
-    Style const style;
+    Style style;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1299,6 +1340,7 @@ TEST(ApplyIndentation, BreakBeforeTaskExistingBlankLine) {
 TEST(ApplyIndentation, BreakBeforeTaskFalse) {
     Style style;
     style.BreakBeforeTask = false;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1320,7 +1362,9 @@ TEST(ApplyIndentation, BreakBeforeTaskFalse) {
 }
 
 TEST(ApplyIndentation, BreakBeforeTaskWithComment) {
-    Style const style;
+    Style style;
+    style.BreakBeforeTask = true;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1345,7 +1389,9 @@ TEST(ApplyIndentation, BreakBeforeTaskWithComment) {
 }
 
 TEST(ApplyIndentation, BreakBeforeTaskWithTrailingComment) {
-    Style const style;
+    Style style;
+    style.BreakBeforeTask = true;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1387,7 +1433,8 @@ TEST(ApplyIndentation, BreakBeforeEndOnly) {
 }
 
 TEST(ApplyIndentation, CaseItemNextLineIndented) {
-    Style const style;
+    Style style;
+    style.IndentCaseItem = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1467,7 +1514,7 @@ TEST(ApplyIndentation, CaseItemSameLineBeginUnchanged) {
 }
 
 TEST(ApplyIndentation, CaseItems) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1510,7 +1557,8 @@ TEST(ApplyIndentation, ContinuationIndentWidthCustom) {
 }
 
 TEST(ApplyIndentation, ContinuationLineIndented) {
-    Style const style;
+    Style style;
+    style.ContinuationIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1528,7 +1576,7 @@ TEST(ApplyIndentation, ContinuationLineIndented) {
 }
 
 TEST(ApplyIndentation, ForLoopWithoutBegin) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1548,7 +1596,7 @@ TEST(ApplyIndentation, ForLoopWithoutBegin) {
 }
 
 TEST(ApplyIndentation, FormatOffBlockComment) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1570,7 +1618,7 @@ TEST(ApplyIndentation, FormatOffBlockComment) {
 }
 
 TEST(ApplyIndentation, FormatOffSkipsReindent) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1592,7 +1640,7 @@ TEST(ApplyIndentation, FormatOffSkipsReindent) {
 }
 
 TEST(ApplyIndentation, IfBodyWithoutBegin) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1633,7 +1681,7 @@ TEST(ApplyIndentation, IndentWidthFour) {
 }
 
 TEST(ApplyIndentation, LineCommentIndented) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1655,7 +1703,7 @@ TEST(ApplyIndentation, LineCommentIndented) {
 }
 
 TEST(ApplyIndentation, ModuleMembersAndEndmodule) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1715,7 +1763,8 @@ TEST(ApplyIndentation, OneLineFormatOffRegexSkipsLine) {
 }
 
 TEST(ApplyIndentation, ParameterPortListIndented) {
-    Style const style;
+    Style style;
+    style.ParameterPortListIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1760,7 +1809,8 @@ TEST(ApplyIndentation, ParameterPortListIndentWidthCustom) {
 }
 
 TEST(ApplyIndentation, PortListIndented) {
-    Style const style;
+    Style style;
+    style.ParameterPortListIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1797,7 +1847,7 @@ TEST(SpaceAfterComma, Collapses) {
 }
 
 TEST(SpaceAfterComma, Disabled) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1869,6 +1919,7 @@ TEST(SpaceAfterComma, NormalizesAround) {
 
 TEST(SpaceAfterComma, PreservesNewlines) {
     Style style;
+    style.ParameterPortListIndentWidth = 2;
     style.SpaceAfterComma = true;
 
     // clang-format off
@@ -1931,7 +1982,7 @@ TEST(SpaceAfterSemicolon, Collapses) {
 }
 
 TEST(SpaceAfterSemicolon, Disabled) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(

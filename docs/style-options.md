@@ -493,23 +493,23 @@ endmodule
 If `true`, enforce a newline immediately after every `begin` token whose first
 item is not already on the next line.
 
-**Default:** `true`
+**Default:** `false`
 
-`BreakAfterBegin: true` (default):
+`BreakAfterBegin: false` (default):
+
+```sv
+module foo;
+  always_comb begin x = 1; end
+endmodule
+```
+
+`BreakAfterBegin: true`:
 
 ```sv
 module foo;
   always_comb begin
     x = 1;
   end
-endmodule
-```
-
-`BreakAfterBegin: false`:
-
-```sv
-module foo;
-  always_comb begin x = 1; end
 endmodule
 ```
 
@@ -652,25 +652,25 @@ If `true`, insert a blank line before `specify` blocks. Comments immediately
 preceding the block are kept together with it; the blank line is inserted before
 the first attached comment.
 
-**Default:** `true`
+**Default:** `false`
 
-`BreakBeforeSpecifyBlock: true` (default):
+`BreakBeforeSpecifyBlock: false` (default):
 
 ```sv
 module foo;
   assign x = 1;
-
   specify
     $setup(posedge clk, data, 10);
   endspecify
 endmodule
 ```
 
-`BreakBeforeSpecifyBlock: false`:
+`BreakBeforeSpecifyBlock: true`:
 
 ```sv
 module foo;
   assign x = 1;
+
   specify
     $setup(posedge clk, data, 10);
   endspecify
@@ -685,25 +685,25 @@ If `true`, insert a blank line before `task` declarations. Comments immediately
 preceding the declaration are kept together with it; the blank line is inserted
 before the first attached comment.
 
-**Default:** `true`
+**Default:** `false`
 
-`BreakBeforeTask: true` (default):
+`BreakBeforeTask: false` (default):
 
 ```sv
 module foo;
   assign x = 1;
-
   task bar;
     x = 1;
   endtask
 endmodule
 ```
 
-`BreakBeforeTask: false`:
+`BreakBeforeTask: true`:
 
 ```sv
 module foo;
   assign x = 1;
+
   task bar;
     x = 1;
   endtask
@@ -717,23 +717,23 @@ endmodule
 If `true`, enforce a newline before every `end` token that is not already on its
 own line.
 
-**Default:** `true`
+**Default:** `false`
 
-`BreakBeforeEnd: true` (default):
+`BreakBeforeEnd: false` (default):
+
+```sv
+module foo;
+  always_comb begin x = 1; end
+endmodule
+```
+
+`BreakBeforeEnd: true`:
 
 ```sv
 module foo;
   always_comb begin
     x = 1;
   end
-endmodule
-```
-
-`BreakBeforeEnd: false`:
-
-```sv
-module foo;
-  always_comb begin x = 1; end
 endmodule
 ```
 
@@ -745,25 +745,25 @@ If `true`, insert a blank line before `function` declarations. Comments
 immediately preceding the declaration are kept together with it; the blank line
 is inserted before the first attached comment.
 
-**Default:** `true`
+**Default:** `false`
 
-`BreakBeforeFunction: true` (default):
+`BreakBeforeFunction: false` (default):
 
 ```sv
 module foo;
   assign x = 1;
-
   function void bar;
     x = 1;
   endfunction
 endmodule
 ```
 
-`BreakBeforeFunction: false`:
+`BreakBeforeFunction: true`:
 
 ```sv
 module foo;
   assign x = 1;
+
   function void bar;
     x = 1;
   endfunction
@@ -780,9 +780,9 @@ continue the previous line (for example, an operand in a multi-line expression)
 
 If not explicitly set, defaults to `IndentWidth`.
 
-**Default:** `2`
+**Default:** Inherits from `IndentWidth`
 
-`ContinuationIndentWidth: 2` (default):
+`ContinuationIndentWidth: 2`:
 
 ```sv
 module foo;
@@ -865,9 +865,21 @@ If `true`, indent statements that follow a `case` label when they appear on the
 next line. Has no effect when the statement appears on the same line as the
 label or when the label is immediately followed by `begin`.
 
-**Default:** `true`
+**Default:** `false`
 
-`IndentCaseItem: true` (default):
+`IndentCaseItem: false` (default):
+
+```sv
+module foo;
+  always_comb
+    case (x)
+      2'b00: y = 0;
+      default: y = 1;
+    endcase
+endmodule
+```
+
+`IndentCaseItem: true`:
 
 ```sv
 module foo;
@@ -877,18 +889,6 @@ module foo;
         y = 0;
       default:
         y = 1;
-    endcase
-endmodule
-```
-
-`IndentCaseItem: false`:
-
-```sv
-module foo;
-  always_comb
-    case (x)
-      2'b00: y = 0;
-      default: y = 1;
     endcase
 endmodule
 ```
@@ -930,9 +930,9 @@ take effect only when `Enabled` is `true`.
 ```yaml
 InsertBeginEnd:
   Enabled: false
-  AlwaysStatements: true
-  ControlStatements: true
-  InitialStatements: true
+  AlwaysStatements: false
+  ControlStatements: false
+  InitialStatements: false
 ```
 
 #### AlwaysStatements (bool)
@@ -940,7 +940,7 @@ InsertBeginEnd:
 If `true`, wrap bare statement bodies of `always`, `always_comb`, `always_ff`,
 and `always_latch` blocks with `begin`/`end`.
 
-**Default:** `true`
+**Default:** `false`
 
 ```sv
 // Before
@@ -963,7 +963,7 @@ If `true`, wrap bare single-statement bodies of control constructs - `if`,
 `else`, `for`, `while`, `foreach`, `repeat`, `forever`, `do`-`while`, and `case`
 items - with `begin`/`end`.
 
-**Default:** `true`
+**Default:** `false`
 
 ```sv
 // Before
@@ -987,7 +987,7 @@ endmodule
 If `true`, wrap bare statement bodies of `initial` and `final` blocks with
 `begin`/`end`.
 
-**Default:** `true`
+**Default:** `false`
 
 ```sv
 // Before
@@ -1218,9 +1218,9 @@ parameter list and the following port list. When only a port list is present,
 If not explicitly set, defaults to `ContinuationIndentWidth`, which in turn
 defaults to `IndentWidth`.
 
-**Default:** `2`
+**Default:** Inherits from `ContinuationIndentWidth`
 
-`ParameterPortListIndentWidth: 2` (default):
+`ParameterPortListIndentWidth: 2`:
 
 ```sv
 module foo #(

@@ -23,7 +23,10 @@ TEST(GetStyle, LoadsFromCurrentDir) {
         return std::nullopt;
     };
 
-    EXPECT_EQ(getStyle("/a/b/c", loader), Style{});
+    Style expected{};
+    expected.ContinuationIndentWidth = 2;
+    expected.ParameterPortListIndentWidth = 2;
+    EXPECT_EQ(getStyle("/a/b/c", loader), expected);
 }
 
 TEST(GetStyle, ReturnsDefaultWhenNoFile) {
@@ -59,7 +62,10 @@ TEST(GetStyle, WalksHierarchy) {
         return std::nullopt;
     };
 
-    EXPECT_EQ(getStyle("/a/b/c", loader), Style{});
+    Style expected{};
+    expected.ContinuationIndentWidth = 2;
+    expected.ParameterPortListIndentWidth = 2;
+    EXPECT_EQ(getStyle("/a/b/c", loader), expected);
 }
 
 TEST(ParseConfiguration, AcceptsEmptyMap) {
@@ -715,22 +721,22 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("AlignConsecutiveDeclarations:"), std::string::npos);
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
-    EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
+    EXPECT_NE(result.find("BreakAfterBegin: false"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterInitial: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeInitial: OnlyMultiline"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeEnd: true"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeFunction: true"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeSpecifyBlock: true"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeTask: true"), std::string::npos);
-    EXPECT_NE(result.find("ContinuationIndentWidth: 2"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeEnd: false"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeFunction: false"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeSpecifyBlock: false"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeTask: false"), std::string::npos);
+    EXPECT_NE(result.find("ContinuationIndentWidth: 0"), std::string::npos);
     EXPECT_NE(result.find("EventSeparator: Preserve"), std::string::npos);
-    EXPECT_NE(result.find("IndentCaseItem: true"), std::string::npos);
+    EXPECT_NE(result.find("IndentCaseItem: false"), std::string::npos);
     EXPECT_NE(result.find("IndentWidth: 2"), std::string::npos);
     EXPECT_NE(result.find("MaxEmptyLinesToKeep: 1"), std::string::npos);
     EXPECT_NE(result.find("OneLineFormatOffRegex: \"\""), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: Preserve"), std::string::npos);
-    EXPECT_NE(result.find("ParameterPortListIndentWidth: 2"), std::string::npos);
+    EXPECT_NE(result.find("ParameterPortListIndentWidth: 0"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterComma: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: false"), std::string::npos);
     EXPECT_NE(result.find("UnpackedDimensionBounds: Preserve"), std::string::npos);
@@ -738,9 +744,9 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("AlignColon: false"), std::string::npos);
     EXPECT_NE(result.find("PadLeft: false"), std::string::npos);
     EXPECT_NE(result.find("PadRight: false"), std::string::npos);
-    EXPECT_NE(result.find("ControlStatements: true"), std::string::npos);
-    EXPECT_NE(result.find("AlwaysStatements: true"), std::string::npos);
-    EXPECT_NE(result.find("InitialStatements: true"), std::string::npos);
+    EXPECT_NE(result.find("ControlStatements: false"), std::string::npos);
+    EXPECT_NE(result.find("AlwaysStatements: false"), std::string::npos);
+    EXPECT_NE(result.find("InitialStatements: false"), std::string::npos);
     EXPECT_NE(result.find("InsertParens:"), std::string::npos);
     EXPECT_NE(result.find("Delays: false"), std::string::npos);
     EXPECT_NE(result.find("ExpressionEvents: false"), std::string::npos);
@@ -754,9 +760,9 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.BreakAfterAlways = BlockBreakStyle::Always;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
     style.BreakBeforeInitial = BlockBreakStyle::Always;
-    style.BreakBeforeFunction = false;
-    style.BreakBeforeSpecifyBlock = false;
-    style.BreakBeforeTask = false;
+    style.BreakBeforeFunction = true;
+    style.BreakBeforeSpecifyBlock = true;
+    style.BreakBeforeTask = true;
     style.EventSeparator = EventSeparatorStyle::Comma;
     style.InsertBeginEnd.Enabled = true;
     style.InsertParens.Delays = true;
@@ -772,10 +778,10 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("IndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: Always"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeAlways: Always"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeFunction: false"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeFunction: true"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeInitial: Always"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeSpecifyBlock: false"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeTask: false"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeSpecifyBlock: true"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeTask: true"), std::string::npos);
     EXPECT_NE(result.find("EventSeparator: Comma"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);

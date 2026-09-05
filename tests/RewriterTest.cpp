@@ -202,6 +202,7 @@ TEST(ApplyPackedDimensionBounds, EqualBoundsPreserved) {
 TEST(ApplyPackedDimensionBounds, ImplicitType) {
     Style style;
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+    style.ParameterPortListIndentWidth = 2;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -557,6 +558,9 @@ TEST(ApplyInsertBeginEnd, AlwaysAlreadyWrapped) {
 
 TEST(ApplyInsertBeginEnd, AlwaysComb) {
     Style style;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
+    style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
     // clang-format off
@@ -577,6 +581,9 @@ TEST(ApplyInsertBeginEnd, AlwaysComb) {
 
 TEST(ApplyInsertBeginEnd, AlwaysFF) {
     Style style;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
+    style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
     // clang-format off
@@ -617,6 +624,10 @@ TEST(ApplyInsertBeginEnd, AlwaysStatementsDisabled) {
 
 TEST(ApplyInsertBeginEnd, AlwaysWithControlStatement) {
     Style style;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
+    style.InsertBeginEnd.AlwaysStatements = true;
+    style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
@@ -641,6 +652,10 @@ TEST(ApplyInsertBeginEnd, AlwaysWithControlStatement) {
 
 TEST(ApplyInsertBeginEnd, AlwaysWithNestedControl) {
     Style style;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
+    style.InsertBeginEnd.AlwaysStatements = true;
+    style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
@@ -665,8 +680,11 @@ TEST(ApplyInsertBeginEnd, AlwaysWithNestedControl) {
 
 TEST(ApplyInsertBeginEnd, CaseItem) {
     Style style;
-    style.InsertBeginEnd.Enabled = true;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.AlwaysStatements = false;
+    style.InsertBeginEnd.ControlStatements = true;
+    style.InsertBeginEnd.Enabled = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
@@ -744,8 +762,11 @@ TEST(ApplyInsertBeginEnd, ControlStatementsDisabled) {
 
 TEST(ApplyInsertBeginEnd, DeepNesting) {
     Style style;
-    style.InsertBeginEnd.Enabled = true;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.AlwaysStatements = false;
+    style.InsertBeginEnd.ControlStatements = true;
+    style.InsertBeginEnd.Enabled = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
@@ -774,6 +795,10 @@ TEST(ApplyInsertBeginEnd, DeepNesting) {
 
 TEST(ApplyInsertBeginEnd, DoWhile) {
     Style style;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
+    style.ContinuationIndentWidth = 2;
+    style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.InitialStatements = false;
     style.BreakBeforeInitial = BlockBreakStyle::Never;
@@ -800,8 +825,11 @@ TEST(ApplyInsertBeginEnd, DoWhile) {
 
 TEST(ApplyInsertBeginEnd, ElseIf) {
     Style style;
-    style.InsertBeginEnd.Enabled = true;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.AlwaysStatements = false;
+    style.InsertBeginEnd.ControlStatements = true;
+    style.InsertBeginEnd.Enabled = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
@@ -855,7 +883,10 @@ TEST(ApplyInsertBeginEnd, EnabledFalse) {
 
 TEST(ApplyInsertBeginEnd, FinalBlock) {
     Style style;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.Enabled = true;
+    style.InsertBeginEnd.InitialStatements = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -875,8 +906,11 @@ TEST(ApplyInsertBeginEnd, FinalBlock) {
 
 TEST(ApplyInsertBeginEnd, ForLoop) {
     Style style;
-    style.InsertBeginEnd.Enabled = true;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.AlwaysStatements = false;
+    style.InsertBeginEnd.ControlStatements = true;
+    style.InsertBeginEnd.Enabled = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
@@ -899,8 +933,11 @@ TEST(ApplyInsertBeginEnd, ForLoop) {
 
 TEST(ApplyInsertBeginEnd, IfElse) {
     Style style;
-    style.InsertBeginEnd.Enabled = true;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.AlwaysStatements = false;
+    style.InsertBeginEnd.ControlStatements = true;
+    style.InsertBeginEnd.Enabled = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
@@ -928,8 +965,11 @@ TEST(ApplyInsertBeginEnd, IfElse) {
 
 TEST(ApplyInsertBeginEnd, IfSingleStatement) {
     Style style;
-    style.InsertBeginEnd.Enabled = true;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.AlwaysStatements = false;
+    style.InsertBeginEnd.ControlStatements = true;
+    style.InsertBeginEnd.Enabled = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
@@ -973,7 +1013,10 @@ TEST(ApplyInsertBeginEnd, InitialAlreadyWrapped) {
 
 TEST(ApplyInsertBeginEnd, InitialBlock) {
     Style style;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.Enabled = true;
+    style.InsertBeginEnd.InitialStatements = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1013,8 +1056,11 @@ TEST(ApplyInsertBeginEnd, InitialStatementsDisabled) {
 
 TEST(ApplyInsertBeginEnd, NestedIf) {
     Style style;
-    style.InsertBeginEnd.Enabled = true;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.AlwaysStatements = false;
+    style.InsertBeginEnd.ControlStatements = true;
+    style.InsertBeginEnd.Enabled = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
@@ -1039,7 +1085,7 @@ TEST(ApplyInsertBeginEnd, NestedIf) {
 }
 
 TEST(ApplyInsertParens, AllDisabledDoesNothing) {
-    Style const style;
+    Style const style{};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(

@@ -204,6 +204,7 @@ TEST(AlignConsecutiveDeclarations, AcrossEmptyLinesAndComments) {
 TEST(AlignConsecutiveDeclarations, AcrossParameterPortList) {
     Style style;
     style.AlignConsecutiveDeclarations = {.AcrossParameterPortList = true, .Enabled = true};
+    style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
@@ -252,6 +253,7 @@ TEST(AlignConsecutiveDeclarations, PackedDimensions) {
 TEST(AlignConsecutiveDeclarations, DirectionKeywords) {
     Style style;
     style.AlignConsecutiveDeclarations.Enabled = true;
+    style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo(
@@ -273,6 +275,7 @@ TEST(AlignConsecutiveDeclarations, DirectionKeywords) {
 TEST(AlignConsecutiveDeclarations, ParameterDeclarations) {
     Style style;
     style.AlignConsecutiveDeclarations.Enabled = true;
+    style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
@@ -290,7 +293,7 @@ TEST(AlignConsecutiveDeclarations, ParameterDeclarations) {
 }
 
 TEST(AlignConsecutiveDeclarations, SingleDeclarationNotAligned) {
-    Style const style;
+    Style const style{};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -331,6 +334,7 @@ TEST(AlignConsecutiveDeclarations, FormatOffRegionSkipped) {
 TEST(AlignConsecutiveDeclarations, IndentLevelBreaksGroup) {
     Style style;
     style.AlignConsecutiveDeclarations.Enabled = true;
+    style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
@@ -527,6 +531,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossParameterPortList) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {.AcrossParameterPortList = true, .Enabled = true};
+    style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
@@ -553,6 +558,7 @@ TEST(AlignConsecutivePackedDimensions, DirectionKeywords) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions.Enabled = true;
+    style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo(
@@ -1138,6 +1144,7 @@ TEST(AlignConsecutiveAssignments, ContinuationLines) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
+    style.ContinuationIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1158,6 +1165,7 @@ TEST(AlignConsecutiveAssignments, ContinuationLinesVariableLength) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
+    style.ContinuationIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1266,6 +1274,7 @@ TEST(AlignConsecutiveAssignments, AcrossParameterPortList) {
     Style style;
     style.AlignConsecutiveAssignments = {.AcrossParameterPortList = true, .Enabled = true};
     style.AlignConsecutiveDeclarations = {};
+    style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
@@ -1760,7 +1769,7 @@ TEST(AlignConsecutiveAssignments, SingleAssignmentNotAligned) {
 }
 
 TEST(AlignTrailingComments, None) {
-    Style const style;
+    Style const style{};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1939,7 +1948,9 @@ TEST(AlignTrailingComments, AcrossEmptyLinesAndComments) {
 TEST(AlignTrailingComments, AcrossParameterPortList) {
     Style style;
     style.AlignTrailingComments = {.AcrossParameterPortList = true, .Enabled = true};
+    style.ParameterPortListIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
           parameter N = 4 // width
@@ -1959,6 +1970,7 @@ TEST(AlignTrailingComments, AcrossParameterPortList) {
           assign x = 1;   // body
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignTrailingComments, SingleLineNotAligned) {

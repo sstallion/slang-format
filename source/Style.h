@@ -50,13 +50,13 @@ struct InsertBeginEndStyle {
     bool Enabled = false;
 
     /// If true, wrap bare single-statement bodies of control statements.
-    bool ControlStatements = true;
+    bool ControlStatements = false;
 
     /// If true, wrap bare statement bodies of always statements.
-    bool AlwaysStatements = true;
+    bool AlwaysStatements = false;
 
     /// If true, wrap bare statement bodies of initial statements.
-    bool InitialStatements = true;
+    bool InitialStatements = false;
 
     bool operator==(const InsertBeginEndStyle&) const = default;
 };
@@ -104,17 +104,17 @@ struct Style {
 
     /// Number of spaces added for continuation lines relative to the
     /// enclosing statement.
-    unsigned ContinuationIndentWidth = 2;
+    unsigned ContinuationIndentWidth = 0;
 
     /// Number of spaces for parameter port list items in module declarations.
-    unsigned ParameterPortListIndentWidth = 2;
+    unsigned ParameterPortListIndentWidth = 0;
 
     /// Controls the separator used in event expressions.
     EventSeparatorStyle EventSeparator = EventSeparatorStyle::Preserve;
 
     /// If true, indent statements following a case label when they appear on
     /// the next line.
-    bool IndentCaseItem = true;
+    bool IndentCaseItem = false;
 
     /// Disables formatting for any line matching this pattern.
     std::string OneLineFormatOffRegex;
@@ -144,19 +144,19 @@ struct Style {
     BlockBreakStyle BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
 
     /// If true, enforce a newline after every begin statement.
-    bool BreakAfterBegin = true;
+    bool BreakAfterBegin = false;
 
     /// If true, enforce a newline before every end statement.
-    bool BreakBeforeEnd = true;
+    bool BreakBeforeEnd = false;
 
     /// If true, insert a blank line before function declarations.
-    bool BreakBeforeFunction = true;
+    bool BreakBeforeFunction = false;
 
     /// If true, insert a blank line before specify blocks.
-    bool BreakBeforeSpecifyBlock = true;
+    bool BreakBeforeSpecifyBlock = false;
 
     /// If true, insert a blank line before task declarations.
-    bool BreakBeforeTask = true;
+    bool BreakBeforeTask = false;
 
     /// Controls insertion of begin/end around bare statements.
     InsertBeginEndStyle InsertBeginEnd;
