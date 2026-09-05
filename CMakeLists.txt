@@ -68,7 +68,8 @@ if(BUILD_TESTING)
                         GTest::gtest)
 
   include(GoogleTest)
-  gtest_discover_tests(${PROJECT_NAME}-tests)
+  gtest_discover_tests(${PROJECT_NAME}-tests
+                       DISCOVERY_TIMEOUT 30)
 endif()
 
 install(TARGETS ${PROJECT_NAME} DESTINATION .)
