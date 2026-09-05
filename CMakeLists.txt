@@ -40,8 +40,8 @@ add_library(${PROJECT_NAME}-object OBJECT
             ${SOURCE_DIR}/Style.cpp)
 
 target_link_libraries(${PROJECT_NAME}-object
-                      slang::slang
-                      yaml-cpp::yaml-cpp)
+                      yaml-cpp::yaml-cpp
+                      slang::slang)
 
 add_executable(${PROJECT_NAME}
                ${SOURCE_DIR}/main.cpp)
@@ -64,8 +64,8 @@ if(BUILD_TESTING)
 
   target_link_libraries(${PROJECT_NAME}-tests
                         ${PROJECT_NAME}-object
-                        GTest::gtest
-                        GTest::gtest_main)
+                        GTest::gtest_main
+                        GTest::gtest)
 
   include(GoogleTest)
   gtest_discover_tests(${PROJECT_NAME}-tests)
@@ -88,7 +88,6 @@ if (BUILD_PACKAGING)
   endif()
 
   string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} CPACK_SYSTEM_PROCESSOR)
-
   if(CPACK_SYSTEM_PROCESSOR STREQUAL aarch64)
     set(CPACK_SYSTEM_PROCESSOR arm64)
   elseif(CPACK_SYSTEM_PROCESSOR STREQUAL amd64)
