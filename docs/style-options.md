@@ -63,29 +63,11 @@ remaining sub-options take effect only when `Enabled` is `true`.
 
 ```yaml
 AlignConsecutiveAssignments:
+  Enabled: false
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
-  Enabled: false
 ```
-
-#### AcrossComments (bool)
-
-If `true`, comments do not break alignment groups.
-
-**Default:** `false`
-
-#### AcrossEmptyLines (bool)
-
-If `true`, empty lines do not break alignment groups.
-
-**Default:** `false`
-
-#### AcrossParameterPortList (bool)
-
-If `true`, port list boundaries do not break alignment groups.
-
-**Default:** `false`
 
 #### Enabled (bool)
 
@@ -132,6 +114,24 @@ module foo;
 endmodule
 ```
 
+#### AcrossComments (bool)
+
+If `true`, comments do not break alignment groups.
+
+**Default:** `false`
+
+#### AcrossEmptyLines (bool)
+
+If `true`, empty lines do not break alignment groups.
+
+**Default:** `false`
+
+#### AcrossParameterPortList (bool)
+
+If `true`, port list boundaries do not break alignment groups.
+
+**Default:** `false`
+
 ---
 
 ### AlignConsecutiveDeclarations (AlignConsecutiveStyle)
@@ -147,10 +147,38 @@ sub-options take effect only when `Enabled` is `true`.
 
 ```yaml
 AlignConsecutiveDeclarations:
+  Enabled: false
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
-  Enabled: false
+```
+#### Enabled (bool)
+
+If `false`, disables all alignment regardless of other options.
+
+**Default:** `false`
+
+```sv
+// Enabled: true
+module foo;
+  logic        a;
+  logic [7:0]  b;
+  logic [15:0] c;
+endmodule
+
+// Enabled: true (continuation lines)
+module foo;
+  localparam [1:0] STATE_0 = 1,
+                   STATE_1 = 2,
+                   STATE_2 = 3;
+endmodule
+
+// Enabled: false (default)
+module foo;
+  logic a;
+  logic [7:0] b;
+  logic [15:0] c;
+endmodule
 ```
 
 #### AcrossComments (bool)
@@ -185,35 +213,6 @@ module foo #(
 endmodule
 ```
 
-#### Enabled (bool)
-
-If `false`, disables all alignment regardless of other options.
-
-**Default:** `false`
-
-```sv
-// Enabled: true
-module foo;
-  logic        a;
-  logic [7:0]  b;
-  logic [15:0] c;
-endmodule
-
-// Enabled: true (continuation lines)
-module foo;
-  localparam [1:0] STATE_0 = 1,
-                   STATE_1 = 2,
-                   STATE_2 = 3;
-endmodule
-
-// Enabled: false (default)
-module foo;
-  logic a;
-  logic [7:0] b;
-  logic [15:0] c;
-endmodule
-```
-
 ---
 
 ### AlignConsecutivePackedDimensions (AlignConsecutiveStyle)
@@ -231,13 +230,33 @@ take effect only when `Enabled` is `true`.
 
 ```yaml
 AlignConsecutivePackedDimensions:
+  Enabled: false
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
   AlignColon: false
-  Enabled: false
   PadLeft: false
   PadRight: false
+```
+
+#### Enabled (bool)
+
+If `false`, disables all alignment regardless of other options.
+
+**Default:** `false`
+
+```sv
+// Enabled: true
+module foo;
+  bit   [7:0] a;
+  logic [7:0] b;
+endmodule
+
+// Enabled: false (default)
+module foo;
+  bit [7:0] a;
+  logic [7:0] b;
+endmodule
 ```
 
 #### AcrossComments (bool)
@@ -279,26 +298,6 @@ endmodule
 module foo;
   logic [ 7: 0] a;
   logic [15: 0] b;
-endmodule
-```
-
-#### Enabled (bool)
-
-If `false`, disables all alignment regardless of other options.
-
-**Default:** `false`
-
-```sv
-// Enabled: true
-module foo;
-  bit   [7:0] a;
-  logic [7:0] b;
-endmodule
-
-// Enabled: false (default)
-module foo;
-  bit [7:0] a;
-  logic [7:0] b;
 endmodule
 ```
 
@@ -349,22 +348,10 @@ master switch; the remaining sub-options take effect only when `Enabled` is
 
 ```yaml
 AlignConsecutiveTimingControls:
+  Enabled: false
   AcrossComments: false
   AcrossEmptyLines: false
-  Enabled: false
 ```
-
-#### AcrossComments (bool)
-
-If `true`, comments do not break alignment groups.
-
-**Default:** `false`
-
-#### AcrossEmptyLines (bool)
-
-If `true`, empty lines do not break alignment groups.
-
-**Default:** `false`
 
 #### Enabled (bool)
 
@@ -386,6 +373,18 @@ module foo;
 endmodule
 ```
 
+#### AcrossComments (bool)
+
+If `true`, comments do not break alignment groups.
+
+**Default:** `false`
+
+#### AcrossEmptyLines (bool)
+
+If `true`, empty lines do not break alignment groups.
+
+**Default:** `false`
+
 ---
 
 ### AlignTrailingComments (AlignConsecutiveStyle)
@@ -400,29 +399,11 @@ switch; the remaining sub-options take effect only when `Enabled` is `true`.
 
 ```yaml
 AlignTrailingComments:
+  Enabled: false
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
-  Enabled: false
 ```
-
-#### AcrossComments (bool)
-
-If `true`, comments do not break alignment groups.
-
-**Default:** `false`
-
-#### AcrossEmptyLines (bool)
-
-If `true`, empty lines do not break alignment groups.
-
-**Default:** `false`
-
-#### AcrossParameterPortList (bool)
-
-If `true`, port list boundaries do not break alignment groups.
-
-**Default:** `false`
 
 #### Enabled (bool)
 
@@ -443,6 +424,24 @@ module foo;
   assign longname = 2; // second
 endmodule
 ```
+
+#### AcrossComments (bool)
+
+If `true`, comments do not break alignment groups.
+
+**Default:** `false`
+
+#### AcrossEmptyLines (bool)
+
+If `true`, empty lines do not break alignment groups.
+
+**Default:** `false`
+
+#### AcrossParameterPortList (bool)
+
+If `true`, port list boundaries do not break alignment groups.
+
+**Default:** `false`
 
 ---
 

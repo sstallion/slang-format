@@ -61,6 +61,8 @@ The file contains the following sections, in order:
   SystemVerilog using `sv` fenced code blocks.
 - Shared struct fields that are unused by a particular configuration option
   must not be documented for that option.
+- Struct fields are to be documented in ASCIIbetical order unless the field is
+  named `Enabled` or `Disabled`, which should always be listed first.
 
 ### TODO
 

@@ -62,6 +62,10 @@ constexpr std::string_view toString(EventSeparatorStyle style) {
 }
 
 void parseAlignConsecutive(const YAML::Node& node, AlignConsecutiveStyle& config) {
+    if (auto v = node["Enabled"]) {
+        config.Enabled = v.as<bool>();
+    }
+
     if (auto v = node["AcrossComments"]) {
         config.AcrossComments = v.as<bool>();
     }
@@ -76,10 +80,6 @@ void parseAlignConsecutive(const YAML::Node& node, AlignConsecutiveStyle& config
 
     if (auto v = node["AlignColon"]) {
         config.AlignColon = v.as<bool>();
-    }
-
-    if (auto v = node["Enabled"]) {
-        config.Enabled = v.as<bool>();
     }
 
     if (auto v = node["PadLeft"]) {
@@ -210,6 +210,7 @@ struct AlignConsecutiveFields {
 void emitAlignConsecutive(YAML::Emitter& out, const AlignConsecutiveStyle& config,
                           AlignConsecutiveFields fields) {
     out << YAML::BeginMap;
+    out << YAML::Key << "Enabled" << YAML::Value << config.Enabled;
     out << YAML::Key << "AcrossComments" << YAML::Value << config.AcrossComments;
     out << YAML::Key << "AcrossEmptyLines" << YAML::Value << config.AcrossEmptyLines;
     if (fields.acrossParameterPortList) {
@@ -219,7 +220,6 @@ void emitAlignConsecutive(YAML::Emitter& out, const AlignConsecutiveStyle& confi
     if (fields.alignColon) {
         out << YAML::Key << "AlignColon" << YAML::Value << config.AlignColon;
     }
-    out << YAML::Key << "Enabled" << YAML::Value << config.Enabled;
     if (fields.padLeftRight) {
         out << YAML::Key << "PadLeft" << YAML::Value << config.PadLeft;
         out << YAML::Key << "PadRight" << YAML::Value << config.PadRight;
@@ -229,9 +229,9 @@ void emitAlignConsecutive(YAML::Emitter& out, const AlignConsecutiveStyle& confi
 
 void emitInsertBeginEnd(YAML::Emitter& out, const InsertBeginEndStyle& config) {
     out << YAML::BeginMap;
+    out << YAML::Key << "Enabled" << YAML::Value << config.Enabled;
     out << YAML::Key << "AlwaysStatements" << YAML::Value << config.AlwaysStatements;
     out << YAML::Key << "ControlStatements" << YAML::Value << config.ControlStatements;
-    out << YAML::Key << "Enabled" << YAML::Value << config.Enabled;
     out << YAML::Key << "InitialStatements" << YAML::Value << config.InitialStatements;
     out << YAML::EndMap;
 }
@@ -264,14 +264,14 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::BeginMap;
     out << YAML::Key << "AlignConsecutiveAssignments" << YAML::Value;
     emitAlignConsecutive(out, style.AlignConsecutiveAssignments, portListFields);
-    out << YAML::Key << "AlignTrailingComments" << YAML::Value;
-    emitAlignConsecutive(out, style.AlignTrailingComments, portListFields);
     out << YAML::Key << "AlignConsecutiveDeclarations" << YAML::Value;
     emitAlignConsecutive(out, style.AlignConsecutiveDeclarations, portListFields);
     out << YAML::Key << "AlignConsecutivePackedDimensions" << YAML::Value;
     emitAlignConsecutive(out, style.AlignConsecutivePackedDimensions, allFields);
     out << YAML::Key << "AlignConsecutiveTimingControls" << YAML::Value;
     emitAlignConsecutive(out, style.AlignConsecutiveTimingControls, {});
+    out << YAML::Key << "AlignTrailingComments" << YAML::Value;
+    emitAlignConsecutive(out, style.AlignTrailingComments, portListFields);
     out << YAML::Key << "BreakAfterAlways" << YAML::Value
         << std::string{toString(style.BreakAfterAlways)};
     out << YAML::Key << "BreakAfterBegin" << YAML::Value << style.BreakAfterBegin;
