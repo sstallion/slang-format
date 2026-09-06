@@ -1847,7 +1847,8 @@ TEST(SpaceAfterComma, Collapses) {
 }
 
 TEST(SpaceAfterComma, Disabled) {
-    Style const style{};
+    Style style;
+    style.SpaceAfterComma = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1895,6 +1896,33 @@ TEST(SpaceAfterComma, Inserts) {
     )"), style), dedent(R"(
         module foo;
           assign {a, b, c} = d;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterComma, NormalizesWhenDisabled) {
+    Style style;
+    style.SpaceAfterComma = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign {a , b , c} = d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign {a,b,c} = d;
+        endmodule
+    )"));
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign {a,  b,  c} = d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign {a,b,c} = d;
         endmodule
     )"));
     // clang-format on
@@ -1982,7 +2010,8 @@ TEST(SpaceAfterSemicolon, Collapses) {
 }
 
 TEST(SpaceAfterSemicolon, Disabled) {
-    Style const style{};
+    Style style;
+    style.SpaceAfterSemicolon = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2077,6 +2106,49 @@ TEST(SpaceAfterSemicolon, NormalizesAround) {
 
           initial begin
             for (int i = 0; i < 4; i++) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterSemicolon, NormalizesWhenDisabled) {
+    Style style;
+    style.SpaceAfterSemicolon = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0 ; i < 4 ; i++) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0;i < 4;i++) begin
+            end
+          end
+        endmodule
+    )"));
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0;  i < 4;  i++) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            for (int i = 0;i < 4;i++) begin
             end
           end
         endmodule
@@ -2248,7 +2320,49 @@ TEST(SpacesInParens, NormalizesAround) {
         module foo;
 
           initial begin
-            for ( int i = 0  ;  i < 4  ;  i++ ) begin
+            for ( int i = 0; i < 4; i++ ) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInParens, NormalizesWhenDisabled) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            if ( a ) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            if (a) begin
+            end
+          end
+        endmodule
+    )"));
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            if (  a  ) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            if (a) begin
             end
           end
         endmodule

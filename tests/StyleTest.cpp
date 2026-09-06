@@ -744,8 +744,8 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("OneLineFormatOffRegex: \"\""), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: Preserve"), std::string::npos);
     EXPECT_NE(result.find("ParameterPortListIndentWidth: 0"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterComma: false"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterSemicolon: false"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAfterComma: true"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAfterSemicolon: true"), std::string::npos);
     EXPECT_NE(result.find("SpacesInParens: false"), std::string::npos);
     EXPECT_NE(result.find("UnpackedDimensionBounds: Preserve"), std::string::npos);
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
@@ -778,8 +778,8 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.InsertParens.ImplicitEvents = true;
     style.InsertParens.NamedEvents = true;
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-    style.SpaceAfterComma = true;
-    style.SpaceAfterSemicolon = true;
+    style.SpaceAfterComma = false;
+    style.SpaceAfterSemicolon = false;
     style.SpacesInParens = true;
     style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
 
@@ -794,8 +794,8 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("EventSeparator: Comma"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterComma: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterSemicolon: true"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAfterComma: false"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAfterSemicolon: false"), std::string::npos);
     EXPECT_NE(result.find("SpacesInParens: true"), std::string::npos);
     EXPECT_NE(result.find("UnpackedDimensionBounds: LSBFirst"), std::string::npos);
 }

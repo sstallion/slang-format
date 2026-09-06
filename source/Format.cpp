@@ -683,19 +683,9 @@ private:
             return;
         }
 
-        if (afterComma) {
-            emitSpaceAfterComma();
-        }
+        emitDeferredSpaces();
         afterComma = false;
-
-        if (afterSemicolon) {
-            emitSpaceAfterSemicolon();
-        }
         afterSemicolon = false;
-
-        if (afterOpenParen) {
-            emitSpaceAfterOpenParen();
-        }
         afterOpenParen = false;
 
         auto raw = t.getRawText();
@@ -738,15 +728,21 @@ private:
             return;
         }
         if (afterComma) {
-            emitSpaceAfterComma();
+            if (style.SpaceAfterComma) {
+                emitSpaceAfterComma();
+            }
             return;
         }
         if (afterSemicolon) {
-            emitSpaceAfterSemicolon();
+            if (style.SpaceAfterSemicolon) {
+                emitSpaceAfterSemicolon();
+            }
             return;
         }
         if (afterOpenParen) {
-            emitSpaceAfterOpenParen();
+            if (style.SpacesInParens) {
+                emitSpaceAfterOpenParen();
+            }
             return;
         }
         output += t.getRawText();
@@ -773,9 +769,8 @@ private:
         }
     }
 
-    [[nodiscard]] bool needsSpaceAfter(TokenKind kind) const {
-        return (style.SpaceAfterComma && kind == TokenKind::Comma) ||
-               (style.SpaceAfterSemicolon && kind == TokenKind::Semicolon);
+    [[nodiscard]] static bool needsStripBefore(TokenKind kind) {
+        return kind == TokenKind::Comma || kind == TokenKind::Semicolon;
     }
 
     void stripTrailingSpaces() {
@@ -797,13 +792,19 @@ private:
 
     void emitDeferredSpaces() {
         if (afterComma) {
-            emitSpaceAfterComma();
+            if (style.SpaceAfterComma) {
+                emitSpaceAfterComma();
+            }
         }
         if (afterSemicolon) {
-            emitSpaceAfterSemicolon();
+            if (style.SpaceAfterSemicolon) {
+                emitSpaceAfterSemicolon();
+            }
         }
         if (afterOpenParen) {
-            emitSpaceAfterOpenParen();
+            if (style.SpacesInParens) {
+                emitSpaceAfterOpenParen();
+            }
         }
     }
 
@@ -853,25 +854,25 @@ private:
             atLineStart = false;
         }
 
-        if (formatEnabled && !atLineStart && needsSpaceAfter(tok.kind)) {
+        if (formatEnabled && !atLineStart && needsStripBefore(tok.kind)) {
             stripTrailingSpaces();
         }
 
         if (formatEnabled && !atLineStart && spaceBeforeCloseParenPending &&
             tok.kind == TokenKind::CloseParenthesis) {
             stripTrailingSpaces();
-            output += ' ';
+            if (style.SpacesInParens) {
+                output += ' ';
+            }
         }
 
         output += raw;
         lineDepth = depth;
         nextIsPrimary = false;
         emptyLineCount = 0;
-        afterComma = formatEnabled && style.SpaceAfterComma && tok.kind == TokenKind::Comma;
-        afterSemicolon = formatEnabled && style.SpaceAfterSemicolon &&
-                         tok.kind == TokenKind::Semicolon;
-        afterOpenParen = formatEnabled && style.SpacesInParens &&
-                         tok.kind == TokenKind::OpenParenthesis;
+        afterComma = formatEnabled && tok.kind == TokenKind::Comma;
+        afterSemicolon = formatEnabled && tok.kind == TokenKind::Semicolon;
+        afterOpenParen = formatEnabled && tok.kind == TokenKind::OpenParenthesis;
         if (afterOpenParen) {
             spaceBeforeCloseParenPending = true;
         }

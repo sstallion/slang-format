@@ -134,6 +134,16 @@ The formatting pass performs a single traversal of the already-rewritten tree.
 Carrying formatting state across the walk is straightforward to reason about,
 and the single-pass constraint keeps the implementation linear and predictable.
 
+### Whitespace Normalization
+
+The formatter normalizes whitespace by default, even when boolean style options
+are `false`. A `false` option suppresses the insertion of additional whitespace
+but still removes extraneous spaces around the affected tokens. This means
+formatting is never a no-op: every run produces a canonical result regardless of
+configuration. Options that need to preserve existing formatting verbatim must
+define an explicit `Preserve` enum value; boolean options do not offer a
+pass-through mode.
+
 ### Post-Processing
 
 #### Alignment

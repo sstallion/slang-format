@@ -23,7 +23,8 @@ struct AlignConsecutiveStyle {
     /// If true, port list boundaries do not break alignment groups.
     bool AcrossParameterPortList = false;
 
-    /// If true, align `:` separators in packed dimensions by right-justifying the left-side value.
+    /// If true, align `:` separators in packed dimensions by right-justifying
+    /// the left-side value.
     bool AlignColon = false;
 
     /// If false, disables all alignment regardless of other options.
@@ -63,17 +64,16 @@ struct InsertBeginEndStyle {
 
 /// Controls automatic insertion of parentheses around timing constructs.
 struct InsertParensStyle {
-    /// If true, insert parentheses around delay expressions (e.g. `#15` to `#(15)`).
+    /// If true, insert parentheses around delay expressions.
     bool Delays = false;
 
-    /// If true, insert parentheses around event expressions (e.g. `@posedge clk` to `@(posedge
-    /// clk)`).
+    /// If true, insert parentheses around event expressions.
     bool ExpressionEvents = false;
 
-    /// If true, insert parentheses around implicit event lists (e.g. `@*` to `@(*)`).
+    /// If true, insert parentheses around implicit event lists.
     bool ImplicitEvents = false;
 
-    /// If true, insert parentheses around named event expressions (e.g. `@signal` to `@(signal)`).
+    /// If true, insert parentheses around named event expressions.
     bool NamedEvents = false;
 
     bool operator==(const InsertParensStyle&) const = default;
@@ -93,7 +93,8 @@ struct Style {
     /// Controls alignment of packed dimensions in consecutive declarations.
     AlignConsecutiveStyle AlignConsecutivePackedDimensions;
 
-    /// Controls alignment of signal names and assignment operators in consecutive timing controls.
+    /// Controls alignment of signal names and assignment operators in
+    /// consecutive timing controls.
     AlignConsecutiveStyle AlignConsecutiveTimingControls;
 
     /// Maximum number of consecutive empty lines to keep.
@@ -122,14 +123,16 @@ struct Style {
     /// Controls the order of packed dimension bounds.
     DimensionBoundsStyle PackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
-    /// If true, normalizes whitespace around commas to a single trailing space.
-    bool SpaceAfterComma = false;
+    /// Normalizes whitespace around commas. If true, inserts a single
+    /// trailing space.
+    bool SpaceAfterComma = true;
 
-    /// If true, normalizes whitespace around semicolons to a single trailing space.
-    bool SpaceAfterSemicolon = false;
+    /// Normalizes whitespace around semicolons. If true, inserts a single
+    /// trailing space.
+    bool SpaceAfterSemicolon = true;
 
-    /// If true, normalizes whitespace inside parentheses to a single space
-    /// after ( and before ).
+    /// Normalizes whitespace inside parentheses. If true, inserts a single
+    /// space after ( and before ).
     bool SpacesInParens = false;
 
     /// Controls the order of unpacked dimension bounds.

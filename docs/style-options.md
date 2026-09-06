@@ -1246,13 +1246,14 @@ endmodule
 
 ### SpaceAfterComma (bool)
 
-If `true`, normalizes whitespace around commas. Whitespace preceding a comma is
-removed and a single space is inserted after. Multiple spaces following a comma
-are collapsed to a single space. Newlines are not affected.
+Normalizes whitespace around commas. Whitespace preceding a comma is removed.
+If `true`, a single space is inserted after the comma; multiple spaces following
+a comma are collapsed to a single space. If `false`, whitespace following a
+comma is removed. Newlines are not affected.
 
-**Default:** `false`
+**Default:** `true`
 
-`SpaceAfterComma: false` (default):
+`SpaceAfterComma: false`:
 
 ```sv
 module foo;
@@ -1260,7 +1261,7 @@ module foo;
 endmodule
 ```
 
-`SpaceAfterComma: true`:
+`SpaceAfterComma: true` (default):
 
 ```sv
 module foo;
@@ -1272,13 +1273,14 @@ endmodule
 
 ### SpaceAfterSemicolon (bool)
 
-If `true`, normalizes whitespace around semicolons. Whitespace preceding a
-semicolon is removed and a single space is inserted after. Multiple spaces
-following a semicolon are collapsed to a single space. Newlines are not affected.
+Normalizes whitespace around semicolons. Whitespace preceding a semicolon is
+removed. If `true`, a single space is inserted after the semicolon; multiple
+spaces following a semicolon are collapsed to a single space. If `false`,
+whitespace following a semicolon is removed. Newlines are not affected.
 
-**Default:** `false`
+**Default:** `true`
 
-`SpaceAfterSemicolon: false` (default):
+`SpaceAfterSemicolon: false`:
 
 ```sv
 module foo;
@@ -1289,7 +1291,7 @@ module foo;
 endmodule
 ```
 
-`SpaceAfterSemicolon: true`:
+`SpaceAfterSemicolon: true` (default):
 
 ```sv
 module foo;
@@ -1304,10 +1306,11 @@ endmodule
 
 ### SpacesInParens (bool)
 
-If `true`, normalizes whitespace inside parentheses. Whitespace following an
+Normalizes whitespace inside parentheses. If `true`, whitespace following an
 opening parenthesis is replaced with a single space and a single space is
-inserted before a closing parenthesis. Multiple spaces are collapsed to a single
-space. Newlines are not affected.
+inserted before a closing parenthesis; multiple spaces are collapsed to a single
+space. If `false`, whitespace following an opening parenthesis and preceding a
+closing parenthesis is removed. Newlines are not affected.
 
 **Default:** `false`
 
