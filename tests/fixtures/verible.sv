@@ -1,0 +1,815 @@
+  //============================================================================
+       // verible.sv
+ //----------------------------------------------------------------------------
+// Purpose : single-file SystemVerilog-2017 corpus for formatter correctness
+                   //           testing. Deliberately mis-indented and mis-aligned in places so
+                                //           that a formatter has real work to do. Every construct is legal
+   //           and self-contained (no external includes, no library deps).
+      //============================================================================
+
+        `ifndef TORTURE_SV
+`define TORTURE_SV
+
+`timescale 1ns / 1ps
+`default_nettype none
+
+`define MAX(a, b) (((a) > (b)) ? (a) : (b))
+`define STRINGIFY(x) `"x`"
+`define REG_FF(q, d, clk, rst)                  \
+    always_ff @(posedge clk or negedge rst)     \
+      if (!rst) q <= '0;                        \
+      else      q <= d;
+
+//----------------------------------------------------------------------------
+// Package: types, params, functions, DPI
+//----------------------------------------------------------------------------
+ package tort_pkg;
+	timeunit 1ns;
+timeprecision 1ps;
+
+  parameter int unsigned DEFAULT_WIDTH    =   32;
+	localparam int unsigned ADDR_W = 12;
+	localparam bit [7:0] MAGIC = 8'hA5;
+  localparam string BANNER     =    "tort";
+
+         typedef enum logic [2:0] {
+           ST_IDLE = 3'd0,
+    ST_REQ  = 3'd1,
+ST_WAIT = 3'd2,
+    ST_RESP    =    3'd3,
+    ST_ERR = 3'd7
+  } state_e;
+
+         // enum ranges: OP_A0..OP_A3 then OP_B2..OP_B3
+  typedef enum bit [3     : 0] {OP_A[4] = 4'd0, OP_B[2:3]} op_e;
+
+  typedef struct packed {
+    logic valid;
+    logic [3:0] strb;
+		logic [31:0] data;
+   } beat_t;
+
+   typedef struct {
+       string name;
+		int unsigned count;
+    real weight;
+	} stat_t;
+
+     typedef union packed {
+    logic [36      :   0] raw;
+		beat_t beat;
+  } word_u;
+
+typedef logic [DEFAULT_WIDTH-1:0] word_t;
+         typedef word_t queue_t[$];
+   typedef int map_t[string];
+  typedef stat_t stat_arr_t[4];
+
+  function automatic int unsigned clog2_ceil(input int unsigned value);
+    int unsigned r = 0;
+    int unsigned v = (value == 0) ? 0 : value - 1;
+		while (v > 0) begin
+      v >>= 1;
+      r++;
+		end
+    return (r == 0) ? 1 : r;
+	endfunction : clog2_ceil
+
+         function automatic void swap_ints(ref int a, ref int b);
+   int t = a;
+		a = b;
+		b = t;
+  endfunction
+
+  function automatic string describe(input stat_t s, input bit verbose   =  1'b0);
+    return verbose ? $sformatf("%s: n=%0d w=%0.3f", s.name, s.count, s.weight) : s.name;
+  endfunction
+
+  let is_pow2(x) = ((x) != 0) && (((x) & ((x) - 1)) == 0);
+
+  import "DPI-C" context function int unsigned c_checksum(input int unsigned seed,
+                                                          input int unsigned len);
+   function void sv_notify(input int code);
+		$display("[%s] notify %0d", BANNER, code);
+  endfunction
+  export "DPI-C" function sv_notify;
+endpackage : tort_pkg
+
+     //----------------------------------------------------------------------------
+	// Package: OOP / constrained random / functional coverage
+	//----------------------------------------------------------------------------
+package tort_oop_pkg;
+  import tort_pkg     ::*;
+
+	interface class printable;
+    pure virtual function string to_str();
+  endclass : printable
+
+	virtual class base_item implements printable;
+		static int unsigned num_created = 0;
+         protected string name;
+  local int unsigned id;
+     rand bit [7:0] payload;
+		rand int unsigned kind;
+
+		constraint c_kind {kind inside {[0 :   7]};}
+
+         function new(string name = "base");
+      this.name = name;
+      this.id   = num_created++;
+    endfunction
+
+    pure virtual function int cost();
+
+    virtual function string to_str();
+  return $sformatf("%s#%0d", name, id);
+    endfunction
+
+	extern virtual function void dump(input int fd);
+	endclass : base_item
+
+  function void base_item::dump(input int fd);
+    $fwrite(fd, "%s\n", to_str());
+  endfunction
+
+	class packet #(
+			parameter int W = 32,
+         type T = logic [W-1:0]
+	) extends base_item;
+		rand T data[];
+     rand int unsigned len;
+    rand op_e op;
+    bit [7:0] tags[string];
+		T history[$];
+       event done_e;
+		int bumps = 0;
+
+constraint c_len {
+           len inside {[1 : 16]};
+			data.size()  == len;
+		}
+		constraint c_dist {
+          op dist {OP_A0    := 40, OP_A1 := 30, [OP_A2 : OP_B3] :/ 30};
+		}
+       constraint c_ord {
+    solve len before data;
+      foreach (data[i]) {
+        data[i] != '0;
+			(i > 0) -> data[i] != data[i-1];
+         }
+             unique {len, kind};
+       }
+    constraint c_soft {soft len   == 8;}
+
+    covergroup cg_op;
+			option.per_instance = 1;
+  option.comment = "op/len coverage";
+             cp_op : coverpoint op {
+				bins a_ops[] = {OP_A0, OP_A1, OP_A2, OP_A3};
+        bins b_ops = {OP_B2, OP_B3};
+       ignore_bins ig = {OP_A0};
+			}
+			cp_len : coverpoint len {
+      bins sm = {[1 : 4]};
+        bins md = {[5 : 12]};
+        bins lg = {[13 : 16]};
+      }
+				x_op_len : cross cp_op, cp_len {
+             ignore_bins skip = binsof (cp_len.lg) && binsof (cp_op.b_ops);
+			}
+     endgroup : cg_op
+
+         function new(string name = "packet");
+      super.new(name);
+     cg_op = new();
+		endfunction
+
+       virtual function int cost();
+			int total = data.sum() with (int'(item));
+      return total + int'(len);
+    endfunction
+
+    virtual function string to_str();
+  return {super.to_str(), $sformatf(" len=%0d op=%s", len, op.name())};
+    endfunction
+
+		function void post_randomize();
+         foreach (data[i]) history.push_back(data[i]);
+     tags[$sformatf("k%0d", kind)] = payload;
+			-> done_e;
+      cg_op.sample();
+     endfunction
+
+           task automatic run(input int iters = 4, output int status, ref int shared);
+  fork
+        begin : t_wait
+          repeat (iters) @(done_e);
+        end : t_wait
+        begin : t_bump
+					#(10ns) bumps++;
+         end : t_bump
+               begin : t_never
+           forever #1ns;
+				end : t_never
+     join_any
+      disable fork;
+      shared += bumps;
+      status = shared;
+		endtask : run
+  endclass    :    packet
+     endpackage : tort_oop_pkg
+
+//----------------------------------------------------------------------------
+	// Interfaces
+//----------------------------------------------------------------------------
+interface simple_if;
+  logic ready;
+logic valid;
+endinterface : simple_if
+
+	interface bus_if #(
+    parameter int AW      =  12,
+    parameter int DW = 32
+) (
+    input logic clk,
+     input logic rst_n
+);
+  logic req;
+				logic gnt;
+logic [AW-1:0] addr;
+logic [DW-1:0] wdata;
+  logic [DW-1  :    0] rdata;
+         logic we;
+
+     clocking cb @(posedge clk);
+  default input #1step output #1ns;
+    output req, addr, wdata, we;
+    input gnt, rdata;
+	endclocking : cb
+
+  modport mst(
+       clocking cb,
+      output req, addr, wdata, we,
+      input gnt, rdata,
+    import task drive(input logic [AW-1:0] a)
+  );
+       modport slv(input req, addr, wdata, we, output gnt, rdata);
+
+  task automatic drive(input logic [AW-1 :   0] a);
+		@(cb);
+    cb.req  <= 1'b1;
+    cb.addr <= a;
+		wait (gnt == 1'b1);
+    @(cb);
+  cb.req <= 1'b0;
+  endtask : drive
+
+property p_req_gnt;
+    @(posedge clk) disable iff (!rst_n) req |-> ##[1:5] gnt;
+		endproperty
+
+  a_req_gnt : assert property (p_req_gnt)
+ else $error("[%m] no grant within 5 cycles");
+  c_req_gnt  : cover property (@(posedge clk) req ##1 gnt);
+endinterface : bus_if
+
+   //----------------------------------------------------------------------------
+// Leaf modules
+//----------------------------------------------------------------------------
+module dff #(
+    parameter int W     =  8,
+    parameter logic [7    :   0] RST_VAL = '0
+) (
+    input wire clk,
+       input wire rst_n,
+    input wire en,
+    input wire [W-1    :    0] d,
+    output logic [W-1:0] q
+);
+         always_ff @(posedge clk or negedge rst_n)
+       if (!rst_n) q <= W'(RST_VAL);
+	else if (en) q <= d;
+	endmodule : dff
+
+module adder #(
+    parameter int W = 8
+) (
+input wire [W-1:0] a,
+    input wire [W-1     :    0] b,
+    output wire [W-1:0] sum
+);
+	assign sum   =    a + b;
+endmodule   :    adder
+
+//----------------------------------------------------------------------------
+// DUT      :    the wide-coverage module
+//----------------------------------------------------------------------------
+	module tort_top #(
+    parameter int unsigned AW   = 12,
+     parameter int unsigned DW = 32,
+  parameter type payload_t = logic [DW-1:0],
+		parameter logic [7:0] ID = 8'h5A,
+  localparam int unsigned STRB_W = DW / 8
+       ) (
+		input wire clk,
+    input wire rst_n,
+    input wire [AW-1   :    0] addr_i,
+    input wire [DW-1:0] data_i,
+		input wire vld_i,
+    output logic rdy_o,
+		output logic [DW-1    :    0] data_o,
+    output logic [STRB_W-1:0] strb_o,
+    inout wire scl_io,
+		bus_if.mst bus,
+  interface generic_if_p
+);
+     timeunit 1ns;
+  timeprecision 1ps;
+
+  import tort_pkg::*;
+import tort_oop_pkg::packet;
+
+	nettype real real_net_t;
+
+  typedef struct packed {
+logic [3:0] hi;
+    logic [3:0] lo;
+  } nib_t;
+
+localparam int unsigned DEPTH = 16;
+  localparam int unsigned PTR_W  = clog2_ceil(DEPTH);
+ localparam logic [DW-1:0] RESET_VAL = '0;
+	localparam nib_t NIB_INIT = '{hi: 4'hA, lo: 4'h5};
+  localparam stat_t SEED_STAT = '{name: "seed", count: 0, weight: 1.0};
+
+	state_e state_q, state_d;
+	logic [DW-1:0] mem[DEPTH];
+  logic [PTR_W-1    :  0] wr_ptr_q, rd_ptr_q;
+logic full, empty;
+   logic [STRB_W-1:0] strb_q;
+  logic err_q;
+  logic [7:0] scratch, scratch2, latched_q, dff_q, dff_q2;
+	logic [15:0] nib_arr_d, nib_arr_q;
+       logic [DW-1:0] a, b;
+  logic req_int, gnt_int;
+     payload_t payload_q;
+  string msg;
+  int unsigned hits[string];
+  packet #(DW) pkt;
+     semaphore sem;
+  mailbox #(int) mbx;
+ event tick_e, tock_e;
+
+	wire busy;
+	wire [DW-1:0] sum, sum2;
+	wire [1:0] width_tag;
+  wire [31:0] mem_dbg[4];
+wire w_a, w_b;
+       real_net_t analog_probe;
+
+  (* keep = "true", dont_touch *)
+       logic [7:0] attr_sig;
+
+	alias w_a = w_b;
+
+	//-- continuous assignments (alignment group) ------------------------------
+  assign busy = vld_i & ~rdy_o;
+       assign strb_o = strb_q;
+  assign data_o = mem[rd_ptr_q];
+  assign full = (wr_ptr_q == PTR_W'(DEPTH - 1));
+  assign empty = (wr_ptr_q == rd_ptr_q);
+ assign req_int = (state_q == ST_REQ);
+  assign gnt_int = bus.gnt;
+	assign attr_sig = {NIB_INIT.hi, NIB_INIT.lo};
+
+  //-- combinational FSM ----------------------------------------------------
+	always_comb begin : p_next_state
+		state_d = state_q;
+		rdy_o = 1'b0;
+    unique case (state_q)
+      ST_IDLE: if (vld_i) state_d = ST_REQ;
+      ST_REQ: begin
+				state_d = ST_WAIT;
+				rdy_o   = 1'b1;
+             end
+    ST_WAIT: state_d = gnt_int ? ST_RESP : ST_WAIT;
+         ST_RESP: state_d = ST_IDLE;
+      default: state_d = ST_ERR;
+    endcase
+  end : p_next_state
+
+	(* full_case, parallel_case *)
+         always_comb begin
+		priority casez (addr_i[3:0])
+      4'b1???: scratch = 8'h80;
+      4'b01??   : scratch = 8'h40;
+      4'b001?: scratch = 8'h20;
+    default: scratch = 8'h00;
+    endcase
+
+    unique0 case (data_i[7:0]) inside
+       [8'h00 : 8'h0F]: msg = "low";
+         [8'h10 : 8'hEF]: msg = "mid";
+			8'hFF: msg = "max";
+			default: msg = "other";
+       endcase
+  end
+
+	always @* scratch2 = ~scratch;
+
+	//-- sequential -----------------------------------------------------------
+  always_ff @(posedge clk or negedge rst_n) begin   :  p_regs
+   if (!rst_n) begin
+       state_q <= ST_IDLE;
+			wr_ptr_q <=  '0;
+      rd_ptr_q      <=    '0;
+			strb_q <= {STRB_W{1'b0}};
+             err_q <= 1'b0;
+      payload_q  <= payload_t'(RESET_VAL);
+    end else begin
+      state_q   <= state_d;
+         err_q <= (state_d == ST_ERR);
+      payload_q <= payload_t'(data_i);
+		if (vld_i && !full) begin
+        mem[wr_ptr_q] <= data_i;
+				wr_ptr_q <= wr_ptr_q + PTR_W'(1);
+        strb_q        <= {<<{data_i[STRB_W-1:0]}};
+     end else if (!empty) begin
+               rd_ptr_q <= rd_ptr_q + PTR_W'(1);
+			end
+    end
+  end    :    p_regs
+
+	always_latch begin
+     if (busy) latched_q <= data_i[7:0];
+  end
+
+	always @(posedge clk iff rst_n == 1'b1) begin
+    hits[msg]  =   hits.exists(msg) ? hits[msg] + 1 : 1;
+  end
+
+     //-- generate -------------------------------------------------------------
+  for (genvar gi = 0; gi < 4; gi++) begin : g_lanes
+     localparam int unsigned LANE_LSB = gi * 8;
+	logic [7:0] lane_d, lane_q;
+
+    assign lane_d = data_i[LANE_LSB+:8];
+
+    always_ff @(posedge clk) lane_q <= lane_d;
+
+    if (gi % 2 == 0) begin : g_even
+       assign mem_dbg[gi] = {24'd0, lane_q};
+       end : g_even
+    else begin     :   g_odd
+      assign mem_dbg[gi] = {lane_q, 24'd0};
+         end : g_odd
+	end : g_lanes
+
+  generate
+         case (DW)
+      8: begin : g_dw8
+				assign width_tag = 2'd0;
+      end   :  g_dw8
+			16: begin : g_dw16
+        assign width_tag = 2'd1;
+      end : g_dw16
+			32, 64: begin : g_dw_wide
+        assign width_tag    = 2'd2;
+      end : g_dw_wide
+       default: begin : g_dw_other
+        assign width_tag = 2'd3;
+      end   :    g_dw_other
+    endcase
+endgenerate
+
+  //-- instantiations -------------------------------------------------------
+	dff #(
+  .W(8),
+			.RST_VAL(8'hFF)
+  ) u_dff_named (
+           .clk(clk),
+      .rst_n(rst_n),
+      .en(vld_i),
+			.d(data_i[7:0]),
+      .q(dff_q)
+	);
+
+  dff #(8, 8'h00) u_dff_pos (clk, rst_n, vld_i, data_i[15:8], dff_q2);
+
+     dff #(
+             .W(4)
+	) u_dff_arr[0:3] (
+         .clk(clk),
+         .rst_n(rst_n),
+         .en(1'b1),
+           .d(nib_arr_d),
+			.q(nib_arr_q)
+     );
+
+  adder #(.W(DW)) u_adder (.*);
+adder #(.W(DW)) u_adder2 (.a, .b(data_i), .sum(sum2));
+
+//-- subprograms ----------------------------------------------------------
+         function automatic logic [DW-1:0] mask_bytes(input logic [DW-1:0] value,
+                                               input logic [STRB_W-1:0] strb,
+                                               input bit invert = 1'b0);
+       logic [DW-1:0] result = '0;
+		foreach (strb[i]) begin
+  if (strb[i]) result[i*8+:8] = value[i*8+:8];
+     end
+    return invert ? ~result : result;
+	endfunction : mask_bytes
+
+  task automatic bump(ref int counter, input int unsigned n   = 1);
+       repeat (n) begin
+      @(posedge clk);
+           counter++;
+		end
+  endtask : bump
+
+	//-- assertions -----------------------------------------------------------
+	sequence s_req_burst(int n);
+    req_int ##1 (!req_int)[*0:$] ##1 gnt_int[->n];
+  endsequence : s_req_burst
+
+     property p_no_err;
+     @(posedge clk) disable iff (!rst_n) (state_q == ST_ERR) |-> ##[1:3] (state_q == ST_IDLE);
+  endproperty : p_no_err
+
+	property p_data_hold;
+    logic [DW-1      : 0] v;
+           @(posedge clk) disable iff (!rst_n) (vld_i, v = data_i) |=> (payload_q == v);
+  endproperty : p_data_hold
+
+ a_no_err : assert property (p_no_err);
+  a_data_hold : assert property (p_data_hold)
+  else $error("[%m] payload not held @%0t", $time);
+	m_reset : assume property (@(posedge clk) $stable(rst_n) or $rose(rst_n));
+  c_burst     : cover property (@(posedge clk) s_req_burst(3));
+	restrict property (@(posedge clk) !$isunknown(addr_i));
+
+       always_comb begin
+         a_not_both : assert (!(full && empty))
+  else $warning("[%m] full and empty");
+		a_deferred : assert #0 (strb_q !== 'x);
+  end
+
+  always @(posedge clk) begin
+    a_final  :   assert final (!rst_n || !$isunknown(state_q));
+  end
+
+	//-- coverage -------------------------------------------------------------
+covergroup cg_bus @(posedge clk);
+    option.name  =    "cg_bus";
+    option.at_least    =    2;
+    type_option.merge_instances = 1;
+
+    cp_state : coverpoint state_q iff (rst_n) {
+      bins idle = {ST_IDLE};
+			bins active[] = {ST_REQ, ST_WAIT, ST_RESP};
+      bins err  = {ST_ERR};
+			bins walk = (ST_IDLE => ST_REQ => ST_WAIT);
+    wildcard bins any_low = {3'b?00};
+       }
+       cp_addr : coverpoint addr_i {option.auto_bin_max = 8;}
+       cx_state_addr : cross cp_state, cp_addr;
+  endgroup : cg_bus
+
+	cg_bus cg_bus_i = new();
+
+     //-- stimulus -------------------------------------------------------------
+  initial begin : b_stim
+		automatic int counter = 0;
+    automatic int status = 0;
+automatic int v = 0;
+
+sem = new(1);
+    mbx =   new(4);
+		pkt = new("p0");
+
+    fork
+      begin : th_producer
+        repeat (8) begin
+					sem.get(1);
+           mbx.put(counter++);
+          sem.put(1);
+          #(2ns);
+        end
+				-> tick_e;
+			end : th_producer
+             begin : th_consumer
+				repeat (8) begin
+					mbx.get(v);
+          $display("[%0t] got %0d (%s)", $time, v, `STRINGIFY(consumer));
+        end
+        -> tock_e;
+      end : th_consumer
+           begin : th_watchdog
+        #(1us);
+        $fatal(1, "[%m] watchdog expired at %0t", $time);
+			end : th_watchdog
+				join_any
+    disable fork;
+
+    fork
+         bump(counter, 2);
+    join_none
+       wait fork;
+
+
+   randcase
+			1: $display("weight 1");
+      3: $display("weight 3");
+      6: $display("weight 6");
+           endcase
+
+    randsequence (main)
+         main : first second third;
+      first    :  {$display("first");};
+      second : rand join (0.5) alpha beta;
+       third : case (counter % 2)
+							0: alpha;
+                    default: beta;
+               endcase;
+      alpha  : {$display("alpha");};
+      beta   : repeat (2) alpha;
+    endsequence
+
+    if (!pkt.randomize() with {
+        len == 4;
+          op inside {OP_A0, OP_A1};
+				}) begin
+      $error("[%m] randomize failed");
+    end
+    void'(std::randomize(counter) with {counter inside {[1 : 10]};});
+
+           pkt.run(.iters(2), .status(status), .shared(counter));
+    $display("%s cost      =   %0d status=%0d masked=%h", pkt.to_str(), pkt.cost(), status,
+						mask_bytes(data_i, strb_q, 1'b1));
+
+    #100ns $finish;
+  end : b_stim
+
+	//-- timing ---------------------------------------------------------------
+  specify
+    specparam tRise    = 1.2, tFall = 1.4;
+		(addr_i *> data_o) = (tRise, tFall);
+    (clk => rdy_o) = 2.0;
+    $setup(data_i, posedge clk, 0.5);
+		$hold(posedge clk, data_i, 0.4);
+	endspecify
+
+  final begin
+		$display("[%m] distinct msgs=%0d created=%0d", hits.size(), tort_oop_pkg::base_item::num_created);
+end
+
+`ifdef ENABLE_DEBUG
+  initial $monitor("[DBG] %0t state   =  %s", $time, state_q.name());
+`elsif ENABLE_TRACE
+     initial begin
+    $dumpfile("tort.vcd");
+       $dumpvars(0, tort_top);
+  end
+`else
+  // synthesis translate_off
+	initial $display("[%m] debug disabled");
+	// synthesis translate_on
+`endif
+endmodule : tort_top
+
+//----------------------------------------------------------------------------
+// Bind
+	//----------------------------------------------------------------------------
+bind tort_top handshake_chk u_chk (
+     .clk(clk),
+.rst_n(rst_n),
+           .req(req_int),
+				.gnt(gnt_int)
+);
+
+//----------------------------------------------------------------------------
+// Wrapper (gives the DUT its interface ports)
+//----------------------------------------------------------------------------
+module tort_wrap (
+		input wire clk,
+           input wire rst_n
+     );
+	bus_if #(
+       .AW(12),
+  .DW(32)
+) u_bus (
+			.clk(clk),
+      .rst_n(rst_n)
+  );
+
+  simple_if u_simple ();
+
+  tort_top #(
+			.AW(12),
+      .DW(32),
+      .payload_t(logic [31:0]),
+      .ID(8'h5A)
+  ) u_dut (
+      .clk(clk),
+     .rst_n(rst_n),
+			.addr_i(12'h000),
+      .data_i(32'h0000_0000),
+			.vld_i(1'b0),
+      .rdy_o(),
+           .data_o(),
+    .strb_o(),
+      .scl_io(),
+			.bus(u_bus.mst),
+      .generic_if_p(u_simple)
+  );
+
+         tort_test u_test (
+			.clk(clk),
+           .bus(u_bus.mst)
+  );
+endmodule : tort_wrap
+
+	//----------------------------------------------------------------------------
+// Program block
+//----------------------------------------------------------------------------
+program automatic tort_test (
+    input logic clk,
+		bus_if.mst bus
+   );
+ default clocking cb_p @(posedge clk);
+  endclocking
+
+       initial begin
+		##2;
+		bus.drive(12'hABC);
+   ##5;
+		$display("[%m] test done at %0t", $time);
+	end
+endprogram : tort_test
+
+//----------------------------------------------------------------------------
+// Legacy (non-ANSI) module and UDPs
+     //----------------------------------------------------------------------------
+`default_nettype wire
+
+module legacy_mux (out, sel, a, b);
+output out;
+input sel;
+  input a, b;
+
+	wire out;
+  reg shadow;
+
+  assign out = sel ? b : a;
+
+  always @(a or b or sel) shadow = sel ? b : a;
+
+  initial #1 $display("legacy shadow=%b", shadow);
+endmodule
+
+primitive udp_mux (q, sel, d0, d1);
+  output q;
+         input sel, d0, d1;
+
+	table
+    // sel d0 d1 : q
+     0 0 ? : 0;
+    0 1 ? :    1;
+1 ? 0 : 0;
+       1 ? 1 : 1;
+x 0 0 : 0;
+     x 1 1 : 1;
+  endtable
+endprimitive
+
+     primitive udp_dff (q, clk, d);
+  output q;
+   reg q;
+  input clk, d;
+
+     initial q = 1'b0;
+
+  table
+    // clk  d  :  q : q+
+           (01) 0 : ? : 0;
+		(01) 1 : ? : 1;
+    (0x) 1 : 1 : 1;
+    (?0) ? : ? : -;
+         ? * : ? : -;
+  endtable
+endprimitive
+
+//----------------------------------------------------------------------------
+// Configuration
+   //----------------------------------------------------------------------------
+			config cfg_tort;
+  design work.tort_wrap;
+  default liblist work;
+  instance tort_wrap.u_dut liblist work;
+         cell dff use work.dff;
+endconfig
+
+`undef MAX
+`undef STRINGIFY
+`undef REG_FF
+`endif  // TORTURE_SV
