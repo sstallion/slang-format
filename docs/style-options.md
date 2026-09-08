@@ -1304,6 +1304,35 @@ endmodule
 
 ---
 
+### SpaceAroundOperators (bool)
+
+Normalizes whitespace around assignment, binary, and ternary operators. If
+`true`, a single space is inserted before and after the operator; multiple spaces
+are collapsed to a single space. If `false`, whitespace before and after the
+operator is removed. Newlines are not affected.
+
+**Default:** `true`
+
+`SpaceAroundOperators: false`:
+
+```sv
+module foo;
+  assign x=a+b;
+  assign y=a?b:c;
+endmodule
+```
+
+`SpaceAroundOperators: true` (default):
+
+```sv
+module foo;
+  assign x = a + b;
+  assign y = a ? b : c;
+endmodule
+```
+
+---
+
 ### SpacesInParens (bool)
 
 Normalizes whitespace inside parentheses. If `true`, whitespace following an

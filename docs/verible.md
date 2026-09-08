@@ -89,7 +89,7 @@ complete rule set, as implemented in `token-annotator.cc`, includes:
 
 - [x] 1 space after `,` and `;`; 0 before
 - [x] 0 space inside `()`, `[]`, `{}`
-- [ ] 1 space around binary and assignment operators (`+`, `-`, `*`, `=`, `<=`, `+=`, etc.)
+- [x] 1 space around binary and assignment operators (`+`, `-`, `*`, `=`, `<=`, `+=`, etc.)
 - [ ] 0 space for unary prefix and postfix operators (`!`, `~`, `++`, `--`)
 - [ ] 1 space around ternary `?` and `:`
 - [ ] 0 space around cast `'` (e.g. `int'(x)`)

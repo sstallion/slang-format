@@ -134,6 +134,18 @@ public:
         emitToken(p.closeParen);
     }
 
+    void handle(const BinaryExpressionSyntax& expr) {
+        expr.left->visit(*this);
+        beforeOperator = formatEnabled;
+        emitToken(expr.operatorToken);
+
+        for (auto* attr : expr.attributes) {
+            attr->visit(*this);
+        }
+
+        expr.right->visit(*this);
+    }
+
     void handle(const NonAnsiPortListSyntax& p) {
         emitToken(p.openParen);
 
@@ -232,6 +244,21 @@ public:
         }
 
         visitProceduralBody(*proc.statement, brkStyle);
+    }
+
+    void handle(const ConditionalExpressionSyntax& expr) {
+        expr.predicate->visit(*this);
+        beforeOperator = formatEnabled;
+        emitToken(expr.question);
+
+        for (auto* attr : expr.attributes) {
+            attr->visit(*this);
+        }
+
+        expr.left->visit(*this);
+        beforeOperator = formatEnabled;
+        emitToken(expr.colon);
+        expr.right->visit(*this);
     }
 
     void handle(const ConditionalStatementSyntax& stmt) {
@@ -538,11 +565,15 @@ private:
     bool formatEnabled = true;
     unsigned emptyLineCount = 0;
     size_t triviaSkip = 0;
+    bool beforeOperator = false;
+    bool afterOperator = false;
+    unsigned bracketDepth = 0;
     bool afterComma = false;
     bool afterSemicolon = false;
     bool afterOpenBrace = false;
     bool afterOpenBracket = false;
     bool afterOpenParen = false;
+    bool spaceAfterOperatorEmitted = false;
     bool spaceAfterCommaEmitted = false;
     bool spaceAfterSemicolonEmitted = false;
     bool spaceAfterOpenBraceEmitted = false;
@@ -657,6 +688,8 @@ private:
 
     void emitTrivia(const Trivia& t) {
         if (t.kind == TriviaKind::EndOfLine) {
+            beforeOperator = false;
+            afterOperator = false;
             afterComma = false;
             afterSemicolon = false;
             afterOpenBrace = false;
@@ -694,6 +727,8 @@ private:
         }
 
         emitDeferredSpaces();
+        beforeOperator = false;
+        afterOperator = false;
         afterComma = false;
         afterSemicolon = false;
         afterOpenBrace = false;
@@ -739,6 +774,15 @@ private:
         if (atLineStart && formatEnabled) {
             return;
         }
+        if (beforeOperator) {
+            return;
+        }
+        if (afterOperator) {
+            if (shouldSpaceAroundOperator()) {
+                emitSpaceAfterOperator();
+            }
+            return;
+        }
         if (afterComma) {
             if (style.SpaceAfterComma) {
                 emitSpaceAfterComma();
@@ -770,6 +814,13 @@ private:
             return;
         }
         output += t.getRawText();
+    }
+
+    void emitSpaceAfterOperator() {
+        if (!spaceAfterOperatorEmitted) {
+            output += ' ';
+            spaceAfterOperatorEmitted = true;
+        }
     }
 
     void emitSpaceAfterComma() {
@@ -805,6 +856,16 @@ private:
             output += ' ';
             spaceAfterOpenParenEmitted = true;
         }
+    }
+
+    [[nodiscard]] bool shouldSpaceAroundOperator() const {
+        if (!style.SpaceAroundOperators) {
+            return false;
+        }
+        if (bracketDepth > 0 && !style.SpacesInBrackets) {
+            return false;
+        }
+        return true;
     }
 
     [[nodiscard]] static bool needsStripBefore(TokenKind kind) {
@@ -850,6 +911,11 @@ private:
     }
 
     void emitDeferredSpaces() {
+        if (afterOperator) {
+            if (shouldSpaceAroundOperator()) {
+                emitSpaceAfterOperator();
+            }
+        }
         if (afterComma) {
             if (style.SpaceAfterComma) {
                 emitSpaceAfterComma();
@@ -927,8 +993,19 @@ private:
             stripTrailingSpaces();
         }
 
+        if (formatEnabled && tok.kind == TokenKind::CloseBracket && bracketDepth > 0) {
+            bracketDepth--;
+        }
+
         if (formatEnabled && !atLineStart) {
             normalizeBeforeClose(tok.kind);
+        }
+
+        if (formatEnabled && !atLineStart && beforeOperator) {
+            stripTrailingSpaces();
+            if (shouldSpaceAroundOperator()) {
+                output += ' ';
+            }
         }
 
         output += raw;
@@ -939,6 +1016,8 @@ private:
     }
 
     void updateAfterTokenFlags(Token tok) {
+        afterOperator = formatEnabled && beforeOperator;
+        beforeOperator = false;
         afterComma = formatEnabled && tok.kind == TokenKind::Comma;
         afterSemicolon = formatEnabled && tok.kind == TokenKind::Semicolon;
         afterOpenBrace = formatEnabled && (tok.kind == TokenKind::OpenBrace ||
@@ -949,11 +1028,13 @@ private:
         afterOpenBracket = formatEnabled && tok.kind == TokenKind::OpenBracket;
         if (afterOpenBracket) {
             spaceBeforeCloseBracketPending = true;
+            bracketDepth++;
         }
         afterOpenParen = formatEnabled && tok.kind == TokenKind::OpenParenthesis;
         if (afterOpenParen) {
             spaceBeforeCloseParenPending = true;
         }
+        spaceAfterOperatorEmitted = false;
         spaceAfterCommaEmitted = false;
         spaceAfterSemicolonEmitted = false;
         spaceAfterOpenBraceEmitted = false;

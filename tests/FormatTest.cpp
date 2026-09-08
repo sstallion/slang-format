@@ -2200,6 +2200,184 @@ TEST(SpaceAfterSemicolon, RemovesBefore) {
     // clang-format on
 }
 
+TEST(SpaceAroundOperators, Collapses) {
+    Style style;
+    style.SpaceAroundOperators = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x  =  a  +  b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = a + b;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAroundOperators, Disabled) {
+    Style style;
+    style.SpaceAroundOperators = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x=a+b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x=a+b;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAroundOperators, FormatOff) {
+    Style style;
+    style.SpaceAroundOperators = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          // slang-format off
+          assign x=a+b;
+          // slang-format on
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // slang-format off
+          assign x=a+b;
+          // slang-format on
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAroundOperators, Inserts) {
+    Style style;
+    style.SpaceAroundOperators = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x=a+b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = a + b;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAroundOperators, NormalizesAround) {
+    Style style;
+    style.SpaceAroundOperators = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x  =  a  +  b  ==  c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = a + b == c;
+        endmodule
+    )"));
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            x  <=  a  &&  b;
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            x <= a && b;
+          end
+        endmodule
+    )"));
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign y  =  a  ?  b  :  c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign y = a ? b : c;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAroundOperators, NormalizesWhenDisabled) {
+    Style style;
+    style.SpaceAroundOperators = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = a + b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x=a+b;
+        endmodule
+    )"));
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign y = a ? b : c;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign y=a?b:c;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAroundOperators, PreservesNewlines) {
+    Style style;
+    style.SpaceAroundOperators = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x =
+            a + b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x =
+          a + b;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAroundOperators, RemovesBefore) {
+    Style style;
+    style.SpaceAroundOperators = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x  =  a  +  b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = a + b;
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(SpacesInBraces, Collapses) {
     Style style;
     style.SpacesInBraces = true;

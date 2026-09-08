@@ -302,6 +302,7 @@ std::string dumpConfiguration(const Style& style) {
         << style.ParameterPortListIndentWidth;
     out << YAML::Key << "SpaceAfterComma" << YAML::Value << style.SpaceAfterComma;
     out << YAML::Key << "SpaceAfterSemicolon" << YAML::Value << style.SpaceAfterSemicolon;
+    out << YAML::Key << "SpaceAroundOperators" << YAML::Value << style.SpaceAroundOperators;
     out << YAML::Key << "SpacesInBraces" << YAML::Value << style.SpacesInBraces;
     out << YAML::Key << "SpacesInBrackets" << YAML::Value << style.SpacesInBrackets;
     out << YAML::Key << "SpacesInParens" << YAML::Value << style.SpacesInParens;
@@ -387,6 +388,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto v = node["SpaceAfterSemicolon"]) {
         style.SpaceAfterSemicolon = v.as<bool>();
+    }
+
+    if (auto v = node["SpaceAroundOperators"]) {
+        style.SpaceAroundOperators = v.as<bool>();
     }
 
     if (auto v = node["SpacesInBraces"]) {

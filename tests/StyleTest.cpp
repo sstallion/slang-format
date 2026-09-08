@@ -679,6 +679,13 @@ TEST(ParseConfiguration, ParsesSpaceAfterSemicolon) {
     EXPECT_TRUE(style.SpaceAfterSemicolon);
 }
 
+TEST(ParseConfiguration, ParsesSpaceAroundOperators) {
+    YAML::Node const node = YAML::Load("SpaceAroundOperators: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.SpaceAroundOperators);
+}
+
 TEST(ParseConfiguration, ParsesSpacesInBraces) {
     YAML::Node const node = YAML::Load("SpacesInBraces: true");
     Style style;
@@ -760,6 +767,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("ParameterPortListIndentWidth: 0"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterComma: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: true"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAroundOperators: true"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBraces: false"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBrackets: false"), std::string::npos);
     EXPECT_NE(result.find("SpacesInParens: false"), std::string::npos);
@@ -796,6 +804,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
     style.SpaceAfterComma = false;
     style.SpaceAfterSemicolon = false;
+    style.SpaceAroundOperators = false;
     style.SpacesInBraces = true;
     style.SpacesInBrackets = true;
     style.SpacesInParens = true;
@@ -814,6 +823,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterComma: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: false"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAroundOperators: false"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBraces: true"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBrackets: true"), std::string::npos);
     EXPECT_NE(result.find("SpacesInParens: true"), std::string::npos);
@@ -850,6 +860,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
     original.SpaceAfterComma = true;
     original.SpaceAfterSemicolon = true;
+    original.SpaceAroundOperators = false;
     original.SpacesInBraces = true;
     original.SpacesInBrackets = true;
     original.SpacesInParens = true;
