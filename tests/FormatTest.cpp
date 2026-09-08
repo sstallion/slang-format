@@ -2200,6 +2200,166 @@ TEST(SpaceAfterSemicolon, RemovesBefore) {
     // clang-format on
 }
 
+TEST(SpacesInBrackets, Collapses) {
+    Style style;
+    style.SpacesInBrackets = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [  7:0  ] data;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [ 7:0 ] data;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBrackets, Disabled) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] data;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] data;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBrackets, FormatOff) {
+    Style style;
+    style.SpacesInBrackets = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          // slang-format off
+          logic [7:0] data;
+          // slang-format on
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // slang-format off
+          logic [7:0] data;
+          // slang-format on
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBrackets, Inserts) {
+    Style style;
+    style.SpacesInBrackets = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [7:0] data;
+          logic data [0:255];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [ 7:0 ] data;
+          logic data [ 0:255 ];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBrackets, NormalizesAround) {
+    Style style;
+    style.SpacesInBrackets = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            x = data[  i  ];
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            x = data[ i ];
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBrackets, NormalizesWhenDisabled) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [ 7:0 ] data;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] data;
+        endmodule
+    )"));
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic data [ 0:255 ];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic data [0:255];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBrackets, PreservesNewlines) {
+    Style style;
+    style.SpacesInBrackets = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [
+          7:0
+          ] data;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [
+          7:0
+          ] data;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBrackets, RemovesBefore) {
+    Style style;
+    style.SpacesInBrackets = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          logic [  7:0  ] data;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [ 7:0 ] data;
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(SpacesInParens, Collapses) {
     Style style;
     style.SpacesInParens = true;

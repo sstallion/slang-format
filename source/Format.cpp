@@ -541,10 +541,13 @@ private:
     bool afterComma = false;
     bool afterSemicolon = false;
     bool afterOpenParen = false;
+    bool afterOpenBracket = false;
     bool spaceAfterCommaEmitted = false;
     bool spaceAfterSemicolonEmitted = false;
     bool spaceAfterOpenParenEmitted = false;
+    bool spaceAfterOpenBracketEmitted = false;
     bool spaceBeforeCloseParenPending = false;
+    bool spaceBeforeCloseBracketPending = false;
     std::optional<std::regex> offRegex;
     std::optional<LineMetadata::Kind> nextLineKind;
 
@@ -654,7 +657,9 @@ private:
             afterComma = false;
             afterSemicolon = false;
             afterOpenParen = false;
+            afterOpenBracket = false;
             spaceBeforeCloseParenPending = false;
+            spaceBeforeCloseBracketPending = false;
 
             if (atLineStart) {
                 // Blank line.
@@ -687,6 +692,7 @@ private:
         afterComma = false;
         afterSemicolon = false;
         afterOpenParen = false;
+        afterOpenBracket = false;
 
         auto raw = t.getRawText();
 
@@ -745,6 +751,12 @@ private:
             }
             return;
         }
+        if (afterOpenBracket) {
+            if (style.SpacesInBrackets) {
+                emitSpaceAfterOpenBracket();
+            }
+            return;
+        }
         output += t.getRawText();
     }
 
@@ -769,8 +781,30 @@ private:
         }
     }
 
+    void emitSpaceAfterOpenBracket() {
+        if (!spaceAfterOpenBracketEmitted) {
+            output += ' ';
+            spaceAfterOpenBracketEmitted = true;
+        }
+    }
+
     [[nodiscard]] static bool needsStripBefore(TokenKind kind) {
         return kind == TokenKind::Comma || kind == TokenKind::Semicolon;
+    }
+
+    void normalizeBeforeClose(TokenKind kind) {
+        if (spaceBeforeCloseParenPending && kind == TokenKind::CloseParenthesis) {
+            stripTrailingSpaces();
+            if (style.SpacesInParens) {
+                output += ' ';
+            }
+        }
+        if (spaceBeforeCloseBracketPending && kind == TokenKind::CloseBracket) {
+            stripTrailingSpaces();
+            if (style.SpacesInBrackets) {
+                output += ' ';
+            }
+        }
     }
 
     void stripTrailingSpaces() {
@@ -804,6 +838,11 @@ private:
         if (afterOpenParen) {
             if (style.SpacesInParens) {
                 emitSpaceAfterOpenParen();
+            }
+        }
+        if (afterOpenBracket) {
+            if (style.SpacesInBrackets) {
+                emitSpaceAfterOpenBracket();
             }
         }
     }
@@ -858,12 +897,8 @@ private:
             stripTrailingSpaces();
         }
 
-        if (formatEnabled && !atLineStart && spaceBeforeCloseParenPending &&
-            tok.kind == TokenKind::CloseParenthesis) {
-            stripTrailingSpaces();
-            if (style.SpacesInParens) {
-                output += ' ';
-            }
+        if (formatEnabled && !atLineStart) {
+            normalizeBeforeClose(tok.kind);
         }
 
         output += raw;
@@ -876,9 +911,14 @@ private:
         if (afterOpenParen) {
             spaceBeforeCloseParenPending = true;
         }
+        afterOpenBracket = formatEnabled && tok.kind == TokenKind::OpenBracket;
+        if (afterOpenBracket) {
+            spaceBeforeCloseBracketPending = true;
+        }
         spaceAfterCommaEmitted = false;
         spaceAfterSemicolonEmitted = false;
         spaceAfterOpenParenEmitted = false;
+        spaceAfterOpenBracketEmitted = false;
     }
 
     // Emit all elements and separators of a SeparatedSyntaxList.

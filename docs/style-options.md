@@ -1338,6 +1338,36 @@ endmodule
 
 ---
 
+### SpacesInBrackets (bool)
+
+Normalizes whitespace inside square brackets. If `true`, whitespace following an
+opening bracket is replaced with a single space and a single space is inserted
+before a closing bracket; multiple spaces are collapsed to a single space. If
+`false`, whitespace following an opening bracket and preceding a closing bracket
+is removed. Newlines are not affected.
+
+**Default:** `false`
+
+`SpacesInBrackets: false` (default):
+
+```sv
+module foo;
+  logic [7:0] data;
+  logic data [0:255];
+endmodule
+```
+
+`SpacesInBrackets: true`:
+
+```sv
+module foo;
+  logic [ 7:0 ] data;
+  logic data [ 0:255 ];
+endmodule
+```
+
+---
+
 ### UnpackedDimensionBounds (DimensionBoundsStyle)
 
 Controls the ordering of bounds in unpacked dimension ranges. When set to
