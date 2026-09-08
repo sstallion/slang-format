@@ -88,7 +88,7 @@ Verible normalizes all inter-token whitespace via context-sensitive rules. The
 complete rule set, as implemented in `token-annotator.cc`, includes:
 
 - [x] 1 space after `,` and `;`; 0 before
-- [ ] 0 space inside `()`, `[]`, `{}`
+- [x] 0 space inside `()`, `[]`, `{}`
 - [ ] 1 space around binary and assignment operators (`+`, `-`, `*`, `=`, `<=`, `+=`, etc.)
 - [ ] 0 space for unary prefix and postfix operators (`!`, `~`, `++`, `--`)
 - [ ] 1 space around ternary `?` and `:`

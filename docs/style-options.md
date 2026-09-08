@@ -1338,6 +1338,35 @@ endmodule
 
 ---
 
+### SpacesInBraces (bool)
+
+Normalizes whitespace inside curly braces. If `true`, whitespace following an
+opening brace is replaced with a single space and a single space is inserted
+before a closing brace; multiple spaces are collapsed to a single space. If
+`false`, whitespace following an opening brace and preceding a closing brace is
+removed. Newlines are not affected. Both `{` and `'{` tokens are treated as
+opening braces.
+
+**Default:** `false`
+
+`SpacesInBraces: false` (default):
+
+```sv
+module foo;
+  assign x = {a, b, c};
+endmodule
+```
+
+`SpacesInBraces: true`:
+
+```sv
+module foo;
+  assign x = { a, b, c };
+endmodule
+```
+
+---
+
 ### SpacesInBrackets (bool)
 
 Normalizes whitespace inside square brackets. If `true`, whitespace following an

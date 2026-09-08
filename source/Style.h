@@ -131,6 +131,10 @@ struct Style {
     /// trailing space.
     bool SpaceAfterSemicolon = true;
 
+    /// Normalizes whitespace inside curly braces. If true, inserts a single
+    /// space after { and before }.
+    bool SpacesInBraces = false;
+
     /// Normalizes whitespace inside square brackets. If true, inserts a single
     /// space after [ and before ].
     bool SpacesInBrackets = false;

@@ -540,14 +540,17 @@ private:
     size_t triviaSkip = 0;
     bool afterComma = false;
     bool afterSemicolon = false;
-    bool afterOpenParen = false;
+    bool afterOpenBrace = false;
     bool afterOpenBracket = false;
+    bool afterOpenParen = false;
     bool spaceAfterCommaEmitted = false;
     bool spaceAfterSemicolonEmitted = false;
-    bool spaceAfterOpenParenEmitted = false;
+    bool spaceAfterOpenBraceEmitted = false;
     bool spaceAfterOpenBracketEmitted = false;
-    bool spaceBeforeCloseParenPending = false;
+    bool spaceAfterOpenParenEmitted = false;
+    bool spaceBeforeCloseBracePending = false;
     bool spaceBeforeCloseBracketPending = false;
+    bool spaceBeforeCloseParenPending = false;
     std::optional<std::regex> offRegex;
     std::optional<LineMetadata::Kind> nextLineKind;
 
@@ -656,10 +659,12 @@ private:
         if (t.kind == TriviaKind::EndOfLine) {
             afterComma = false;
             afterSemicolon = false;
-            afterOpenParen = false;
+            afterOpenBrace = false;
             afterOpenBracket = false;
-            spaceBeforeCloseParenPending = false;
+            afterOpenParen = false;
+            spaceBeforeCloseBracePending = false;
             spaceBeforeCloseBracketPending = false;
+            spaceBeforeCloseParenPending = false;
 
             if (atLineStart) {
                 // Blank line.
@@ -691,8 +696,9 @@ private:
         emitDeferredSpaces();
         afterComma = false;
         afterSemicolon = false;
-        afterOpenParen = false;
+        afterOpenBrace = false;
         afterOpenBracket = false;
+        afterOpenParen = false;
 
         auto raw = t.getRawText();
 
@@ -745,15 +751,21 @@ private:
             }
             return;
         }
-        if (afterOpenParen) {
-            if (style.SpacesInParens) {
-                emitSpaceAfterOpenParen();
+        if (afterOpenBrace) {
+            if (style.SpacesInBraces) {
+                emitSpaceAfterOpenBrace();
             }
             return;
         }
         if (afterOpenBracket) {
             if (style.SpacesInBrackets) {
                 emitSpaceAfterOpenBracket();
+            }
+            return;
+        }
+        if (afterOpenParen) {
+            if (style.SpacesInParens) {
+                emitSpaceAfterOpenParen();
             }
             return;
         }
@@ -774,10 +786,10 @@ private:
         }
     }
 
-    void emitSpaceAfterOpenParen() {
-        if (!spaceAfterOpenParenEmitted) {
+    void emitSpaceAfterOpenBrace() {
+        if (!spaceAfterOpenBraceEmitted) {
             output += ' ';
-            spaceAfterOpenParenEmitted = true;
+            spaceAfterOpenBraceEmitted = true;
         }
     }
 
@@ -788,20 +800,33 @@ private:
         }
     }
 
+    void emitSpaceAfterOpenParen() {
+        if (!spaceAfterOpenParenEmitted) {
+            output += ' ';
+            spaceAfterOpenParenEmitted = true;
+        }
+    }
+
     [[nodiscard]] static bool needsStripBefore(TokenKind kind) {
         return kind == TokenKind::Comma || kind == TokenKind::Semicolon;
     }
 
     void normalizeBeforeClose(TokenKind kind) {
-        if (spaceBeforeCloseParenPending && kind == TokenKind::CloseParenthesis) {
+        if (spaceBeforeCloseBracePending && kind == TokenKind::CloseBrace) {
             stripTrailingSpaces();
-            if (style.SpacesInParens) {
+            if (style.SpacesInBraces) {
                 output += ' ';
             }
         }
         if (spaceBeforeCloseBracketPending && kind == TokenKind::CloseBracket) {
             stripTrailingSpaces();
             if (style.SpacesInBrackets) {
+                output += ' ';
+            }
+        }
+        if (spaceBeforeCloseParenPending && kind == TokenKind::CloseParenthesis) {
+            stripTrailingSpaces();
+            if (style.SpacesInParens) {
                 output += ' ';
             }
         }
@@ -835,14 +860,19 @@ private:
                 emitSpaceAfterSemicolon();
             }
         }
-        if (afterOpenParen) {
-            if (style.SpacesInParens) {
-                emitSpaceAfterOpenParen();
+        if (afterOpenBrace) {
+            if (style.SpacesInBraces) {
+                emitSpaceAfterOpenBrace();
             }
         }
         if (afterOpenBracket) {
             if (style.SpacesInBrackets) {
                 emitSpaceAfterOpenBracket();
+            }
+        }
+        if (afterOpenParen) {
+            if (style.SpacesInParens) {
+                emitSpaceAfterOpenParen();
             }
         }
     }
@@ -905,20 +935,30 @@ private:
         lineDepth = depth;
         nextIsPrimary = false;
         emptyLineCount = 0;
+        updateAfterTokenFlags(tok);
+    }
+
+    void updateAfterTokenFlags(Token tok) {
         afterComma = formatEnabled && tok.kind == TokenKind::Comma;
         afterSemicolon = formatEnabled && tok.kind == TokenKind::Semicolon;
-        afterOpenParen = formatEnabled && tok.kind == TokenKind::OpenParenthesis;
-        if (afterOpenParen) {
-            spaceBeforeCloseParenPending = true;
+        afterOpenBrace = formatEnabled && (tok.kind == TokenKind::OpenBrace ||
+                                           tok.kind == TokenKind::ApostropheOpenBrace);
+        if (afterOpenBrace) {
+            spaceBeforeCloseBracePending = true;
         }
         afterOpenBracket = formatEnabled && tok.kind == TokenKind::OpenBracket;
         if (afterOpenBracket) {
             spaceBeforeCloseBracketPending = true;
         }
+        afterOpenParen = formatEnabled && tok.kind == TokenKind::OpenParenthesis;
+        if (afterOpenParen) {
+            spaceBeforeCloseParenPending = true;
+        }
         spaceAfterCommaEmitted = false;
         spaceAfterSemicolonEmitted = false;
-        spaceAfterOpenParenEmitted = false;
+        spaceAfterOpenBraceEmitted = false;
         spaceAfterOpenBracketEmitted = false;
+        spaceAfterOpenParenEmitted = false;
     }
 
     // Emit all elements and separators of a SeparatedSyntaxList.

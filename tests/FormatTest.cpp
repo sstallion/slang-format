@@ -2200,6 +2200,162 @@ TEST(SpaceAfterSemicolon, RemovesBefore) {
     // clang-format on
 }
 
+TEST(SpacesInBraces, Collapses) {
+    Style style;
+    style.SpacesInBraces = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = {  a,  b,  c  };
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = { a, b, c };
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBraces, Disabled) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = {a, b, c};
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = {a, b, c};
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBraces, FormatOff) {
+    Style style;
+    style.SpacesInBraces = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          // slang-format off
+          assign x = {a, b, c};
+          // slang-format on
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // slang-format off
+          assign x = {a, b, c};
+          // slang-format on
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBraces, Inserts) {
+    Style style;
+    style.SpacesInBraces = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = {a, b, c};
+          assign y = '{a, b};
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = { a, b, c };
+          assign y = '{ a, b };
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBraces, NormalizesAround) {
+    Style style;
+    style.SpacesInBraces = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = {  a  ,  b  ,  c  };
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = { a, b, c };
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBraces, NormalizesWhenDisabled) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = { a, b, c };
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = {a, b, c};
+        endmodule
+    )"));
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = {  a,  b,  c  };
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = {a, b, c};
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBraces, PreservesNewlines) {
+    Style style;
+    style.SpacesInBraces = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = {
+          a,
+          b
+          };
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = {
+          a,
+          b
+          };
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesInBraces, RemovesBefore) {
+    Style style;
+    style.SpacesInBraces = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = {  a, b, c  };
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = { a, b, c };
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(SpacesInBrackets, Collapses) {
     Style style;
     style.SpacesInBrackets = true;
