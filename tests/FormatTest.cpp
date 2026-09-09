@@ -179,7 +179,7 @@ TEST(ApplyIndentation, AlwaysBodyWithoutBegin) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always @(posedge clk)
+          always@(posedge clk)
             x <= y;
         endmodule
     )"));
@@ -276,7 +276,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysAlwaysTimingControl) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always @(posedge clk)
+          always@(posedge clk)
             x <= y;
         endmodule
     )"));
@@ -321,8 +321,8 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalWithBlocks) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always @(posedge clk_i)
-            if (a) begin
+          always@(posedge clk_i)
+            if(a)begin
               x <= 1;
             end else begin
               y <= 2;
@@ -368,7 +368,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineSimpleIf) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_comb if (a) x = 1;
+          always_comb if(a)x = 1;
         endmodule
     )"));
     // clang-format on
@@ -488,7 +488,7 @@ TEST(ApplyIndentation, BreakAfterBeginNested) {
     )"), style), dedent(R"(
         module foo;
           always_comb begin
-            if (a) begin
+            if(a)begin
               x = 1;
             end
           end
@@ -529,7 +529,7 @@ TEST(ApplyIndentation, BreakAfterBeginWithAlways) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always @(clk)
+          always@(clk)
           begin
             x = 1;
           end
@@ -647,7 +647,7 @@ TEST(ApplyIndentation, BreakBeforeAlwaysAlwaysTimingControl) {
     )"), style), dedent(R"(
         module foo;
 
-          always @(posedge clk) x <= y;
+          always@(posedge clk)x <= y;
         endmodule
     )"));
     // clang-format on
@@ -694,7 +694,7 @@ TEST(ApplyIndentation, BreakBeforeAlwaysAlwaysWithTrailingComment) {
     )"), style), dedent(R"(
         module foo;
 
-          always #5 clk = ~clk; // 100 MHz
+          always#5 clk = ~clk; // 100 MHz
 
           always_comb begin
             x = 1;
@@ -801,8 +801,8 @@ TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineSingleItemWithBlock) {
             y = 2;
           end
 
-          always_ff @(posedge clk_i) begin
-            if (x == 0) begin
+          always_ff@(posedge clk_i)begin
+            if(x == 0)begin
               y <= 1;
             end
           end
@@ -997,7 +997,7 @@ TEST(ApplyIndentation, BreakBeforeInitialAlwaysTimingControl) {
     )"), style), dedent(R"(
         module foo;
 
-          initial #10 x = 1;
+          initial#10 x = 1;
         endmodule
     )"));
     // clang-format on
@@ -1044,7 +1044,7 @@ TEST(ApplyIndentation, BreakBeforeInitialAlwaysWithTrailingComment) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #20 dclk = ~dclk; //  25 MHz
+          always#20 dclk = ~dclk; //  25 MHz
 
           initial begin
             x = 1;
@@ -1152,7 +1152,7 @@ TEST(ApplyIndentation, BreakBeforeInitialOnlyMultilineSingleItemWithBlock) {
           end
 
           initial begin
-            if (x == 0) begin
+            if(x == 0)begin
               y = 1;
             end
           end
@@ -1449,10 +1449,10 @@ TEST(ApplyIndentation, CaseItemNextLineIndented) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case (x)
-              2'b00:
+            case(x)
+              2'b 00:
                 y = 0;
-              default: y = 1;
+              default:y = 1;
             endcase
         endmodule
     )"));
@@ -1476,10 +1476,10 @@ TEST(ApplyIndentation, CaseItemNextLineNotIndented) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case (x)
-              2'b00:
+            case(x)
+              2'b 00:
               y = 0;
-              default: y = 1;
+              default:y = 1;
             endcase
         endmodule
     )"));
@@ -1503,8 +1503,8 @@ TEST(ApplyIndentation, CaseItemSameLineBeginUnchanged) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case (x)
-              2'b00: begin
+            case(x)
+              2'b 00:begin
                 y = 0;
               end
             endcase
@@ -1528,9 +1528,9 @@ TEST(ApplyIndentation, CaseItems) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case (x)
-              2'b00: y = 0;
-              default: y = 1;
+            case(x)
+              2'b 00:y = 0;
+              default:y = 1;
             endcase
         endmodule
     )"));
@@ -1588,7 +1588,7 @@ TEST(ApplyIndentation, ForLoopWithoutBegin) {
     )"), style), dedent(R"(
         module foo;
           initial
-            for (int i = 0; i < 4; i++)
+            for(int i=0; i < 4; i++)
               x = i;
         endmodule
     )"));
@@ -1654,7 +1654,7 @@ TEST(ApplyIndentation, IfBodyWithoutBegin) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if (a)
+            if(a)
               x = 1;
             else
               x = 0;
@@ -1734,7 +1734,7 @@ TEST(ApplyIndentation, NestedBeginEnd) {
     )"), style), dedent(R"(
         module foo;
           always_comb begin
-            if (a) begin
+            if(a)begin
               x = 1;
             end
           end
@@ -1775,9 +1775,9 @@ TEST(ApplyIndentation, ParameterPortListIndented) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo #(
-          parameter N = 4
-        ) (
+        module foo#(
+          parameter N=4
+        )(
           input a
         );
         endmodule
@@ -1798,9 +1798,9 @@ TEST(ApplyIndentation, ParameterPortListIndentWidthCustom) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo #(
-            parameter N = 4
-        ) (
+        module foo#(
+            parameter N=4
+        )(
             input a
         );
         endmodule
@@ -1840,7 +1840,7 @@ TEST(SpaceAfterComma, Collapses) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign {a, b, c} = d;
+          assign{a, b, c} = d;
         endmodule
     )"));
     // clang-format on
@@ -1857,7 +1857,7 @@ TEST(SpaceAfterComma, Disabled) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign {a,b,c} = d;
+          assign{a,b,c} = d;
         endmodule
     )"));
     // clang-format on
@@ -1895,7 +1895,7 @@ TEST(SpaceAfterComma, Inserts) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign {a, b, c} = d;
+          assign{a, b, c} = d;
         endmodule
     )"));
     // clang-format on
@@ -1912,7 +1912,7 @@ TEST(SpaceAfterComma, NormalizesWhenDisabled) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign {a,b,c} = d;
+          assign{a,b,c} = d;
         endmodule
     )"));
 
@@ -1922,7 +1922,7 @@ TEST(SpaceAfterComma, NormalizesWhenDisabled) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign {a,b,c} = d;
+          assign{a,b,c} = d;
         endmodule
     )"));
     // clang-format on
@@ -1939,7 +1939,7 @@ TEST(SpaceAfterComma, NormalizesAround) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign {a, b, c} = d;
+          assign{a, b, c} = d;
         endmodule
     )"));
     // clang-format on
@@ -1978,7 +1978,7 @@ TEST(SpaceAfterComma, RemovesBefore) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign {a, b, c} = d;
+          assign{a, b, c} = d;
         endmodule
     )"));
     // clang-format on
@@ -2001,7 +2001,7 @@ TEST(SpaceAfterSemicolon, Collapses) {
         module foo;
 
           initial begin
-            for (int i = 0; i < 4; i++) begin
+            for(int i=0; i < 4; i++)begin
             end
           end
         endmodule
@@ -2026,7 +2026,7 @@ TEST(SpaceAfterSemicolon, Disabled) {
         module foo;
 
           initial begin
-            for (int i = 0;i < 4;i++) begin
+            for(int i=0;i < 4;i++)begin
             end
           end
         endmodule
@@ -2080,7 +2080,7 @@ TEST(SpaceAfterSemicolon, Inserts) {
         module foo;
 
           initial begin
-            for (int i = 0; i < 4; i++) begin
+            for(int i=0; i < 4; i++)begin
             end
           end
         endmodule
@@ -2105,7 +2105,7 @@ TEST(SpaceAfterSemicolon, NormalizesAround) {
         module foo;
 
           initial begin
-            for (int i = 0; i < 4; i++) begin
+            for(int i=0; i < 4; i++)begin
             end
           end
         endmodule
@@ -2130,7 +2130,7 @@ TEST(SpaceAfterSemicolon, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            for (int i = 0;i < 4;i++) begin
+            for(int i=0;i < 4;i++)begin
             end
           end
         endmodule
@@ -2148,7 +2148,7 @@ TEST(SpaceAfterSemicolon, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            for (int i = 0;i < 4;i++) begin
+            for(int i=0;i < 4;i++)begin
             end
           end
         endmodule
@@ -2192,7 +2192,7 @@ TEST(SpaceAfterSemicolon, RemovesBefore) {
         module foo;
 
           initial begin
-            for (int i = 0; i < 4; i++) begin
+            for(int i=0; i < 4; i++)begin
             end
           end
         endmodule
@@ -2545,7 +2545,7 @@ TEST(SpacesInBrackets, Collapses) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [ 7:0 ] data;
+          logic[ 7:0 ]data;
         endmodule
     )"));
     // clang-format on
@@ -2561,7 +2561,7 @@ TEST(SpacesInBrackets, Disabled) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [7:0] data;
+          logic[7:0]data;
         endmodule
     )"));
     // clang-format on
@@ -2600,8 +2600,8 @@ TEST(SpacesInBrackets, Inserts) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [ 7:0 ] data;
-          logic data [ 0:255 ];
+          logic[ 7:0 ]data;
+          logic data[ 0:255 ];
         endmodule
     )"));
     // clang-format on
@@ -2640,7 +2640,7 @@ TEST(SpacesInBrackets, NormalizesWhenDisabled) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [7:0] data;
+          logic[7:0]data;
         endmodule
     )"));
 
@@ -2650,7 +2650,7 @@ TEST(SpacesInBrackets, NormalizesWhenDisabled) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic data [0:255];
+          logic data[0:255];
         endmodule
     )"));
     // clang-format on
@@ -2669,9 +2669,9 @@ TEST(SpacesInBrackets, PreservesNewlines) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [
+          logic[
           7:0
-          ] data;
+          ]data;
         endmodule
     )"));
     // clang-format on
@@ -2688,7 +2688,7 @@ TEST(SpacesInBrackets, RemovesBefore) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [ 7:0 ] data;
+          logic[ 7:0 ]data;
         endmodule
     )"));
     // clang-format on
@@ -2711,7 +2711,7 @@ TEST(SpacesInParens, Collapses) {
         module foo;
 
           initial begin
-            if ( a ) begin
+            if( a )begin
             end
           end
         endmodule
@@ -2735,7 +2735,7 @@ TEST(SpacesInParens, Disabled) {
         module foo;
 
           initial begin
-            if (a) begin
+            if(a)begin
             end
           end
         endmodule
@@ -2789,7 +2789,7 @@ TEST(SpacesInParens, Inserts) {
         module foo;
 
           initial begin
-            if ( a ) begin
+            if( a )begin
             end
           end
         endmodule
@@ -2814,7 +2814,7 @@ TEST(SpacesInParens, NormalizesAround) {
         module foo;
 
           initial begin
-            for ( int i = 0; i < 4; i++ ) begin
+            for( int i=0; i < 4; i++ )begin
             end
           end
         endmodule
@@ -2838,7 +2838,7 @@ TEST(SpacesInParens, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            if (a) begin
+            if(a)begin
             end
           end
         endmodule
@@ -2856,7 +2856,7 @@ TEST(SpacesInParens, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            if (a) begin
+            if(a)begin
             end
           end
         endmodule
@@ -2903,7 +2903,7 @@ TEST(SpacesInParens, RemovesBefore) {
         module foo;
 
           initial begin
-            if ( a ) begin
+            if( a )begin
             end
           end
         endmodule

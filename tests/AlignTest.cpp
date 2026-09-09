@@ -23,8 +23,8 @@ TEST(AlignConsecutiveDeclarations, None) {
     )"), style), dedent(R"(
         module foo;
           logic a;
-          logic [7:0] b;
-          logic [15:0] c;
+          logic[7:0]b;
+          logic[15:0]c;
         endmodule
     )"));
 }
@@ -41,9 +41,9 @@ TEST(AlignConsecutiveDeclarations, Consecutive) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic        a;
-          logic [7:0]  b;
-          logic [15:0] c;
+          logic      a;
+          logic[7:0] b;
+          logic[15:0]c;
         endmodule
     )"));
 }
@@ -62,11 +62,11 @@ TEST(AlignConsecutiveDeclarations, ConsecutiveEmptyLineBreaksGroup) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic       a;
-          logic [7:0] b;
+          logic     a;
+          logic[7:0]b;
 
-          logic [15:0] c;
-          logic        d;
+          logic[15:0]c;
+          logic      d;
         endmodule
     )"));
 }
@@ -85,11 +85,11 @@ TEST(AlignConsecutiveDeclarations, ConsecutiveCommentBreaksGroup) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic       a;
-          logic [7:0] b;
+          logic     a;
+          logic[7:0]b;
           // comment
-          logic [15:0] c;
-          logic        d;
+          logic[15:0]c;
+          logic      d;
         endmodule
     )"));
 }
@@ -108,11 +108,11 @@ TEST(AlignConsecutiveDeclarations, ConsecutiveNonDeclarationBreaksGroup) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic       a;
-          logic [7:0] b;
+          logic     a;
+          logic[7:0]b;
           assign x = 1;
-          logic [15:0] c;
-          logic        d;
+          logic[15:0]c;
+          logic      d;
         endmodule
     )"));
 }
@@ -129,9 +129,9 @@ TEST(AlignConsecutiveDeclarations, ContinuationLines) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          localparam [1:0] STATE_0 = 1,
-                           STATE_1 = 2,
-                           STATE_2 = 3;
+          localparam[1:0]STATE_0=1,
+                         STATE_1=2,
+                         STATE_2=3;
         endmodule
     )"));
 }
@@ -149,10 +149,10 @@ TEST(AlignConsecutiveDeclarations, AcrossEmptyLines) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic        a;
-          logic [7:0]  b;
+          logic      a;
+          logic[7:0] b;
 
-          logic [15:0] c;
+          logic[15:0]c;
         endmodule
     )"));
 }
@@ -170,10 +170,10 @@ TEST(AlignConsecutiveDeclarations, AcrossComments) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic        a;
-          logic [7:0]  b;
+          logic      a;
+          logic[7:0] b;
           // comment
-          logic [15:0] c;
+          logic[15:0]c;
         endmodule
     )"));
 }
@@ -192,11 +192,11 @@ TEST(AlignConsecutiveDeclarations, AcrossEmptyLinesAndComments) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic        a;
+          logic      a;
 
           // comment
-          logic [7:0]  b;
-          logic [15:0] c;
+          logic[7:0] b;
+          logic[15:0]c;
         endmodule
     )"));
 }
@@ -218,15 +218,15 @@ TEST(AlignConsecutiveDeclarations, AcrossParameterPortList) {
           logic [15:0] d;
         endmodule
     )"), style), dedent(R"(
-        module foo #(
-          parameter             N = 4,
-          parameter logic [7:0] M = 8
-        ) (
-          input                 a,
-          input logic [7:0]     b
+        module foo#(
+          parameter           N=4,
+          parameter logic[7:0]M=8
+        )(
+          input               a,
+          input logic[7:0]    b
         );
-          logic                 c;
-          logic [15:0]          d;
+          logic               c;
+          logic[15:0]         d;
         endmodule
     )"));
 }
@@ -243,9 +243,9 @@ TEST(AlignConsecutiveDeclarations, PackedDimensions) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [7:0]  a;
-          logic [15:0] b;
-          logic [31:0] c;
+          logic[7:0] a;
+          logic[15:0]b;
+          logic[31:0]c;
         endmodule
     )"));
 }
@@ -264,9 +264,9 @@ TEST(AlignConsecutiveDeclarations, DirectionKeywords) {
         endmodule
     )"), style), dedent(R"(
         module foo(
-          input             a,
-          input logic [7:0] b,
-          output            c
+          input           a,
+          input logic[7:0]b,
+          output          c
         );
         endmodule
     )"));
@@ -284,9 +284,9 @@ TEST(AlignConsecutiveDeclarations, ParameterDeclarations) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo #(
-          parameter             N = 4,
-          parameter logic [7:0] M = 8
+        module foo#(
+          parameter           N=4,
+          parameter logic[7:0]M=8
         );
         endmodule
     )"));
@@ -301,7 +301,7 @@ TEST(AlignConsecutiveDeclarations, SingleDeclarationNotAligned) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [7:0] a;
+          logic[7:0]a;
         endmodule
     )"));
 }
@@ -325,8 +325,8 @@ TEST(AlignConsecutiveDeclarations, FormatOffRegionSkipped) {
           logic a;
           logic [7:0] b;
           // slang-format on
-          logic        c;
-          logic [15:0] d;
+          logic      c;
+          logic[15:0]d;
         endmodule
     )"));
 }
@@ -348,15 +348,15 @@ TEST(AlignConsecutiveDeclarations, IndentLevelBreaksGroup) {
           logic [15:0] d;
         endmodule
     )"), style), dedent(R"(
-        module foo #(
-          parameter             N = 4,
-          parameter logic [7:0] M = 8
-        ) (
-          input             a,
-          input logic [7:0] b
+        module foo#(
+          parameter           N=4,
+          parameter logic[7:0]M=8
+        )(
+          input           a,
+          input logic[7:0]b
         );
-          logic        c;
-          logic [15:0] d;
+          logic      c;
+          logic[15:0]d;
         endmodule
     )"));
 }
@@ -376,9 +376,9 @@ TEST(AlignConsecutivePackedDimensions, None) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [7:0] a;
-          logic [15:0] b;
-          logic [31:0] c;
+          logic[7:0]a;
+          logic[15:0]b;
+          logic[31:0]c;
         endmodule
     )"));
 }
@@ -395,8 +395,8 @@ TEST(AlignConsecutivePackedDimensions, Consecutive) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          bit   [7:0] a;
-          logic [15:0] b;
+          bit  [7:0]a;
+          logic[15:0]b;
         endmodule
     )"));
 }
@@ -414,9 +414,9 @@ TEST(AlignConsecutivePackedDimensions, SkipsBareTypes) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [7:0] a;
+          logic [7:0]a;
           logic b;
-          logic [15:0] c;
+          logic [15:0]c;
         endmodule
     )"));
 }
@@ -435,10 +435,10 @@ TEST(AlignConsecutivePackedDimensions, GroupBrokenByEmptyLine) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [7:0] a;
+          logic[7:0]a;
 
-          logic [15:0] b;
-          logic [31:0] c;
+          logic[15:0]b;
+          logic[31:0]c;
         endmodule
     )"));
 }
@@ -457,10 +457,10 @@ TEST(AlignConsecutivePackedDimensions, GroupBrokenByComment) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [7:0] a;
+          logic[7:0]a;
           // comment
-          logic [15:0] b;
-          logic [31:0] c;
+          logic[15:0]b;
+          logic[31:0]c;
         endmodule
     )"));
 }
@@ -478,9 +478,9 @@ TEST(AlignConsecutivePackedDimensions, AcrossEmptyLines) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          bit   [7:0] a;
+          bit  [7:0]a;
 
-          logic [15:0] b;
+          logic[15:0]b;
         endmodule
     )"));
 }
@@ -498,9 +498,9 @@ TEST(AlignConsecutivePackedDimensions, AcrossComments) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          bit   [7:0] a;
+          bit  [7:0]a;
           // comment
-          logic [15:0] b;
+          logic[15:0]b;
         endmodule
     )"));
 }
@@ -519,10 +519,10 @@ TEST(AlignConsecutivePackedDimensions, AcrossEmptyLinesAndComments) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          bit   [7:0] a;
+          bit  [7:0]a;
 
           // comment
-          logic [15:0] b;
+          logic[15:0]b;
         endmodule
     )"));
 }
@@ -543,12 +543,12 @@ TEST(AlignConsecutivePackedDimensions, AcrossParameterPortList) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo #(
-          parameter bit   [7:0] M = 8,
-          parameter logic [15:0] N = 16
-        ) (
-          input bit       [7:0] a,
-          input logic     [31:0] b
+        module foo#(
+          parameter bit  [7:0]M=8,
+          parameter logic[15:0]N=16
+        )(
+          input bit      [7:0]a,
+          input logic    [31:0]b
         );
         endmodule
     )"));
@@ -568,8 +568,8 @@ TEST(AlignConsecutivePackedDimensions, DirectionKeywords) {
         endmodule
     )"), style), dedent(R"(
         module foo(
-          input bit   [7:0] a,
-          input logic [15:0] b
+          input bit  [7:0]a,
+          input logic[15:0]b
         );
         endmodule
     )"));
@@ -588,9 +588,9 @@ TEST(AlignConsecutivePackedDimensions, WithAlignConsecutiveDeclarations) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          bit   [7:0]  a;
-          logic [15:0] b;
-          logic        c;
+          bit   [7:0] a;
+          logic [15:0]b;
+          logic       c;
         endmodule
     )"));
 }
@@ -615,8 +615,8 @@ TEST(AlignConsecutivePackedDimensions, FormatOff) {
           bit [7:0] a;
           logic [15:0] b;
           // slang-format on
-          bit   [7:0] c;
-          logic [31:0] d;
+          bit  [7:0]c;
+          logic[31:0]d;
         endmodule
     )"));
 }
@@ -632,7 +632,7 @@ TEST(AlignConsecutivePackedDimensions, SingleDeclaration) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [7:0] a;
+          logic[7:0]a;
         endmodule
     )"));
 }
@@ -650,9 +650,9 @@ TEST(AlignConsecutivePackedDimensions, PadLeft) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [  7:0] a;
-          logic [ 15:0] b;
-          logic [127:0] c;
+          logic[  7:0]a;
+          logic[ 15:0]b;
+          logic[127:0]c;
         endmodule
     )"));
 }
@@ -670,9 +670,9 @@ TEST(AlignConsecutivePackedDimensions, PadRight) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [7:0  ] a;
-          logic [15:0 ] b;
-          logic [127:0] c;
+          logic[7:0  ]a;
+          logic[15:0 ]b;
+          logic[127:0]c;
         endmodule
     )"));
 }
@@ -689,8 +689,8 @@ TEST(AlignConsecutivePackedDimensions, AlignColon) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [ 7:0] a;
-          logic [15:12] b;
+          logic[ 7:0]a;
+          logic[15:12]b;
         endmodule
     )"));
 }
@@ -708,8 +708,8 @@ TEST(AlignConsecutivePackedDimensions, AlignColonPadLeft) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [ 7: 0] a;
-          logic [15:12] b;
+          logic[ 7: 0]a;
+          logic[15:12]b;
         endmodule
     )"));
 }
@@ -727,8 +727,8 @@ TEST(AlignConsecutivePackedDimensions, AlignColonPadRight) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [ 7:0 ] a;
-          logic [15:12] b;
+          logic[ 7:0 ]a;
+          logic[15:12]b;
         endmodule
     )"));
 }
@@ -747,8 +747,8 @@ TEST(AlignConsecutivePackedDimensions, BareTypeNarrowerThanDimensions) {
     )"), style), dedent(R"(
         module foo;
           bit b;
-          logic [7:0] a;
-          logic [15:0] c;
+          logic[7:0]a;
+          logic[15:0]c;
         endmodule
     )"));
 }
@@ -767,8 +767,8 @@ TEST(AlignConsecutivePackedDimensions, BareTypeWiderThanDimensions) {
     )"), style), dedent(R"(
         module foo;
           integer a;
-          logic   [7:0] b;
-          reg     [3:0] c;
+          logic   [7:0]b;
+          reg     [3:0]c;
         endmodule
     )"));
 }
@@ -786,8 +786,8 @@ TEST(AlignConsecutivePackedDimensions, PadLeftPrecedenceOverPadRight) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [ 7:0] a;
-          logic [15:0] b;
+          logic[ 7:0]a;
+          logic[15:0]b;
         endmodule
     )"));
 }
@@ -804,8 +804,8 @@ TEST(AlignConsecutivePackedDimensions, MultipleDimensions) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [ 7:0][3:0] a;
-          logic [15:0][7:0] b;
+          logic[ 7:0][3:0]a;
+          logic[15:0][7:0]b;
         endmodule
     )"));
 }
@@ -822,8 +822,8 @@ TEST(AlignConsecutivePackedDimensions, MultipleDimensionsDifferentWidths) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [ 7:0][ 3:0] a;
-          logic [15:0][15:0] b;
+          logic[ 7:0][ 3:0]a;
+          logic[15:0][15:0]b;
         endmodule
     )"));
 }
@@ -840,8 +840,8 @@ TEST(AlignConsecutivePackedDimensions, SingleNumberDimensions) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [ 8] a;
-          logic [16] b;
+          logic[ 8]a;
+          logic[16]b;
         endmodule
     )"));
 }
@@ -858,8 +858,8 @@ TEST(AlignConsecutivePackedDimensions, ContentAlignDisabledWhenNotEnabled) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [7:0] a;
-          logic [15:0] b;
+          logic[7:0]a;
+          logic[15:0]b;
         endmodule
     )"));
 }
@@ -876,8 +876,8 @@ TEST(AlignConsecutivePackedDimensions, PadLeftWithDeclarationAlignment) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic [ 7:0] a;
-          logic [15:0] b;
+          logic[ 7:0]a;
+          logic[15:0]b;
         endmodule
     )"));
 }
@@ -893,8 +893,8 @@ TEST(AlignConsecutiveTimingControls, Consecutive) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #5  clk_i  = ~clk_i;
-          always #20 dclk_i = ~dclk_i;
+          always#5  clk_i  = ~clk_i;
+          always#20 dclk_i = ~dclk_i;
         endmodule
     )"));
 }
@@ -911,9 +911,9 @@ TEST(AlignConsecutiveTimingControls, ConsecutiveEmptyLineBreaksGroup) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #5 clk_i = ~clk_i;
+          always#5 clk_i = ~clk_i;
 
-          always #20 dclk_i = ~dclk_i;
+          always#20 dclk_i = ~dclk_i;
         endmodule
     )"));
 }
@@ -931,9 +931,9 @@ TEST(AlignConsecutiveTimingControls, AcrossEmptyLines) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #5  clk_i  = ~clk_i;
+          always#5  clk_i  = ~clk_i;
 
-          always #20 dclk_i = ~dclk_i;
+          always#20 dclk_i = ~dclk_i;
         endmodule
     )"));
 }
@@ -950,9 +950,9 @@ TEST(AlignConsecutiveTimingControls, ConsecutiveCommentBreaksGroup) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #5 clk_i = ~clk_i;
+          always#5 clk_i = ~clk_i;
           // comment
-          always #20 dclk_i = ~dclk_i;
+          always#20 dclk_i = ~dclk_i;
         endmodule
     )"));
 }
@@ -970,9 +970,9 @@ TEST(AlignConsecutiveTimingControls, AcrossComments) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #5  clk_i  = ~clk_i;
+          always#5  clk_i  = ~clk_i;
           // comment
-          always #20 dclk_i = ~dclk_i;
+          always#20 dclk_i = ~dclk_i;
         endmodule
     )"));
 }
@@ -988,8 +988,8 @@ TEST(AlignConsecutiveTimingControls, None) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #5 clk_i = ~clk_i;
-          always #20 dclk_i = ~dclk_i;
+          always#5 clk_i = ~clk_i;
+          always#20 dclk_i = ~dclk_i;
         endmodule
     )"));
 }
@@ -1005,8 +1005,8 @@ TEST(AlignConsecutiveTimingControls, ParenthesizedDelay) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #(CLK_PERIOD / 2) clk_i  = ~clk_i;
-          always #20               dclk_i = ~dclk_i;
+          always#(CLK_PERIOD / 2)clk_i  = ~clk_i;
+          always#20              dclk_i = ~dclk_i;
         endmodule
     )"));
 }
@@ -1021,7 +1021,7 @@ TEST(AlignConsecutiveTimingControls, SingleLineNotAligned) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #5 clk_i = ~clk_i;
+          always#5 clk_i = ~clk_i;
         endmodule
     )"));
 }
@@ -1041,9 +1041,9 @@ TEST(AlignConsecutiveAssignments, None) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic a = 1;
-          logic [7:0] b = 2;
-          logic [15:0] c = 3;
+          logic a=1;
+          logic[7:0]b=2;
+          logic[15:0]c=3;
         endmodule
     )"));
 }
@@ -1061,9 +1061,9 @@ TEST(AlignConsecutiveAssignments, Consecutive) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic a        = 1;
-          logic [7:0] b  = 2;
-          logic [15:0] c = 3;
+          logic a     =1;
+          logic[7:0]b =2;
+          logic[15:0]c=3;
         endmodule
     )"));
 }
@@ -1083,11 +1083,11 @@ TEST(AlignConsecutiveAssignments, ConsecutiveEmptyLineBreaksGroup) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic a       = 1;
-          logic [7:0] b = 2;
+          logic a    =1;
+          logic[7:0]b=2;
 
-          logic [15:0] c = 3;
-          logic d        = 4;
+          logic[15:0]c=3;
+          logic d     =4;
         endmodule
     )"));
 }
@@ -1107,11 +1107,11 @@ TEST(AlignConsecutiveAssignments, ConsecutiveCommentBreaksGroup) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic a       = 1;
-          logic [7:0] b = 2;
+          logic a    =1;
+          logic[7:0]b=2;
           // comment
-          logic [15:0] c = 3;
-          logic d        = 4;
+          logic[15:0]c=3;
+          logic d     =4;
         endmodule
     )"));
 }
@@ -1131,11 +1131,11 @@ TEST(AlignConsecutiveAssignments, ConsecutiveNonDeclarationBreaksGroup) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic a        = 1;
-          logic [7:0] b  = 2;
-          assign x       = 1;
-          logic [15:0] c = 3;
-          logic d        = 4;
+          logic a     =1;
+          logic[7:0]b =2;
+          assign x    = 1;
+          logic[15:0]c=3;
+          logic d     =4;
         endmodule
     )"));
 }
@@ -1154,9 +1154,9 @@ TEST(AlignConsecutiveAssignments, ContinuationLines) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          localparam [1:0] STATE_0 = 1,
-            STATE_1                = 2,
-            STATE_2                = 3;
+          localparam[1:0]STATE_0=1,
+            STATE_1             =2,
+            STATE_2             =3;
         endmodule
     )"));
 }
@@ -1175,9 +1175,9 @@ TEST(AlignConsecutiveAssignments, ContinuationLinesVariableLength) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          localparam [1:0] A = 1,
-            LONG_NAME        = 2,
-            B                = 3;
+          localparam[1:0]A=1,
+            LONG_NAME     =2,
+            B             =3;
         endmodule
     )"));
 }
@@ -1195,9 +1195,9 @@ TEST(AlignConsecutiveAssignments, ContinuationLinesWithDeclarationAlignment) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          localparam [1:0] STATE_0 = 1,
-                           STATE_1 = 2,
-                           STATE_2 = 3;
+          localparam[1:0]STATE_0=1,
+                         STATE_1=2,
+                         STATE_2=3;
         endmodule
     )"));
 }
@@ -1216,10 +1216,10 @@ TEST(AlignConsecutiveAssignments, AcrossEmptyLines) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic a        = 1;
-          logic [7:0] b  = 2;
+          logic a     =1;
+          logic[7:0]b =2;
 
-          logic [15:0] c = 3;
+          logic[15:0]c=3;
         endmodule
     )"));
 }
@@ -1238,10 +1238,10 @@ TEST(AlignConsecutiveAssignments, AcrossComments) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic a        = 1;
-          logic [7:0] b  = 2;
+          logic a     =1;
+          logic[7:0]b =2;
           // comment
-          logic [15:0] c = 3;
+          logic[15:0]c=3;
         endmodule
     )"));
 }
@@ -1261,11 +1261,11 @@ TEST(AlignConsecutiveAssignments, AcrossEmptyLinesAndComments) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic a        = 1;
+          logic a     =1;
 
           // comment
-          logic [7:0] b  = 2;
-          logic [15:0] c = 3;
+          logic[7:0]b =2;
+          logic[15:0]c=3;
         endmodule
     )"));
 }
@@ -1288,15 +1288,15 @@ TEST(AlignConsecutiveAssignments, AcrossParameterPortList) {
           logic [15:0] d = 2;
         endmodule
     )"), style), dedent(R"(
-        module foo #(
-          parameter N             = 4,
-          parameter logic [7:0] M = 8
-        ) (
+        module foo#(
+          parameter N          =4,
+          parameter logic[7:0]M=8
+        )(
           input a,
-          input logic [7:0] b
+          input logic[7:0]b
         );
-          logic c                 = 1;
-          logic [15:0] d          = 2;
+          logic c              =1;
+          logic[15:0]d         =2;
         endmodule
     )"));
 }
@@ -1314,9 +1314,9 @@ TEST(AlignConsecutiveAssignments, DeclarationWithoutInitializer) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic a        = 1;
-          logic [7:0] b;
-          logic [15:0] c = 3;
+          logic a     =1;
+          logic[7:0]b;
+          logic[15:0]c=3;
         endmodule
     )"));
 }
@@ -1350,7 +1350,7 @@ TEST(AlignConsecutiveAssignments, SingleDeclarationNotAligned) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic a = 1;
+          logic a=1;
         endmodule
     )"));
 }
@@ -1429,9 +1429,9 @@ TEST(AlignConsecutiveAssignments, InteractionWithAlignConsecutiveDeclarations) {
                        style),
               dedent(R"(
         module foo;
-          logic        a = 1;
-          logic [7:0]  b = 2;
-          logic [15:0] c = 3;
+          logic      a=1;
+          logic[7:0] b=2;
+          logic[15:0]c=3;
         endmodule
     )"));
 }
@@ -1478,7 +1478,7 @@ TEST(AlignConsecutiveAssignments, NonblockingAssignments) {
                        style),
               dedent(R"(
         module foo;
-          always_ff @(posedge clk) begin
+          always_ff@(posedge clk)begin
             a        <= 1;
             longname <= 2;
           end
@@ -1508,9 +1508,9 @@ TEST(AlignConsecutiveAssignments, CaseStatementDoesNotBreakGroup) {
         module foo;
           always_comb begin
             x        = 1;
-            case (state)
-              STATE_A: a = 1;
-              STATE_B: a = 2;
+            case(state)
+              STATE_A:a = 1;
+              STATE_B:a = 2;
             endcase
             longname = 2;
           end
@@ -1643,7 +1643,7 @@ TEST(AlignConsecutiveAssignments, IfStatementDoesNotBreakGroup) {
         module foo;
           always_comb begin
             x        = 1;
-            if (cond) begin
+            if(cond)begin
               y = 2;
             end
             else begin
@@ -1671,9 +1671,9 @@ TEST(AlignConsecutiveAssignments, MixedDeclarationsAndAssignments) {
                        style),
               dedent(R"(
         module foo;
-          logic a       = 1;
-          assign x      = 2;
-          logic [7:0] b = 3;
+          logic a    =1;
+          assign x   = 2;
+          logic[7:0]b=3;
         endmodule
     )"));
 }
@@ -1736,7 +1736,7 @@ TEST(AlignConsecutiveAssignments, ControlFlowDoesNotBreakGroup) {
         module foo;
           always_comb begin
             a        = 1;
-            if (x == 1) begin
+            if(x == 1)begin
               b = 2;
             end
             longname = 3;
@@ -1962,12 +1962,12 @@ TEST(AlignTrailingComments, AcrossParameterPortList) {
     )"),
                        style),
               dedent(R"(
-        module foo #(
-          parameter N = 4 // width
-        ) (
-          input a         // port a
+        module foo#(
+          parameter N=4 // width
+        )(
+          input a       // port a
         );
-          assign x = 1;   // body
+          assign x = 1; // body
         endmodule
     )"));
     // clang-format on

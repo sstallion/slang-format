@@ -26,6 +26,7 @@
 #include <slang/syntax/SyntaxNode.h>
 #include <slang/syntax/SyntaxTree.h>
 #include <slang/syntax/SyntaxVisitor.h>
+#include <slang/text/CharInfo.h>
 #include <slang/text/SourceManager.h>
 
 using namespace slang;
@@ -45,6 +46,14 @@ bool containsBlock(const SyntaxNode& node) {
     BlockFinder finder;
     node.visit(finder);
     return finder.found;
+}
+
+bool isIdentChar(char c) {
+    return isValidCIdChar(c) || c == '$';
+}
+
+bool needsSeparator(char last, char next) {
+    return isIdentChar(last) && isIdentChar(next);
 }
 
 bool matchesPragma(std::string_view text, std::string_view pragma) {
@@ -573,12 +582,6 @@ private:
     bool afterOpenBrace = false;
     bool afterOpenBracket = false;
     bool afterOpenParen = false;
-    bool spaceAfterOperatorEmitted = false;
-    bool spaceAfterCommaEmitted = false;
-    bool spaceAfterSemicolonEmitted = false;
-    bool spaceAfterOpenBraceEmitted = false;
-    bool spaceAfterOpenBracketEmitted = false;
-    bool spaceAfterOpenParenEmitted = false;
     bool spaceBeforeCloseBracePending = false;
     bool spaceBeforeCloseBracketPending = false;
     bool spaceBeforeCloseParenPending = false;
@@ -771,90 +774,9 @@ private:
     }
 
     void emitWhitespaceTrivia(const Trivia& t) {
-        if (atLineStart && formatEnabled) {
+        if (!formatEnabled) {
+            output += t.getRawText();
             return;
-        }
-        if (beforeOperator) {
-            return;
-        }
-        if (afterOperator) {
-            if (shouldSpaceAroundOperator()) {
-                emitSpaceAfterOperator();
-            }
-            return;
-        }
-        if (afterComma) {
-            if (style.SpaceAfterComma) {
-                emitSpaceAfterComma();
-            }
-            return;
-        }
-        if (afterSemicolon) {
-            if (style.SpaceAfterSemicolon) {
-                emitSpaceAfterSemicolon();
-            }
-            return;
-        }
-        if (afterOpenBrace) {
-            if (style.SpacesInBraces) {
-                emitSpaceAfterOpenBrace();
-            }
-            return;
-        }
-        if (afterOpenBracket) {
-            if (style.SpacesInBrackets) {
-                emitSpaceAfterOpenBracket();
-            }
-            return;
-        }
-        if (afterOpenParen) {
-            if (style.SpacesInParens) {
-                emitSpaceAfterOpenParen();
-            }
-            return;
-        }
-        output += t.getRawText();
-    }
-
-    void emitSpaceAfterOperator() {
-        if (!spaceAfterOperatorEmitted) {
-            output += ' ';
-            spaceAfterOperatorEmitted = true;
-        }
-    }
-
-    void emitSpaceAfterComma() {
-        if (!spaceAfterCommaEmitted) {
-            output += ' ';
-            spaceAfterCommaEmitted = true;
-        }
-    }
-
-    void emitSpaceAfterSemicolon() {
-        if (!spaceAfterSemicolonEmitted) {
-            output += ' ';
-            spaceAfterSemicolonEmitted = true;
-        }
-    }
-
-    void emitSpaceAfterOpenBrace() {
-        if (!spaceAfterOpenBraceEmitted) {
-            output += ' ';
-            spaceAfterOpenBraceEmitted = true;
-        }
-    }
-
-    void emitSpaceAfterOpenBracket() {
-        if (!spaceAfterOpenBracketEmitted) {
-            output += ' ';
-            spaceAfterOpenBracketEmitted = true;
-        }
-    }
-
-    void emitSpaceAfterOpenParen() {
-        if (!spaceAfterOpenParenEmitted) {
-            output += ' ';
-            spaceAfterOpenParenEmitted = true;
         }
     }
 
@@ -911,35 +833,30 @@ private:
     }
 
     void emitDeferredSpaces() {
-        if (afterOperator) {
-            if (shouldSpaceAroundOperator()) {
-                emitSpaceAfterOperator();
-            }
+        if (afterOperator && shouldSpaceAroundOperator()) {
+            output += ' ';
         }
-        if (afterComma) {
-            if (style.SpaceAfterComma) {
-                emitSpaceAfterComma();
-            }
+        if (afterComma && style.SpaceAfterComma) {
+            output += ' ';
         }
-        if (afterSemicolon) {
-            if (style.SpaceAfterSemicolon) {
-                emitSpaceAfterSemicolon();
-            }
+        if (afterSemicolon && style.SpaceAfterSemicolon) {
+            output += ' ';
         }
-        if (afterOpenBrace) {
-            if (style.SpacesInBraces) {
-                emitSpaceAfterOpenBrace();
-            }
+        if (afterOpenBrace && style.SpacesInBraces) {
+            output += ' ';
         }
-        if (afterOpenBracket) {
-            if (style.SpacesInBrackets) {
-                emitSpaceAfterOpenBracket();
-            }
+        if (afterOpenBracket && style.SpacesInBrackets) {
+            output += ' ';
         }
-        if (afterOpenParen) {
-            if (style.SpacesInParens) {
-                emitSpaceAfterOpenParen();
-            }
+        if (afterOpenParen && style.SpacesInParens) {
+            output += ' ';
+        }
+    }
+
+    void emitSeparator(std::string_view raw) {
+        if (formatEnabled && !atLineStart && !raw.empty() && !output.empty() &&
+            needsSeparator(output.back(), raw.front())) {
+            output += ' ';
         }
     }
 
@@ -959,6 +876,8 @@ private:
         }
 
         auto raw = tok.rawText();
+        emitSeparator(raw);
+
         if (formatEnabled && atLineStart && !raw.empty()) {
             if (nextLineKind) {
                 currentLineMeta.kind = *nextLineKind;
@@ -1034,12 +953,6 @@ private:
         if (afterOpenParen) {
             spaceBeforeCloseParenPending = true;
         }
-        spaceAfterOperatorEmitted = false;
-        spaceAfterCommaEmitted = false;
-        spaceAfterSemicolonEmitted = false;
-        spaceAfterOpenBraceEmitted = false;
-        spaceAfterOpenBracketEmitted = false;
-        spaceAfterOpenParenEmitted = false;
     }
 
     // Emit all elements and separators of a SeparatedSyntaxList.

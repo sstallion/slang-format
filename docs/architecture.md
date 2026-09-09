@@ -136,13 +136,13 @@ and the single-pass constraint keeps the implementation linear and predictable.
 
 ### Whitespace Normalization
 
-The formatter normalizes whitespace by default, even when boolean style options
-are `false`. A `false` option suppresses the insertion of additional whitespace
-but still removes extraneous spaces around the affected tokens. This means
-formatting is never a no-op: every run produces a canonical result regardless of
-configuration. Options that need to preserve existing formatting verbatim must
-define an explicit `Preserve` enum value; boolean options do not offer a
-pass-through mode.
+The formatter strips all trivial whitespace within a line, then re-inserts
+spaces only where required. Whitespace whose removal would cause adjacent tokens
+to merge is reduced to one space. All other inter-token whitespace is suppressed
+by default. Options that need to preserve existing formatting verbatim must
+define an explicit `Preserve` value; boolean options do not offer a pass-through
+mode. Line breaks (`EndOfLine` trivia) are unaffected by whitespace
+normalization.
 
 ### Post-Processing
 
