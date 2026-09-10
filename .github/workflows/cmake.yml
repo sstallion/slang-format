@@ -38,6 +38,6 @@ jobs:
         if: ${{ inputs.upload-artifact }}
         uses: actions/upload-artifact@v7
         with:
-          name: artifact-${{ inputs.os }}
+          name: artifact-${{ inputs.preset }}
           path: ${{ inputs.artifact-path }}
           if-no-files-found: error
