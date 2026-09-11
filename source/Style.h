@@ -123,27 +123,28 @@ struct Style {
     /// Controls the order of packed dimension bounds.
     DimensionBoundsStyle PackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
-    /// Normalizes whitespace around commas. If true, inserts a single
-    /// trailing space.
+    /// Normalizes whitespace after a closing square bracket.
+    bool SpaceAfterBrackets = true;
+
+    /// Normalizes whitespace around commas.
     bool SpaceAfterComma = true;
 
-    /// Normalizes whitespace around semicolons. If true, inserts a single
-    /// trailing space.
+    /// Normalizes whitespace around semicolons.
     bool SpaceAfterSemicolon = true;
 
-    /// Normalizes whitespace around assignment, binary, and ternary operators. If true, inserts a
-    /// single space before and after the operator.
+    /// Normalizes whitespace before an opening square bracket.
+    bool SpaceBeforeBrackets = true;
+
+    /// Normalizes whitespace around assignment, binary, and ternary operators.
     bool SpaceAroundOperators = true;
 
-    /// Normalizes whitespace inside curly braces. If true, inserts a single
-    /// space after { and before }.
+    /// Normalizes whitespace inside curly braces.
     bool SpacesInBraces = false;
 
-    /// Normalizes whitespace inside square brackets. If true, inserts a single
-    /// space after [ and before ].
+    /// Normalizes whitespace inside square brackets.
     bool SpacesInBrackets = false;
 
-    /// Normalizes whitespace inside parentheses. If true, inserts a single
+    /// Normalizes whitespace inside parentheses.
     /// space after ( and before ).
     bool SpacesInParens = false;
 

@@ -25,19 +25,19 @@ two tools and drives the largest gap identified below.
 The following Verible defaults are already produced by slang-format's default
 configuration with no changes needed:
 
-| Verible Default                        | slang-format Equivalent                              |
-| -------------------------------------- | ---------------------------------------------------- |
-| `indentation_spaces: 2`                | `IndentWidth: 2`                                     |
-| Module body indented                   | `ModuleDeclarationSyntax` handles all four kinds     |
-| Nested control flow                    | `visitBody()` increments depth per scope level       |
-| Max 1 consecutive empty line           | `MaxEmptyLinesToKeep: 1`                             |
-| No auto begin/end insertion            | `InsertBeginEnd.Enabled: false`                      |
-| No parenthesis insertion               | All `InsertParens` fields false                      |
+| Verible Default                        | slang-format Equivalent                                   |
+| -------------------------------------- | --------------------------------------------------------- |
+| `indentation_spaces: 2`                | `IndentWidth: 2`                                          |
+| Module body indented                   | `ModuleDeclarationSyntax` handles all four kinds          |
+| Nested control flow                    | `visitBody()` increments depth per scope level            |
+| Max 1 consecutive empty line           | `MaxEmptyLinesToKeep: 1`                                  |
+| No auto begin/end insertion            | `InsertBeginEnd.Enabled: false`                           |
+| No parenthesis insertion               | All `InsertParens` fields false                           |
 | No blank line before `function`/`task` | `BreakBeforeFunction: false` and `BreakBeforeTask: false` |
-| No blank line before `specify`         | `BreakBeforeSpecifyBlock: false`                     |
-| Event separator preserved              | `EventSeparator: Preserve`                           |
-| Dimension bounds preserved             | `PackedDimensionBounds: Preserve`                    |
-| Alignment off                          | All `AlignConsecutive*` disabled                     |
+| No blank line before `specify`         | `BreakBeforeSpecifyBlock: false`                          |
+| Event separator preserved              | `EventSeparator: Preserve`                                |
+| Dimension bounds preserved             | `PackedDimensionBounds: Preserve`                         |
+| Alignment off                          | All `AlignConsecutive*` disabled                          |
 
 In slang's syntax tree, `ModuleDeclarationSyntax` covers `module`, `interface`,
 `package`, and `program` declarations via a unified `isKind()` predicate. All

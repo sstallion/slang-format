@@ -582,6 +582,7 @@ private:
     bool afterOpenBrace = false;
     bool afterOpenBracket = false;
     bool afterOpenParen = false;
+    bool afterCloseBracket = false;
     bool spaceBeforeCloseBracePending = false;
     bool spaceBeforeCloseBracketPending = false;
     bool spaceBeforeCloseParenPending = false;
@@ -794,6 +795,17 @@ private:
         return kind == TokenKind::Comma || kind == TokenKind::Semicolon;
     }
 
+    void normalizeBeforeOpen(TokenKind kind) {
+        if (!formatEnabled || atLineStart) {
+            return;
+        }
+
+        if (kind == TokenKind::OpenBracket && style.SpaceBeforeBrackets && !output.empty() &&
+            output.back() != ' ') {
+            output += ' ';
+        }
+    }
+
     void normalizeBeforeClose(TokenKind kind) {
         if (spaceBeforeCloseBracePending && kind == TokenKind::CloseBrace) {
             stripTrailingSpaces();
@@ -840,6 +852,9 @@ private:
             output += ' ';
         }
         if (afterSemicolon && style.SpaceAfterSemicolon) {
+            output += ' ';
+        }
+        if (afterCloseBracket && style.SpaceAfterBrackets) {
             output += ' ';
         }
         if (afterOpenBrace && style.SpacesInBraces) {
@@ -926,6 +941,7 @@ private:
                 output += ' ';
             }
         }
+        normalizeBeforeOpen(tok.kind);
 
         output += raw;
         lineDepth = depth;
@@ -953,6 +969,7 @@ private:
         if (afterOpenParen) {
             spaceBeforeCloseParenPending = true;
         }
+        afterCloseBracket = formatEnabled && tok.kind == TokenKind::CloseBracket;
     }
 
     // Emit all elements and separators of a SeparatedSyntaxList.

@@ -245,6 +245,40 @@ void emitInsertParens(YAML::Emitter& out, const InsertParensStyle& config) {
     out << YAML::EndMap;
 }
 
+void parseSpacingOptions(const YAML::Node& node, Style& style) {
+    if (auto v = node["SpaceAfterBrackets"]) {
+        style.SpaceAfterBrackets = v.as<bool>();
+    }
+
+    if (auto v = node["SpaceAfterComma"]) {
+        style.SpaceAfterComma = v.as<bool>();
+    }
+
+    if (auto v = node["SpaceAfterSemicolon"]) {
+        style.SpaceAfterSemicolon = v.as<bool>();
+    }
+
+    if (auto v = node["SpaceBeforeBrackets"]) {
+        style.SpaceBeforeBrackets = v.as<bool>();
+    }
+
+    if (auto v = node["SpaceAroundOperators"]) {
+        style.SpaceAroundOperators = v.as<bool>();
+    }
+
+    if (auto v = node["SpacesInBraces"]) {
+        style.SpacesInBraces = v.as<bool>();
+    }
+
+    if (auto v = node["SpacesInBrackets"]) {
+        style.SpacesInBrackets = v.as<bool>();
+    }
+
+    if (auto v = node["SpacesInParens"]) {
+        style.SpacesInParens = v.as<bool>();
+    }
+}
+
 } // namespace
 
 namespace slang::format {
@@ -300,8 +334,10 @@ std::string dumpConfiguration(const Style& style) {
         << std::string{toString(style.PackedDimensionBounds)};
     out << YAML::Key << "ParameterPortListIndentWidth" << YAML::Value
         << style.ParameterPortListIndentWidth;
+    out << YAML::Key << "SpaceAfterBrackets" << YAML::Value << style.SpaceAfterBrackets;
     out << YAML::Key << "SpaceAfterComma" << YAML::Value << style.SpaceAfterComma;
     out << YAML::Key << "SpaceAfterSemicolon" << YAML::Value << style.SpaceAfterSemicolon;
+    out << YAML::Key << "SpaceBeforeBrackets" << YAML::Value << style.SpaceBeforeBrackets;
     out << YAML::Key << "SpaceAroundOperators" << YAML::Value << style.SpaceAroundOperators;
     out << YAML::Key << "SpacesInBraces" << YAML::Value << style.SpacesInBraces;
     out << YAML::Key << "SpacesInBrackets" << YAML::Value << style.SpacesInBrackets;
@@ -382,29 +418,7 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
         style.PackedDimensionBounds = parseDimensionBounds(v.as<std::string>());
     }
 
-    if (auto v = node["SpaceAfterComma"]) {
-        style.SpaceAfterComma = v.as<bool>();
-    }
-
-    if (auto v = node["SpaceAfterSemicolon"]) {
-        style.SpaceAfterSemicolon = v.as<bool>();
-    }
-
-    if (auto v = node["SpaceAroundOperators"]) {
-        style.SpaceAroundOperators = v.as<bool>();
-    }
-
-    if (auto v = node["SpacesInBraces"]) {
-        style.SpacesInBraces = v.as<bool>();
-    }
-
-    if (auto v = node["SpacesInBrackets"]) {
-        style.SpacesInBrackets = v.as<bool>();
-    }
-
-    if (auto v = node["SpacesInParens"]) {
-        style.SpacesInParens = v.as<bool>();
-    }
+    parseSpacingOptions(node, style);
 
     if (auto v = node["UnpackedDimensionBounds"]) {
         style.UnpackedDimensionBounds = parseDimensionBounds(v.as<std::string>());

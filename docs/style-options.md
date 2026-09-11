@@ -1244,6 +1244,32 @@ endmodule
 
 ---
 
+### SpaceAfterBrackets (bool)
+
+Normalizes whitespace after a closing square bracket. If `true`, a single space
+is inserted after `]`; multiple spaces are collapsed to a single space. If
+`false`, whitespace after `]` is removed. Newlines are not affected.
+
+**Default:** `true`
+
+`SpaceAfterBrackets: false`:
+
+```sv
+module foo;
+  logic [7:0]data;
+endmodule
+```
+
+`SpaceAfterBrackets: true` (default):
+
+```sv
+module foo;
+  logic [7:0] data;
+endmodule
+```
+
+---
+
 ### SpaceAfterComma (bool)
 
 Normalizes whitespace around commas. Whitespace preceding a comma is removed.
@@ -1299,6 +1325,32 @@ module foo;
     for (int i = 0; i < 4; i++) begin
     end
   end
+endmodule
+```
+
+---
+
+### SpaceBeforeBrackets (bool)
+
+Normalizes whitespace before an opening square bracket. If `true`, a single
+space is inserted before `[`; multiple spaces are collapsed to a single space.
+If `false`, whitespace before `[` is removed. Newlines are not affected.
+
+**Default:** `true`
+
+`SpaceBeforeBrackets: false`:
+
+```sv
+module foo;
+  logic[7:0] data;
+endmodule
+```
+
+`SpaceBeforeBrackets: true` (default):
+
+```sv
+module foo;
+  logic [7:0] data;
 endmodule
 ```
 

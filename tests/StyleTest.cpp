@@ -665,6 +665,13 @@ TEST(ParseConfiguration, ParsesParameterPortListIndentWidth) {
     EXPECT_EQ(style.ParameterPortListIndentWidth, 4U);
 }
 
+TEST(ParseConfiguration, ParsesSpaceAfterBrackets) {
+    YAML::Node const node = YAML::Load("SpaceAfterBrackets: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.SpaceAfterBrackets);
+}
+
 TEST(ParseConfiguration, ParsesSpaceAfterComma) {
     YAML::Node const node = YAML::Load("SpaceAfterComma: true");
     Style style;
@@ -677,6 +684,13 @@ TEST(ParseConfiguration, ParsesSpaceAfterSemicolon) {
     Style style;
     parseConfiguration(node, style);
     EXPECT_TRUE(style.SpaceAfterSemicolon);
+}
+
+TEST(ParseConfiguration, ParsesSpaceBeforeBrackets) {
+    YAML::Node const node = YAML::Load("SpaceBeforeBrackets: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.SpaceBeforeBrackets);
 }
 
 TEST(ParseConfiguration, ParsesSpaceAroundOperators) {
@@ -765,8 +779,10 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("OneLineFormatOffRegex: \"\""), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: Preserve"), std::string::npos);
     EXPECT_NE(result.find("ParameterPortListIndentWidth: 0"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAfterBrackets: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterComma: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: true"), std::string::npos);
+    EXPECT_NE(result.find("SpaceBeforeBrackets: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAroundOperators: true"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBraces: false"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBrackets: false"), std::string::npos);
@@ -802,8 +818,10 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.InsertParens.ImplicitEvents = true;
     style.InsertParens.NamedEvents = true;
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+    style.SpaceAfterBrackets = false;
     style.SpaceAfterComma = false;
     style.SpaceAfterSemicolon = false;
+    style.SpaceBeforeBrackets = false;
     style.SpaceAroundOperators = false;
     style.SpacesInBraces = true;
     style.SpacesInBrackets = true;
@@ -821,8 +839,10 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("EventSeparator: Comma"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAfterBrackets: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterComma: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: false"), std::string::npos);
+    EXPECT_NE(result.find("SpaceBeforeBrackets: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAroundOperators: false"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBraces: true"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBrackets: true"), std::string::npos);
@@ -858,8 +878,10 @@ TEST(DumpConfiguration, RoundTrip) {
     original.EventSeparator = EventSeparatorStyle::Or;
     original.OneLineFormatOffRegex = ".*test.*";
     original.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
+    original.SpaceAfterBrackets = false;
     original.SpaceAfterComma = true;
     original.SpaceAfterSemicolon = true;
+    original.SpaceBeforeBrackets = false;
     original.SpaceAroundOperators = false;
     original.SpacesInBraces = true;
     original.SpacesInBrackets = true;
