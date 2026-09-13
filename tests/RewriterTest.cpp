@@ -700,10 +700,10 @@ TEST(ApplyInsertBeginEnd, CaseItem) {
         module foo;
           always_comb
             case(a)
-              1:begin
+              1: begin
                 x = 1;
               end
-              default:begin
+              default: begin
                 x = 0;
               end
             endcase
@@ -730,7 +730,7 @@ TEST(ApplyInsertBeginEnd, CaseItemAlreadyWrapped) {
         module foo;
           always_comb
             case(a)
-              1:begin
+              1: begin
                 x = 1;
               end
             endcase

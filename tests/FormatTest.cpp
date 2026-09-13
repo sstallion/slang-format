@@ -1452,7 +1452,7 @@ TEST(ApplyIndentation, CaseItemNextLineIndented) {
             case(x)
               2'b00:
                 y = 0;
-              default:y = 1;
+              default: y = 1;
             endcase
         endmodule
     )"));
@@ -1479,7 +1479,7 @@ TEST(ApplyIndentation, CaseItemNextLineNotIndented) {
             case(x)
               2'b00:
               y = 0;
-              default:y = 1;
+              default: y = 1;
             endcase
         endmodule
     )"));
@@ -1504,7 +1504,7 @@ TEST(ApplyIndentation, CaseItemSameLineBeginUnchanged) {
         module foo;
           always_comb
             case(x)
-              2'b00:begin
+              2'b00: begin
                 y = 0;
               end
             endcase
@@ -1529,8 +1529,8 @@ TEST(ApplyIndentation, CaseItems) {
         module foo;
           always_comb
             case(x)
-              2'b00:y = 0;
-              default:y = 1;
+              2'b00: y = 0;
+              default: y = 1;
             endcase
         endmodule
     )"));
@@ -2095,6 +2095,164 @@ TEST(SpaceAfterBrackets, RemovesBefore) {
     // clang-format on
 }
 
+TEST(SpaceAfterCaseColon, Collapses) {
+    Style style;
+    style.SpaceAfterCaseColon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        case (x)
+        2'b00:   y = 0;
+        default:   y = 1;
+        endcase
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            case(x)
+              2'b00: y = 0;
+              default: y = 1;
+            endcase
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterCaseColon, Disabled) {
+    Style style;
+    style.SpaceAfterCaseColon = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        case (x)
+        2'b00: y = 0;
+        default: y = 1;
+        endcase
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            case(x)
+              2'b00:y = 0;
+              default:y = 1;
+            endcase
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterCaseColon, FormatOff) {
+    Style style;
+    style.SpaceAfterCaseColon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb
+            // slang-format off
+            case(x)
+              2'b00:y = 0;
+              default:y = 1;
+            endcase
+            // slang-format on
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            // slang-format off
+            case(x)
+              2'b00:y = 0;
+              default:y = 1;
+            endcase
+            // slang-format on
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterCaseColon, Inserts) {
+    Style style;
+    style.SpaceAfterCaseColon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        case (x)
+        2'b00:y = 0;
+        default:y = 1;
+        endcase
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            case(x)
+              2'b00: y = 0;
+              default: y = 1;
+            endcase
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterCaseColon, NormalizesWhenDisabled) {
+    Style style;
+    style.SpaceAfterCaseColon = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        case (x)
+        2'b00:   y = 0;
+        default:   y = 1;
+        endcase
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            case(x)
+              2'b00:y = 0;
+              default:y = 1;
+            endcase
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterCaseColon, PreservesNewlines) {
+    Style style;
+    style.SpaceAfterCaseColon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        case (x)
+        2'b00:
+        y = 0;
+        default:
+        y = 1;
+        endcase
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            case(x)
+              2'b00:
+              y = 0;
+              default:
+              y = 1;
+            endcase
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(SpaceAfterComma, Collapses) {
     Style style;
     style.SpaceAfterComma = true;
@@ -2632,8 +2790,8 @@ TEST(SpaceBeforeCaseColon, Collapses) {
         module foo;
           always_comb
             case(x)
-              2'b00 :y = 0;
-              default :y = 1;
+              2'b00 : y = 0;
+              default : y = 1;
             endcase
         endmodule
     )"));
@@ -2656,8 +2814,8 @@ TEST(SpaceBeforeCaseColon, Disabled) {
         module foo;
           always_comb
             case(x)
-              2'b00:y = 0;
-              default:y = 1;
+              2'b00: y = 0;
+              default: y = 1;
             endcase
         endmodule
     )"));
@@ -2710,8 +2868,8 @@ TEST(SpaceBeforeCaseColon, Inserts) {
         module foo;
           always_comb
             case(x)
-              2'b00 :y = 0;
-              default :y = 1;
+              2'b00 : y = 0;
+              default : y = 1;
             endcase
         endmodule
     )"));
@@ -2734,8 +2892,8 @@ TEST(SpaceBeforeCaseColon, NormalizesWhenDisabled) {
         module foo;
           always_comb
             case(x)
-              2'b00:y = 0;
-              default:y = 1;
+              2'b00: y = 0;
+              default: y = 1;
             endcase
         endmodule
     )"));
@@ -2762,9 +2920,9 @@ TEST(SpaceBeforeCaseColon, PreservesNewlines) {
           always_comb
             case(x)
               2'b00
-                  :y = 0;
+                  : y = 0;
               default
-                  :y = 1;
+                  : y = 1;
             endcase
         endmodule
     )"));

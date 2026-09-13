@@ -426,6 +426,17 @@ public:
         }
 
         emitToken(item.colon);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(item.clause->getFirstToken())) {
+            if (style.SpaceAfterCaseColon && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceAfterCaseColon) {
+                stripTrailingSpaces();
+            }
+        }
+
         visitCaseItemClause(*item.clause);
     }
 
@@ -443,6 +454,17 @@ public:
         }
 
         emitToken(item.colon);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(item.clause->getFirstToken())) {
+            if (style.SpaceAfterCaseColon && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceAfterCaseColon) {
+                stripTrailingSpaces();
+            }
+        }
+
         visitCaseItemClause(*item.clause);
     }
 

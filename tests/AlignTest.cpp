@@ -1509,8 +1509,8 @@ TEST(AlignConsecutiveAssignments, CaseStatementDoesNotBreakGroup) {
           always_comb begin
             x        = 1;
             case(state)
-              STATE_A:a = 1;
-              STATE_B:a = 2;
+              STATE_A: a = 1;
+              STATE_B: a = 2;
             endcase
             longname = 2;
           end

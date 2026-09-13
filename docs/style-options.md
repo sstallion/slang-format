@@ -1270,6 +1270,40 @@ endmodule
 
 ---
 
+### SpaceAfterCaseColon (bool)
+
+Normalizes whitespace after a case item colon. If `true`, a single space is
+inserted after `:`; multiple spaces are collapsed to a single space. If `false`,
+whitespace after `:` is removed. Newlines are not affected.
+
+**Default:** `true`
+
+`SpaceAfterCaseColon: false`:
+
+```sv
+module foo;
+  always_comb
+    case(x)
+      2'b00:y = 0;
+      default:y = 1;
+    endcase
+endmodule
+```
+
+`SpaceAfterCaseColon: true` (default):
+
+```sv
+module foo;
+  always_comb
+    case(x)
+      2'b00: y = 0;
+      default: y = 1;
+    endcase
+endmodule
+```
+
+---
+
 ### SpaceAfterComma (bool)
 
 Normalizes whitespace around commas. Whitespace preceding a comma is removed.

@@ -14,6 +14,9 @@ namespace slang::format {
 
 /// Controls alignment behavior for consecutive declarations.
 struct AlignConsecutiveStyle {
+    /// If false, disables all alignment regardless of other options.
+    bool Enabled = false;
+
     /// If true, comments do not break alignment groups.
     bool AcrossComments = false;
 
@@ -26,9 +29,6 @@ struct AlignConsecutiveStyle {
     /// If true, align `:` separators in packed dimensions by right-justifying
     /// the left-side value.
     bool AlignColon = false;
-
-    /// If false, disables all alignment regardless of other options.
-    bool Enabled = false;
 
     /// If true, left-pad content within brackets (right-justify).
     bool PadLeft = false;
@@ -125,6 +125,9 @@ struct Style {
 
     /// Normalizes whitespace after a closing square bracket.
     bool SpaceAfterBrackets = true;
+
+    /// Normalizes whitespace after a case item colon.
+    bool SpaceAfterCaseColon = true;
 
     /// Normalizes whitespace around commas.
     bool SpaceAfterComma = true;
