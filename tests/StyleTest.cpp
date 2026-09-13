@@ -693,6 +693,13 @@ TEST(ParseConfiguration, ParsesSpaceBeforeBrackets) {
     EXPECT_FALSE(style.SpaceBeforeBrackets);
 }
 
+TEST(ParseConfiguration, ParsesSpaceBeforeCaseColon) {
+    YAML::Node const node = YAML::Load("SpaceBeforeCaseColon: true");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_TRUE(style.SpaceBeforeCaseColon);
+}
+
 TEST(ParseConfiguration, ParsesSpaceBeforeParameterList) {
     YAML::Node const node = YAML::Load("SpaceBeforeParameterList: false");
     Style style;
@@ -797,6 +804,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("SpaceAfterComma: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeBrackets: true"), std::string::npos);
+    EXPECT_NE(result.find("SpaceBeforeCaseColon: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeParameterList: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforePortList: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAroundOperators: true"), std::string::npos);
@@ -838,6 +846,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.SpaceAfterComma = false;
     style.SpaceAfterSemicolon = false;
     style.SpaceBeforeBrackets = false;
+    style.SpaceBeforeCaseColon = true;
     style.SpaceBeforeParameterList = false;
     style.SpaceBeforePortList = false;
     style.SpaceAroundOperators = false;
@@ -861,6 +870,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("SpaceAfterComma: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeBrackets: false"), std::string::npos);
+    EXPECT_NE(result.find("SpaceBeforeCaseColon: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeParameterList: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforePortList: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAroundOperators: false"), std::string::npos);
@@ -902,6 +912,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.SpaceAfterComma = true;
     original.SpaceAfterSemicolon = true;
     original.SpaceBeforeBrackets = false;
+    original.SpaceBeforeCaseColon = true;
     original.SpaceBeforeParameterList = false;
     original.SpaceBeforePortList = false;
     original.SpaceAroundOperators = false;

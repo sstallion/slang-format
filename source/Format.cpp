@@ -416,6 +416,15 @@ public:
             }
         }
 
+        if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(item.colon)) {
+            if (style.SpaceBeforeCaseColon && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeCaseColon) {
+                stripTrailingSpaces();
+            }
+        }
+
         emitToken(item.colon);
         visitCaseItemClause(*item.clause);
     }
@@ -423,6 +432,16 @@ public:
     void handle(const DefaultCaseItemSyntax& item) {
         nextIsPrimary = true;
         emitToken(item.defaultKeyword);
+
+        if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(item.colon)) {
+            if (style.SpaceBeforeCaseColon && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeCaseColon) {
+                stripTrailingSpaces();
+            }
+        }
+
         emitToken(item.colon);
         visitCaseItemClause(*item.clause);
     }

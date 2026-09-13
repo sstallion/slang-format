@@ -1356,6 +1356,40 @@ endmodule
 
 ---
 
+### SpaceBeforeCaseColon (bool)
+
+Normalizes whitespace before a case item colon. If `true`, a single space is
+inserted before `:`; multiple spaces are collapsed to a single space. If
+`false`, whitespace before `:` is removed. Newlines are not affected.
+
+**Default:** `false`
+
+`SpaceBeforeCaseColon: false` (default):
+
+```sv
+module foo;
+  always_comb
+    case(x)
+      2'b00:y = 0;
+      default:y = 1;
+    endcase
+endmodule
+```
+
+`SpaceBeforeCaseColon: true`:
+
+```sv
+module foo;
+  always_comb
+    case(x)
+      2'b00 :y = 0;
+      default :y = 1;
+    endcase
+endmodule
+```
+
+---
+
 ### SpaceBeforeParameterList (bool)
 
 Normalizes whitespace before a parameter port list. If `true`, a single space is

@@ -2615,6 +2615,162 @@ TEST(SpaceBeforeBrackets, RemovesBefore) {
     // clang-format on
 }
 
+TEST(SpaceBeforeCaseColon, Collapses) {
+    Style style;
+    style.SpaceBeforeCaseColon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        case (x)
+        2'b00   : y = 0;
+        default   : y = 1;
+        endcase
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            case(x)
+              2'b00 :y = 0;
+              default :y = 1;
+            endcase
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeCaseColon, Disabled) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        case (x)
+        2'b00 : y = 0;
+        default : y = 1;
+        endcase
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            case(x)
+              2'b00:y = 0;
+              default:y = 1;
+            endcase
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeCaseColon, FormatOff) {
+    Style style;
+    style.SpaceBeforeCaseColon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb
+            // slang-format off
+            case(x)
+              2'b00:y = 0;
+              default:y = 1;
+            endcase
+            // slang-format on
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            // slang-format off
+            case(x)
+              2'b00:y = 0;
+              default:y = 1;
+            endcase
+            // slang-format on
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeCaseColon, Inserts) {
+    Style style;
+    style.SpaceBeforeCaseColon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        case (x)
+        2'b00: y = 0;
+        default: y = 1;
+        endcase
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            case(x)
+              2'b00 :y = 0;
+              default :y = 1;
+            endcase
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeCaseColon, NormalizesWhenDisabled) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        case (x)
+        2'b00   : y = 0;
+        default   : y = 1;
+        endcase
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            case(x)
+              2'b00:y = 0;
+              default:y = 1;
+            endcase
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeCaseColon, PreservesNewlines) {
+    Style style;
+    style.SpaceBeforeCaseColon = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        case (x)
+        2'b00
+        : y = 0;
+        default
+        : y = 1;
+        endcase
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            case(x)
+              2'b00
+                  :y = 0;
+              default
+                  :y = 1;
+            endcase
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(SpaceBeforeParameterList, Collapses) {
     Style const style{};
 
