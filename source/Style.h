@@ -115,7 +115,7 @@ struct Style {
 
     /// If true, indent statements following a case label when they appear on
     /// the next line.
-    bool IndentCaseItem = true;
+    bool IndentCaseItem = false;
 
     /// Disables formatting for any line matching this pattern.
     std::string OneLineFormatOffRegex;

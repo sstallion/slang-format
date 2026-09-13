@@ -498,10 +498,10 @@ TEST(ParseConfiguration, ParsesEventSeparatorPreserve) {
 }
 
 TEST(ParseConfiguration, ParsesIndentCaseItem) {
-    YAML::Node const node = YAML::Load("IndentCaseItem: false");
+    YAML::Node const node = YAML::Load("IndentCaseItem: true");
     Style style;
     parseConfiguration(node, style);
-    EXPECT_EQ(style.IndentCaseItem, false);
+    EXPECT_EQ(style.IndentCaseItem, true);
 }
 
 TEST(ParseConfiguration, ParsesIndentWidth) {
@@ -787,7 +787,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("BreakBeforeTask: false"), std::string::npos);
     EXPECT_NE(result.find("ContinuationIndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("EventSeparator: Preserve"), std::string::npos);
-    EXPECT_NE(result.find("IndentCaseItem: true"), std::string::npos);
+    EXPECT_NE(result.find("IndentCaseItem: false"), std::string::npos);
     EXPECT_NE(result.find("IndentWidth: 2"), std::string::npos);
     EXPECT_NE(result.find("MaxEmptyLinesToKeep: 1"), std::string::npos);
     EXPECT_NE(result.find("OneLineFormatOffRegex: \"\""), std::string::npos);
@@ -885,7 +885,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.ContinuationIndentWidth = 4;
     original.ParameterPortListIndentWidth = 4;
     original.MaxEmptyLinesToKeep = 3;
-    original.IndentCaseItem = false;
+    original.IndentCaseItem = true;
     original.BreakAfterAlways = BlockBreakStyle::Never;
     original.BreakAfterInitial = BlockBreakStyle::Always;
     original.BreakBeforeAlways = BlockBreakStyle::Never;

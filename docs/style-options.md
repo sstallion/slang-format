@@ -865,9 +865,9 @@ If `true`, indent statements that follow a `case` label when they appear on the
 next line. Has no effect when the statement appears on the same line as the
 label or when the label is immediately followed by `begin`.
 
-**Default:** `true`
+**Default:** `false`
 
-`IndentCaseItem: false`:
+`IndentCaseItem: false` (default):
 
 ```sv
 module foo;
@@ -879,7 +879,7 @@ module foo;
 endmodule
 ```
 
-`IndentCaseItem: true` (default):
+`IndentCaseItem: true`:
 
 ```sv
 module foo;
