@@ -304,6 +304,16 @@ public:
 
         emitToken(proc.keyword);
 
+        if (isAlwaysBlockKind(proc.kind) && formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(proc.statement->getFirstToken())) {
+            if (style.SpaceAfterAlways && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceAfterAlways) {
+                stripTrailingSpaces();
+            }
+        }
+
         auto brkStyle = BlockBreakStyle::Never;
         if (isAlwaysBlockKind(proc.kind)) {
             brkStyle = style.BreakAfterAlways;

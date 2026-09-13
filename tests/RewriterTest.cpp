@@ -23,7 +23,7 @@ TEST(ApplyEventSeparator, CommaPreservesExistingComma) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff@(posedge clk, negedge rst)
+          always_ff @(posedge clk, negedge rst)
             x <= 1;
         endmodule
     )"));
@@ -42,7 +42,7 @@ TEST(ApplyEventSeparator, CommaRewritesOrToComma) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff@(posedge clk, negedge rst)
+          always_ff @(posedge clk, negedge rst)
             x <= 1;
         endmodule
     )"));
@@ -61,7 +61,7 @@ TEST(ApplyEventSeparator, EdgeQualifiedSignals) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff@(posedge clk or negedge rst)
+          always_ff @(posedge clk or negedge rst)
             x <= 1;
         endmodule
     )"));
@@ -80,7 +80,7 @@ TEST(ApplyEventSeparator, IffClause) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff@(posedge clk iff en, negedge rst)
+          always_ff @(posedge clk iff en, negedge rst)
             x <= 1;
         endmodule
     )"));
@@ -99,7 +99,7 @@ TEST(ApplyEventSeparator, MixedSeparators) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff@(posedge clk, negedge rst, a)
+          always_ff @(posedge clk, negedge rst, a)
             x <= 1;
         endmodule
     )"));
@@ -118,7 +118,7 @@ TEST(ApplyEventSeparator, MultipleSignals) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always@(a, b, c)
+          always @(a, b, c)
             x = 1;
         endmodule
     )"));
@@ -137,7 +137,7 @@ TEST(ApplyEventSeparator, OrPreservesExistingOr) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff@(posedge clk or negedge rst)
+          always_ff @(posedge clk or negedge rst)
             x <= 1;
         endmodule
     )"));
@@ -156,7 +156,7 @@ TEST(ApplyEventSeparator, OrRewritesCommaToOr) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff@(posedge clk or negedge rst)
+          always_ff @(posedge clk or negedge rst)
             x <= 1;
         endmodule
     )"));
@@ -175,7 +175,7 @@ TEST(ApplyEventSeparator, PreserveDoesNothing) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff@(posedge clk or negedge rst)
+          always_ff @(posedge clk or negedge rst)
             x <= 1;
         endmodule
     )"));
@@ -594,7 +594,7 @@ TEST(ApplyInsertBeginEnd, AlwaysFF) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff@(posedge clk)begin
+          always_ff @(posedge clk)begin
             x <= 1;
           end
         endmodule
@@ -638,7 +638,7 @@ TEST(ApplyInsertBeginEnd, AlwaysWithControlStatement) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always@(*)begin
+          always @(*)begin
             if(a)begin
               x = 1;
             end else begin
@@ -1096,9 +1096,9 @@ TEST(ApplyInsertParens, AllDisabledDoesNothing) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always@*x = 1;
-          always@signal x = 1;
-          always#5 clk = ~clk;
+          always @*x = 1;
+          always @signal x = 1;
+          always #5 clk = ~clk;
         endmodule
     )"));
     // clang-format on
@@ -1115,7 +1115,7 @@ TEST(ApplyInsertParens, Delays) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always#(5)clk = ~clk;
+          always #(5)clk = ~clk;
         endmodule
     )"));
     // clang-format on
@@ -1132,7 +1132,7 @@ TEST(ApplyInsertParens, DelaysPreservesExisting) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always#(5)clk = ~clk;
+          always #(5)clk = ~clk;
         endmodule
     )"));
     // clang-format on
@@ -1150,7 +1150,7 @@ TEST(ApplyInsertParens, ExpressionEvents) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff@(posedge clk)
+          always_ff @(posedge clk)
             x <= 1;
         endmodule
     )"));
@@ -1169,7 +1169,7 @@ TEST(ApplyInsertParens, ExpressionEventsPreservesExisting) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff@(posedge clk)
+          always_ff @(posedge clk)
             x <= 1;
         endmodule
     )"));
@@ -1187,7 +1187,7 @@ TEST(ApplyInsertParens, ImplicitEvents) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always@(*)x = 1;
+          always @(*)x = 1;
         endmodule
     )"));
     // clang-format on
@@ -1204,7 +1204,7 @@ TEST(ApplyInsertParens, ImplicitEventsPreservesExisting) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always@(*)x = 1;
+          always @(*)x = 1;
         endmodule
     )"));
     // clang-format on
@@ -1221,7 +1221,7 @@ TEST(ApplyInsertParens, NamedEvents) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always@(signal)x = 1;
+          always @(signal)x = 1;
         endmodule
     )"));
     // clang-format on
@@ -1238,7 +1238,7 @@ TEST(ApplyInsertParens, NamedEventsPreservesExisting) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always@(signal)x = 1;
+          always @(signal)x = 1;
         endmodule
     )"));
     // clang-format on

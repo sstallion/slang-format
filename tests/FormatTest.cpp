@@ -179,7 +179,7 @@ TEST(ApplyIndentation, AlwaysBodyWithoutBegin) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always@(posedge clk)
+          always @(posedge clk)
             x <= y;
         endmodule
     )"));
@@ -276,7 +276,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysAlwaysTimingControl) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always@(posedge clk)
+          always @(posedge clk)
             x <= y;
         endmodule
     )"));
@@ -321,7 +321,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalWithBlocks) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always@(posedge clk_i)
+          always @(posedge clk_i)
             if(a)begin
               x <= 1;
             end else begin
@@ -529,7 +529,7 @@ TEST(ApplyIndentation, BreakAfterBeginWithAlways) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always@(clk)
+          always @(clk)
           begin
             x = 1;
           end
@@ -647,7 +647,7 @@ TEST(ApplyIndentation, BreakBeforeAlwaysAlwaysTimingControl) {
     )"), style), dedent(R"(
         module foo;
 
-          always@(posedge clk)x <= y;
+          always @(posedge clk)x <= y;
         endmodule
     )"));
     // clang-format on
@@ -694,7 +694,7 @@ TEST(ApplyIndentation, BreakBeforeAlwaysAlwaysWithTrailingComment) {
     )"), style), dedent(R"(
         module foo;
 
-          always#5 clk = ~clk; // 100 MHz
+          always #5 clk = ~clk; // 100 MHz
 
           always_comb begin
             x = 1;
@@ -801,7 +801,7 @@ TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineSingleItemWithBlock) {
             y = 2;
           end
 
-          always_ff@(posedge clk_i)begin
+          always_ff @(posedge clk_i)begin
             if(x == 0)begin
               y <= 1;
             end
@@ -1044,7 +1044,7 @@ TEST(ApplyIndentation, BreakBeforeInitialAlwaysWithTrailingComment) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always#20 dclk = ~dclk; //  25 MHz
+          always #20 dclk = ~dclk; //  25 MHz
 
           initial begin
             x = 1;
@@ -1941,6 +1941,149 @@ TEST(ApplyIndentation, PortListIndented) {
           input a,
           input b
         );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterAlways, Collapses) {
+    Style style;
+    style.SpaceAfterAlways = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff   @(posedge clk)
+        q <= d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk)
+            q <= d;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterAlways, Disabled) {
+    Style style;
+    style.SpaceAfterAlways = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk)
+        q <= d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff@(posedge clk)
+            q <= d;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterAlways, DisabledPreventsMerge) {
+    Style style;
+    style.SpaceAfterAlways = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb begin
+        x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterAlways, FormatOff) {
+    Style style;
+    style.SpaceAfterAlways = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          // slang-format off
+          always_ff@(posedge clk)
+            q <= d;
+          // slang-format on
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // slang-format off
+          always_ff@(posedge clk)
+            q <= d;
+          // slang-format on
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterAlways, Inserts) {
+    Style style;
+    style.SpaceAfterAlways = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff@(posedge clk)
+        q <= d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk)
+            q <= d;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterAlways, NormalizesWhenDisabled) {
+    Style style;
+    style.SpaceAfterAlways = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff   @(posedge clk)
+        q <= d;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff@(posedge clk)
+            q <= d;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterAlways, PreservesNewlines) {
+    Style style;
+    style.SpaceAfterAlways = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        begin
+        x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+          begin
+            x = 1;
+          end
         endmodule
     )"));
     // clang-format on

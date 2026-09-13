@@ -1244,6 +1244,35 @@ endmodule
 
 ---
 
+### SpaceAfterAlways (bool)
+
+Normalizes whitespace after an always keyword (`always`, `always_comb`,
+`always_ff`, `always_latch`). If `true`, a single space is inserted after the
+keyword; multiple spaces are collapsed to a single space. If `false`, whitespace
+after the keyword is removed. Newlines are not affected.
+
+**Default:** `true`
+
+`SpaceAfterAlways: false`:
+
+```sv
+module foo;
+  always_ff@(posedge clk)
+    q <= d;
+endmodule
+```
+
+`SpaceAfterAlways: true` (default):
+
+```sv
+module foo;
+  always_ff @(posedge clk)
+    q <= d;
+endmodule
+```
+
+---
+
 ### SpaceAfterBrackets (bool)
 
 Normalizes whitespace after a closing square bracket. If `true`, a single space

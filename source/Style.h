@@ -123,6 +123,9 @@ struct Style {
     /// Controls the order of packed dimension bounds.
     DimensionBoundsStyle PackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
+    /// Normalizes whitespace after an always keyword.
+    bool SpaceAfterAlways = true;
+
     /// Normalizes whitespace after a closing square bracket.
     bool SpaceAfterBrackets = true;
 

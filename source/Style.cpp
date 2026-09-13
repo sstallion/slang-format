@@ -246,6 +246,10 @@ void emitInsertParens(YAML::Emitter& out, const InsertParensStyle& config) {
 }
 
 void parseSpacingOptions(const YAML::Node& node, Style& style) {
+    if (auto v = node["SpaceAfterAlways"]) {
+        style.SpaceAfterAlways = v.as<bool>();
+    }
+
     if (auto v = node["SpaceAfterBrackets"]) {
         style.SpaceAfterBrackets = v.as<bool>();
     }
@@ -350,6 +354,7 @@ std::string dumpConfiguration(const Style& style) {
         << std::string{toString(style.PackedDimensionBounds)};
     out << YAML::Key << "ParameterPortListIndentWidth" << YAML::Value
         << style.ParameterPortListIndentWidth;
+    out << YAML::Key << "SpaceAfterAlways" << YAML::Value << style.SpaceAfterAlways;
     out << YAML::Key << "SpaceAfterBrackets" << YAML::Value << style.SpaceAfterBrackets;
     out << YAML::Key << "SpaceAfterCaseColon" << YAML::Value << style.SpaceAfterCaseColon;
     out << YAML::Key << "SpaceAfterComma" << YAML::Value << style.SpaceAfterComma;
