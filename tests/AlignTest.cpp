@@ -2045,7 +2045,7 @@ TEST(AlignTrailingComments, InteractionWithAlignConsecutiveAssignments) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1;        // first
+          assign x        = 1; // first
           assign longname = 2; // second
         endmodule
     )"));

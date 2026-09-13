@@ -123,6 +123,9 @@ public:
             member->visit(*this);
         }
 
+        nextIsPrimary = true;
+        emitEndTokenTrivia(module.endmodule);
+
         depth--;
         nextIsPrimary = true;
         emitToken(module.endmodule);
@@ -144,6 +147,11 @@ public:
 
         depth++;
         visitSeparatedList(p.ports);
+
+        portItemNextIndent = true;
+        nextIsPrimary = true;
+        emitEndTokenTrivia(p.closeParen);
+        portItemNextIndent = false;
 
         depth--;
         nextIsPrimary = true;
@@ -177,6 +185,11 @@ public:
         depth++;
         visitSeparatedList(p.ports);
 
+        portItemNextIndent = true;
+        nextIsPrimary = true;
+        emitEndTokenTrivia(p.closeParen);
+        portItemNextIndent = false;
+
         depth--;
         nextIsPrimary = true;
         nextLineKind = LineMetadata::Kind::PortListBoundary;
@@ -197,6 +210,11 @@ public:
 
         depth++;
         visitSeparatedList(p.declarations);
+
+        portItemNextIndent = true;
+        nextIsPrimary = true;
+        emitEndTokenTrivia(p.closeParen);
+        portItemNextIndent = false;
 
         depth--;
         nextIsPrimary = true;
@@ -248,6 +266,9 @@ public:
             nextIsPrimary = true;
             item->visit(*this);
         }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(block.end);
 
         depth--;
         if (breakBeforeEnd) {
@@ -373,6 +394,9 @@ public:
             nextIsPrimary = true;
             item->visit(*this);
         }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(caseStmt.endcase);
 
         depth--;
         nextIsPrimary = true;
@@ -678,6 +702,33 @@ private:
         return consumed;
     }
 
+    // Emit standalone comment trivia of a closing token at the current (body) depth before the
+    // depth is decremented; sets triviaSkip so emitToken does not re-emit. Trailing comments on
+    // the previous line (before the first EndOfLine) are left for emitToken to handle normally.
+    void emitEndTokenTrivia(Token tok) {
+        if (!tok || tok.isMissing()) {
+            return;
+        }
+
+        auto trivia = tok.trivia();
+        bool foundEol{false};
+        for (const auto& t : trivia) {
+            if (t.kind == TriviaKind::EndOfLine) {
+                foundEol = true;
+                break;
+            }
+        }
+
+        if (!foundEol) {
+            return;
+        }
+
+        for (const auto& t : trivia) {
+            emitTrivia(t);
+        }
+        triviaSkip = trivia.size();
+    }
+
     // Returns true if the token's leading trivia contains a blank line (two consecutive EndOfLine
     // pieces) before any non-whitespace trivia.
     static bool hasLeadingBlankLine(Token tok) {
@@ -890,11 +941,16 @@ private:
     // Emit computed indentation directly into output; used for comment trivia
     // and raw text.
     void emitIndentRaw() {
-        unsigned spaces = depth * style.IndentWidth;
-        if (!nextIsPrimary) {
-            spaces += style.ContinuationIndentWidth;
+        if (portItemNextIndent) {
+            output.append(style.ParameterPortListIndentWidth, ' ');
         }
-        output.append(spaces, ' ');
+        else {
+            unsigned spaces = depth * style.IndentWidth;
+            if (!nextIsPrimary) {
+                spaces += style.ContinuationIndentWidth;
+            }
+            output.append(spaces, ' ');
+        }
         atLineStart = false;
     }
 
@@ -1197,10 +1253,14 @@ private:
         for (size_t i = 0; i < count; i++) {
             if (auto tok = node.childToken(i)) {
                 if (tok.location() == endTok.location()) {
-                    if (depthBumped) {
-                        depth--;
-                        depthBumped = false;
+                    if (!depthBumped) {
+                        depth++;
                     }
+
+                    nextIsPrimary = true;
+                    emitEndTokenTrivia(tok);
+                    depth--;
+                    depthBumped = false;
 
                     nextIsPrimary = true;
                 }

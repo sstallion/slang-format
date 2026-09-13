@@ -1575,6 +1575,96 @@ TEST(ApplyIndentation, ContinuationLineIndented) {
     // clang-format on
 }
 
+TEST(ApplyIndentation, EndTokenBlockComment) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        /* comment */
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          /* comment */
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, EndTokenLineComment) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        // comment
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // comment
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, EndTokenLineCommentAfterMember) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+        // comment
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+          // comment
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, EndTokenLineCommentInBlock) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb begin
+        // comment
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            // comment
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, EndTokenLineCommentInFunction) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        function void bar;
+        // comment
+        endfunction
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          function void bar;
+            // comment
+          endfunction
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyIndentation, ForLoopWithoutBegin) {
     Style const style{};
 
@@ -1801,6 +1891,33 @@ TEST(ApplyIndentation, ParameterPortListIndentWidthCustom) {
         module foo #(
             parameter N = 4
         ) (
+            input a
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, ParameterPortListIndentWidthComment) {
+    Style style;
+    style.ParameterPortListIndentWidth = 4;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo #(
+        // comment
+        parameter N = 4
+        ) (
+        // comment
+        input a
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo #(
+            // comment
+            parameter N = 4
+        ) (
+            // comment
             input a
         );
         endmodule
