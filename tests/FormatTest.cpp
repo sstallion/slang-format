@@ -1775,7 +1775,7 @@ TEST(ApplyIndentation, ParameterPortListIndented) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo#(
+        module foo #(
           parameter N = 4
         )(
           input a
@@ -1798,7 +1798,7 @@ TEST(ApplyIndentation, ParameterPortListIndentWidthCustom) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo#(
+        module foo #(
             parameter N = 4
         )(
             input a
@@ -2493,6 +2493,146 @@ TEST(SpaceBeforeBrackets, RemovesBefore) {
     )"), style), dedent(R"(
         module foo;
           logic[7:0] data;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParameterList, Collapses) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo   #(
+          parameter N = 4
+        )(
+          input a
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo #(
+            parameter N = 4
+        )(
+            input a
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParameterList, Disabled) {
+    Style style;
+    style.SpaceBeforeParameterList = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo #(
+          parameter N = 4
+        )(
+          input a
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo#(
+            parameter N = 4
+        )(
+            input a
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParameterList, FormatOff) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        // slang-format off
+        module foo#(
+          parameter N = 4
+        )(
+          input a
+        );
+        endmodule
+        // slang-format on
+    )"), style), dedent(R"(
+        // slang-format off
+        module foo#(
+          parameter N = 4
+        )(
+          input a
+        );
+        endmodule
+        // slang-format on
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParameterList, Inserts) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo#(
+          parameter N = 4
+        )(
+          input a
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo #(
+            parameter N = 4
+        )(
+            input a
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParameterList, NormalizesWhenDisabled) {
+    Style style;
+    style.SpaceBeforeParameterList = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo   #(
+          parameter N = 4
+        )(
+          input a
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo#(
+            parameter N = 4
+        )(
+            input a
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParameterList, PreservesNewlines) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo
+        #(
+          parameter N = 4
+        )(
+          input a
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo
+            #(
+            parameter N = 4
+        )(
+            input a
+        );
         endmodule
     )"));
     // clang-format on

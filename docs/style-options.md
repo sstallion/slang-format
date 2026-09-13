@@ -1356,6 +1356,38 @@ endmodule
 
 ---
 
+### SpaceBeforeParameterList (bool)
+
+Normalizes whitespace before a parameter port list. If `true`, a single space is
+inserted before `#(`; multiple spaces are collapsed to a single space. If
+`false`, whitespace before `#(` is removed. Newlines are not affected.
+
+**Default:** `true`
+
+`SpaceBeforeParameterList: false`:
+
+```sv
+module foo#(
+    parameter N = 4
+)(
+    input a
+);
+endmodule
+```
+
+`SpaceBeforeParameterList: true` (default):
+
+```sv
+module foo #(
+    parameter N = 4
+) (
+    input a
+);
+endmodule
+```
+
+---
+
 ### SpaceAroundOperators (bool)
 
 Normalizes whitespace around assignment, binary, and ternary operators. If

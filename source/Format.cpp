@@ -168,6 +168,14 @@ public:
     }
 
     void handle(const ParameterPortListSyntax& p) {
+        if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(p.hash)) {
+            if (style.SpaceBeforeParameterList && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParameterList) {
+                stripTrailingSpaces();
+            }
+        }
         emitToken(p.hash);
         emitToken(p.openParen);
 

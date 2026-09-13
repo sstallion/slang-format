@@ -218,7 +218,7 @@ TEST(AlignConsecutiveDeclarations, AcrossParameterPortList) {
           logic [15:0] d;
         endmodule
     )"), style), dedent(R"(
-        module foo#(
+        module foo #(
           parameter             N = 4,
           parameter logic [7:0] M = 8
         )(
@@ -284,7 +284,7 @@ TEST(AlignConsecutiveDeclarations, ParameterDeclarations) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo#(
+        module foo #(
           parameter             N = 4,
           parameter logic [7:0] M = 8
         );
@@ -348,7 +348,7 @@ TEST(AlignConsecutiveDeclarations, IndentLevelBreaksGroup) {
           logic [15:0] d;
         endmodule
     )"), style), dedent(R"(
-        module foo#(
+        module foo #(
           parameter             N = 4,
           parameter logic [7:0] M = 8
         )(
@@ -543,7 +543,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossParameterPortList) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo#(
+        module foo #(
           parameter bit   [7:0] M = 8,
           parameter logic [15:0] N = 16
         )(
@@ -1288,7 +1288,7 @@ TEST(AlignConsecutiveAssignments, AcrossParameterPortList) {
           logic [15:0] d = 2;
         endmodule
     )"), style), dedent(R"(
-        module foo#(
+        module foo #(
           parameter N             = 4,
           parameter logic [7:0] M = 8
         )(
@@ -1962,7 +1962,7 @@ TEST(AlignTrailingComments, AcrossParameterPortList) {
     )"),
                        style),
               dedent(R"(
-        module foo#(
+        module foo #(
           parameter N = 4 // width
         )(
           input a         // port a
