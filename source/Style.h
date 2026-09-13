@@ -105,17 +105,17 @@ struct Style {
 
     /// Number of spaces added for continuation lines relative to the
     /// enclosing statement.
-    unsigned ContinuationIndentWidth = 0;
+    unsigned ContinuationIndentWidth = 4;
 
     /// Number of spaces for parameter port list items in module declarations.
-    unsigned ParameterPortListIndentWidth = 0;
+    unsigned ParameterPortListIndentWidth = 4;
 
     /// Controls the separator used in event expressions.
     EventSeparatorStyle EventSeparator = EventSeparatorStyle::Preserve;
 
     /// If true, indent statements following a case label when they appear on
     /// the next line.
-    bool IndentCaseItem = false;
+    bool IndentCaseItem = true;
 
     /// Disables formatting for any line matching this pattern.
     std::string OneLineFormatOffRegex;
@@ -152,22 +152,22 @@ struct Style {
     DimensionBoundsStyle UnpackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
     /// Controls insertion of a newline between always and its body.
-    BlockBreakStyle BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
+    BlockBreakStyle BreakAfterAlways = BlockBreakStyle::Never;
 
     /// Controls insertion of a newline between initial and its body.
-    BlockBreakStyle BreakAfterInitial = BlockBreakStyle::OnlyMultiline;
+    BlockBreakStyle BreakAfterInitial = BlockBreakStyle::Never;
 
     /// Controls insertion of a blank line before always and its body.
-    BlockBreakStyle BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
+    BlockBreakStyle BreakBeforeAlways = BlockBreakStyle::Never;
 
     /// Controls insertion of a blank line before initial and its body.
-    BlockBreakStyle BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
+    BlockBreakStyle BreakBeforeInitial = BlockBreakStyle::Never;
 
     /// If true, enforce a newline after every begin statement.
-    bool BreakAfterBegin = false;
+    bool BreakAfterBegin = true;
 
     /// If true, enforce a newline before every end statement.
-    bool BreakBeforeEnd = false;
+    bool BreakBeforeEnd = true;
 
     /// If true, insert a blank line before function declarations.
     bool BreakBeforeFunction = false;

@@ -1955,7 +1955,7 @@ TEST(SpaceAfterBrackets, PreservesNewlines) {
     )"), style), dedent(R"(
         module foo;
           logic [7:0]
-          data;
+              data;
         endmodule
     )"));
     // clang-format on
@@ -2475,7 +2475,7 @@ TEST(SpaceBeforeBrackets, PreservesNewlines) {
     )"), style), dedent(R"(
         module foo;
           logic
-          [7:0] data;
+              [7:0] data;
         endmodule
     )"));
     // clang-format on
@@ -2653,7 +2653,7 @@ TEST(SpaceAroundOperators, PreservesNewlines) {
     )"), style), dedent(R"(
         module foo;
           assign x =
-          a + b;
+              a + b;
         endmodule
     )"));
     // clang-format on
@@ -2807,9 +2807,9 @@ TEST(SpacesInBraces, PreservesNewlines) {
     )"), style), dedent(R"(
         module foo;
           assign x = {
-          a,
-          b
-          };
+              a,
+              b
+              };
         endmodule
     )"));
     // clang-format on
@@ -2968,8 +2968,8 @@ TEST(SpacesInBrackets, PreservesNewlines) {
     )"), style), dedent(R"(
         module foo;
           logic [
-          7:0
-          ] data;
+              7:0
+              ] data;
         endmodule
     )"));
     // clang-format on

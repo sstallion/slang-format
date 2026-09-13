@@ -450,7 +450,7 @@ If `true`, port list boundaries do not break alignment groups.
 Controls whether slang-format inserts a newline between an `always`,
 `always_comb`, `always_ff`, or `always_latch` header and its body.
 
-**Default:** `OnlyMultiline`
+**Default:** `Never`
 
 | Value           | Description                                                       |
 | --------------- | ----------------------------------------------------------------- |
@@ -467,7 +467,7 @@ module foo;
 endmodule
 ```
 
-`Never` - no break inserted even for a multi-statement body:
+`Never` (default) - no break inserted even for a multi-statement body:
 
 ```sv
 module foo;
@@ -493,9 +493,9 @@ endmodule
 If `true`, enforce a newline immediately after every `begin` token whose first
 item is not already on the next line.
 
-**Default:** `false`
+**Default:** `true`
 
-`BreakAfterBegin: false` (default):
+`BreakAfterBegin: false`:
 
 ```sv
 module foo;
@@ -503,7 +503,7 @@ module foo;
 endmodule
 ```
 
-`BreakAfterBegin: true`:
+`BreakAfterBegin: true` (default):
 
 ```sv
 module foo;
@@ -521,7 +521,7 @@ Controls whether slang-format inserts a newline between an `initial` or `final`
 header and its body. Accepts the same values as
 [`BreakAfterAlways`](#breakafteralways-breakafterblockstyle).
 
-**Default:** `OnlyMultiline`
+**Default:** `Never`
 
 `Always` - break always inserted even for a single-statement body:
 
@@ -533,7 +533,7 @@ module foo;
 endmodule
 ```
 
-`Never` - no break inserted even for a multi-statement body:
+`Never` (default) - no break inserted even for a multi-statement body:
 
 ```sv
 module foo;
@@ -562,7 +562,7 @@ preceding the block are kept together with it; the blank line is inserted before
 the first attached comment. Accepts the same values as
 [`BreakAfterAlways`](#breakafteralways-breakafterblockstyle).
 
-**Default:** `OnlyMultiline`
+**Default:** `Never`
 
 `Always` - blank line always inserted:
 
@@ -575,7 +575,7 @@ module foo;
 endmodule
 ```
 
-`Never` - no blank line inserted:
+`Never` (default) - no blank line inserted:
 
 ```sv
 module foo;
@@ -608,7 +608,7 @@ it; the blank line is inserted before the first attached comment. Accepts the
 same values as
 [`BreakAfterAlways`](#breakafteralways-breakafterblockstyle).
 
-**Default:** `OnlyMultiline`
+**Default:** `Never`
 
 `Always` - blank line always inserted:
 
@@ -621,7 +621,7 @@ module foo;
 endmodule
 ```
 
-`Never` - no blank line inserted:
+`Never` (default) - no blank line inserted:
 
 ```sv
 module foo;
@@ -717,9 +717,9 @@ endmodule
 If `true`, enforce a newline before every `end` token that is not already on its
 own line.
 
-**Default:** `false`
+**Default:** `true`
 
-`BreakBeforeEnd: false` (default):
+`BreakBeforeEnd: false`:
 
 ```sv
 module foo;
@@ -727,7 +727,7 @@ module foo;
 endmodule
 ```
 
-`BreakBeforeEnd: true`:
+`BreakBeforeEnd: true` (default):
 
 ```sv
 module foo;
@@ -865,9 +865,9 @@ If `true`, indent statements that follow a `case` label when they appear on the
 next line. Has no effect when the statement appears on the same line as the
 label or when the label is immediately followed by `begin`.
 
-**Default:** `false`
+**Default:** `true`
 
-`IndentCaseItem: false` (default):
+`IndentCaseItem: false`:
 
 ```sv
 module foo;
@@ -879,7 +879,7 @@ module foo;
 endmodule
 ```
 
-`IndentCaseItem: true`:
+`IndentCaseItem: true` (default):
 
 ```sv
 module foo;

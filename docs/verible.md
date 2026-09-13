@@ -35,6 +35,12 @@ configuration with no changes needed:
 | No parenthesis insertion               | All `InsertParens` fields false                           |
 | No blank line before `function`/`task` | `BreakBeforeFunction: false` and `BreakBeforeTask: false` |
 | No blank line before `specify`         | `BreakBeforeSpecifyBlock: false`                          |
+| No blank line before `always`/`initial`| `BreakBeforeAlways: Never` and `BreakBeforeInitial: Never`|
+| No break between header and body       | `BreakAfterAlways: Never` and `BreakAfterInitial: Never`  |
+| Content on new line after `begin`      | `BreakAfterBegin: true`                                   |
+| Newline before `end`                   | `BreakBeforeEnd: true`                                    |
+| Continuation lines at 4-space indent   | `ContinuationIndentWidth: 4`                              |
+| Port declarations at 4-space indent    | `ParameterPortListIndentWidth: 4`                         |
 | Event separator preserved              | `EventSeparator: Preserve`                                |
 | Dimension bounds preserved             | `PackedDimensionBounds: Preserve`                         |
 | Alignment off                          | All `AlignConsecutive*` disabled                          |
@@ -42,43 +48,6 @@ configuration with no changes needed:
 In slang's syntax tree, `ModuleDeclarationSyntax` covers `module`, `interface`,
 `package`, and `program` declarations via a unified `isKind()` predicate. All
 four construct types are therefore handled by the existing `handle()` method.
-
-## Configuration-Only Matches
-
-The following Verible defaults can be matched by changing slang-format
-configuration values without any code changes:
-
-| Verible Behavior                             | Required Configuration              |
-| -------------------------------------------- | ----------------------------------- |
-| Port declarations at 4-space indent          | `ParameterPortListIndentWidth: 4`   |
-| Continuation lines at 4-space indent         | `ContinuationIndentWidth: 4`        |
-| Case item indentation                        | `IndentCaseItem: true`              |
-| Content on new line after `begin`            | `BreakAfterBegin: true`             |
-| Newline before `end`                         | `BreakBeforeEnd: true`              |
-| No blank line before `always`/`initial`      | `BreakBeforeAlways: Never`          |
-|                                              | `BreakBeforeInitial: Never`         |
-| No break between header and body             | `BreakAfterAlways: Never`           |
-|                                              | `BreakAfterInitial: Never`          |
-
-A `.slang-format` preset for the configuration-only portion would be:
-
-```yaml
-BreakAfterAlways: Never
-BreakAfterBegin: true
-BreakAfterInitial: Never
-BreakBeforeAlways: Never
-BreakBeforeEnd: true
-BreakBeforeInitial: Never
-ContinuationIndentWidth: 4
-IndentCaseItem: true
-ParameterPortListIndentWidth: 4
-```
-
-Verible keeps `always_comb begin` on a single line rather than forcing a break
-between the header and body. Setting `BreakAfterAlways` and `BreakAfterInitial`
-to `Never` matches this behavior. Verible also enforces content on a new line
-after `begin` and a newline before `end`, requires case item indentation, and
-uses 4-space continuation and port list indentation.
 
 ## Missing Features
 
