@@ -270,6 +270,18 @@ public:
         expr.right->visit(*this);
     }
 
+    void handle(const EqualsTypeClauseSyntax& clause) {
+        beforeOperator = formatEnabled;
+        emitToken(clause.equals);
+        clause.type->visit(*this);
+    }
+
+    void handle(const EqualsValueClauseSyntax& clause) {
+        beforeOperator = formatEnabled;
+        emitToken(clause.equals);
+        clause.expr->visit(*this);
+    }
+
     void handle(const ConditionalStatementSyntax& stmt) {
         if (stmt.label != nullptr) {
             stmt.label->visit(*this);

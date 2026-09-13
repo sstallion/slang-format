@@ -1588,7 +1588,7 @@ TEST(ApplyIndentation, ForLoopWithoutBegin) {
     )"), style), dedent(R"(
         module foo;
           initial
-            for(int i=0; i < 4; i++)
+            for(int i = 0; i < 4; i++)
               x = i;
         endmodule
     )"));
@@ -1776,7 +1776,7 @@ TEST(ApplyIndentation, ParameterPortListIndented) {
         endmodule
     )"), style), dedent(R"(
         module foo#(
-          parameter N=4
+          parameter N = 4
         )(
           input a
         );
@@ -1799,7 +1799,7 @@ TEST(ApplyIndentation, ParameterPortListIndentWidthCustom) {
         endmodule
     )"), style), dedent(R"(
         module foo#(
-            parameter N=4
+            parameter N = 4
         )(
             input a
         );
@@ -2150,7 +2150,7 @@ TEST(SpaceAfterSemicolon, Collapses) {
         module foo;
 
           initial begin
-            for(int i=0; i < 4; i++)begin
+            for(int i = 0; i < 4; i++)begin
             end
           end
         endmodule
@@ -2175,7 +2175,7 @@ TEST(SpaceAfterSemicolon, Disabled) {
         module foo;
 
           initial begin
-            for(int i=0;i < 4;i++)begin
+            for(int i = 0;i < 4;i++)begin
             end
           end
         endmodule
@@ -2229,7 +2229,7 @@ TEST(SpaceAfterSemicolon, Inserts) {
         module foo;
 
           initial begin
-            for(int i=0; i < 4; i++)begin
+            for(int i = 0; i < 4; i++)begin
             end
           end
         endmodule
@@ -2254,7 +2254,7 @@ TEST(SpaceAfterSemicolon, NormalizesAround) {
         module foo;
 
           initial begin
-            for(int i=0; i < 4; i++)begin
+            for(int i = 0; i < 4; i++)begin
             end
           end
         endmodule
@@ -2279,7 +2279,7 @@ TEST(SpaceAfterSemicolon, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            for(int i=0;i < 4;i++)begin
+            for(int i = 0;i < 4;i++)begin
             end
           end
         endmodule
@@ -2297,7 +2297,7 @@ TEST(SpaceAfterSemicolon, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            for(int i=0;i < 4;i++)begin
+            for(int i = 0;i < 4;i++)begin
             end
           end
         endmodule
@@ -2341,7 +2341,7 @@ TEST(SpaceAfterSemicolon, RemovesBefore) {
         module foo;
 
           initial begin
-            for(int i=0; i < 4; i++)begin
+            for(int i = 0; i < 4; i++)begin
             end
           end
         endmodule
@@ -2510,6 +2510,40 @@ TEST(SpaceAroundOperators, Collapses) {
     )"), style), dedent(R"(
         module foo;
           assign x = a + b;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAroundOperators, DeclaratorInserts) {
+    Style style;
+    style.SpaceAroundOperators = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          localparam CLK_COUNT_MAX=CLKS_PER_BIT - 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          localparam CLK_COUNT_MAX = CLKS_PER_BIT - 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAroundOperators, DeclaratorNormalizesWhenDisabled) {
+    Style style;
+    style.SpaceAroundOperators = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          localparam CLK_COUNT_MAX = CLKS_PER_BIT - 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          localparam CLK_COUNT_MAX=CLKS_PER_BIT-1;
         endmodule
     )"));
     // clang-format on
@@ -3112,7 +3146,7 @@ TEST(SpacesInParens, NormalizesAround) {
         module foo;
 
           initial begin
-            for( int i=0; i < 4; i++ )begin
+            for( int i = 0; i < 4; i++ )begin
             end
           end
         endmodule

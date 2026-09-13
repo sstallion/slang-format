@@ -923,7 +923,7 @@ TEST(ApplyInsertBeginEnd, ForLoop) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            for(int i=0; i < 4; i++)begin
+            for(int i = 0; i < 4; i++)begin
               x = i;
             end
         endmodule
