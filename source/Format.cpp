@@ -52,6 +52,12 @@ bool isIdentChar(char c) {
     return isValidCIdChar(c) || c == '$';
 }
 
+bool isEventControl(const TimingControlSyntax& tc) {
+    return tc.kind == SyntaxKind::EventControl ||
+           tc.kind == SyntaxKind::EventControlWithExpression ||
+           tc.kind == SyntaxKind::ImplicitEventControl;
+}
+
 bool needsSeparator(char last, char next) {
     return isIdentChar(last) && isIdentChar(next);
 }
@@ -378,6 +384,16 @@ public:
         stmt.predicate->visit(*this);
         emitToken(stmt.closeParen);
 
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(stmt.statement->getFirstToken())) {
+            if (style.SpaceAfterParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceAfterParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+        }
+
         visitBody(*stmt.statement);
 
         if (stmt.elseClause != nullptr) {
@@ -419,6 +435,19 @@ public:
         emitToken(caseStmt.openParen);
         caseStmt.expr->visit(*this);
         emitToken(caseStmt.closeParen);
+
+        if (caseStmt.matchesOrInside && !caseStmt.matchesOrInside.isMissing()) {
+            if (formatEnabled && !atLineStart && !output.empty() &&
+                !hasLeadingNewline(caseStmt.matchesOrInside)) {
+                if (style.SpaceAfterParens.ControlStatements && output.back() != ' ') {
+                    output += ' ';
+                }
+                else if (!style.SpaceAfterParens.ControlStatements) {
+                    stripTrailingSpaces();
+                }
+            }
+        }
+
         emitToken(caseStmt.matchesOrInside);
 
         depth++;
@@ -524,6 +553,17 @@ public:
         emitToken(loop.openParen);
         loop.expr->visit(*this);
         emitToken(loop.closeParen);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(loop.statement->getFirstToken())) {
+            if (style.SpaceAfterParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceAfterParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+        }
+
         visitBody(*loop.statement);
     }
 
@@ -574,6 +614,17 @@ public:
         }
 
         emitToken(loop.closeParen);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(loop.statement->getFirstToken())) {
+            if (style.SpaceAfterParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceAfterParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+        }
+
         visitBody(*loop.statement);
     }
 
@@ -612,6 +663,17 @@ public:
         }
 
         loop.loopList->visit(*this);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(loop.statement->getFirstToken())) {
+            if (style.SpaceAfterParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceAfterParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+        }
+
         visitBody(*loop.statement);
     }
 
@@ -642,6 +704,31 @@ public:
         loop.expr->visit(*this);
         emitToken(loop.closeParen);
         emitToken(loop.semi);
+    }
+
+    void handle(const TimingControlStatementSyntax& tcs) {
+        if (tcs.label != nullptr) {
+            tcs.label->visit(*this);
+        }
+
+        for (auto* attr : tcs.attributes) {
+            attr->visit(*this);
+        }
+
+        tcs.timingControl->visit(*this);
+
+        if (isEventControl(*tcs.timingControl) && formatEnabled && !atLineStart &&
+            !output.empty() && output.back() == ')' &&
+            !hasLeadingNewline(tcs.statement->getFirstToken())) {
+            if (style.SpaceAfterParens.EventControls && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceAfterParens.EventControls) {
+                stripTrailingSpaces();
+            }
+        }
+
+        visitBody(*tcs.statement);
     }
 
     void handle(const GenerateBlockSyntax& b) { visitScopedBlock(b, b.end, b.members); }
@@ -1267,6 +1354,17 @@ private:
 
             tcs.timingControl->visit(*this);
             body = tcs.statement;
+
+            if (isEventControl(*tcs.timingControl) && formatEnabled && !atLineStart &&
+                !output.empty() && output.back() == ')' &&
+                !hasLeadingNewline(body->getFirstToken())) {
+                if (style.SpaceAfterParens.EventControls && output.back() != ' ') {
+                    output += ' ';
+                }
+                else if (!style.SpaceAfterParens.EventControls) {
+                    stripTrailingSpaces();
+                }
+            }
         }
 
         bool const forceBreak = shouldBreakAfterProcedural(brkStyle, *body);

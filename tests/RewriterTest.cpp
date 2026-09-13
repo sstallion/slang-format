@@ -594,7 +594,7 @@ TEST(ApplyInsertBeginEnd, AlwaysFF) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_ff @(posedge clk)begin
+          always_ff @(posedge clk) begin
             x <= 1;
           end
         endmodule
@@ -638,8 +638,8 @@ TEST(ApplyInsertBeginEnd, AlwaysWithControlStatement) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always @(*)begin
-            if (a)begin
+          always @(*) begin
+            if (a) begin
               x = 1;
             end else begin
               y = 0;
@@ -669,7 +669,7 @@ TEST(ApplyInsertBeginEnd, AlwaysWithNestedControl) {
     )"), style), dedent(R"(
         module foo;
           always_comb begin
-            if (a)begin
+            if (a) begin
               x = 1;
             end
           end
@@ -781,9 +781,9 @@ TEST(ApplyInsertBeginEnd, DeepNesting) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if (a)begin
-              if (b)begin
-                if (c)begin
+            if (a) begin
+              if (b) begin
+                if (c) begin
                   x = 1;
                 end
               end
@@ -846,10 +846,10 @@ TEST(ApplyInsertBeginEnd, ElseIf) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if (a)begin
+            if (a) begin
               x = 1;
             end
-            else if (b)begin
+            else if (b) begin
               y = 2;
             end
             else begin
@@ -923,7 +923,7 @@ TEST(ApplyInsertBeginEnd, ForLoop) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            for (int i = 0; i < 4; i++)begin
+            for (int i = 0; i < 4; i++) begin
               x = i;
             end
         endmodule
@@ -952,7 +952,7 @@ TEST(ApplyInsertBeginEnd, IfElse) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if (a)begin
+            if (a) begin
               x = 1;
             end
             else begin
@@ -982,7 +982,7 @@ TEST(ApplyInsertBeginEnd, IfSingleStatement) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if (a)begin
+            if (a) begin
               x = 1;
             end
         endmodule
@@ -1074,8 +1074,8 @@ TEST(ApplyInsertBeginEnd, NestedIf) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if (a)begin
-              if (b)begin
+            if (a) begin
+              if (b) begin
                 x = 1;
               end
             end
@@ -1187,7 +1187,7 @@ TEST(ApplyInsertParens, ImplicitEvents) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always @(*)x = 1;
+          always @(*) x = 1;
         endmodule
     )"));
     // clang-format on
@@ -1204,7 +1204,7 @@ TEST(ApplyInsertParens, ImplicitEventsPreservesExisting) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always @(*)x = 1;
+          always @(*) x = 1;
         endmodule
     )"));
     // clang-format on
@@ -1221,7 +1221,7 @@ TEST(ApplyInsertParens, NamedEvents) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always @(signal)x = 1;
+          always @(signal) x = 1;
         endmodule
     )"));
     // clang-format on
@@ -1238,7 +1238,7 @@ TEST(ApplyInsertParens, NamedEventsPreservesExisting) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always @(signal)x = 1;
+          always @(signal) x = 1;
         endmodule
     )"));
     // clang-format on

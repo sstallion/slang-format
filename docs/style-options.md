@@ -1394,6 +1394,78 @@ endmodule
 
 ---
 
+### SpaceAfterParens (SpaceAfterParensStyle)
+
+Controls whitespace after a closing parenthesis. Each sub-option independently
+controls its scope.
+
+**Default:**
+
+```yaml
+SpaceAfterParens:
+  ControlStatements: true
+  EventControls: true
+```
+
+#### ControlStatements (bool)
+
+If `true`, a single space is inserted between a control statement closing
+parenthesis and the following token (`if`, `case`, `casex`, `casez`, `for`,
+`while`, `repeat`, `foreach`); multiple spaces are collapsed to a single space.
+If `false`, whitespace after the closing parenthesis is removed. Newlines are not
+affected. The `do`-`while` statement is excluded because its closing parenthesis
+is followed by a semicolon.
+
+**Default:** `true`
+
+`ControlStatements: false`:
+
+```sv
+module foo;
+  always_comb
+    if (a)x = 1;
+endmodule
+```
+
+`ControlStatements: true` (default):
+
+```sv
+module foo;
+  always_comb
+    if (a) x = 1;
+endmodule
+```
+
+#### EventControls (bool)
+
+If `true`, a single space is inserted between an event control closing
+parenthesis and the following token (`@(posedge clk)`, `@(*)`, etc.); multiple
+spaces are collapsed to a single space. If `false`, whitespace after the closing
+parenthesis is removed. Newlines are not affected. Event controls without
+parentheses (`@*`) are not affected.
+
+**Default:** `true`
+
+`EventControls: false`:
+
+```sv
+module foo;
+  always_ff @(posedge clk)begin
+  end
+endmodule
+```
+
+`EventControls: true` (default):
+
+```sv
+module foo;
+  always_ff @(posedge clk) begin
+  end
+endmodule
+```
+
+---
+
 ### SpaceAfterSemicolon (bool)
 
 Normalizes whitespace around semicolons. Whitespace preceding a semicolon is

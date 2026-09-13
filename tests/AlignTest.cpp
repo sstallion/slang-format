@@ -1478,7 +1478,7 @@ TEST(AlignConsecutiveAssignments, NonblockingAssignments) {
                        style),
               dedent(R"(
         module foo;
-          always_ff @(posedge clk)begin
+          always_ff @(posedge clk) begin
             a        <= 1;
             longname <= 2;
           end
@@ -1643,7 +1643,7 @@ TEST(AlignConsecutiveAssignments, IfStatementDoesNotBreakGroup) {
         module foo;
           always_comb begin
             x        = 1;
-            if (cond)begin
+            if (cond) begin
               y = 2;
             end
             else begin
@@ -1736,7 +1736,7 @@ TEST(AlignConsecutiveAssignments, ControlFlowDoesNotBreakGroup) {
         module foo;
           always_comb begin
             a        = 1;
-            if (x == 1)begin
+            if (x == 1) begin
               b = 2;
             end
             longname = 3;

@@ -327,7 +327,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalWithBlocks) {
     )"), style), dedent(R"(
         module foo;
           always @(posedge clk_i)
-            if (a)begin
+            if (a) begin
               x <= 1;
             end else begin
               y <= 2;
@@ -373,7 +373,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineSimpleIf) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_comb if (a)x = 1;
+          always_comb if (a) x = 1;
         endmodule
     )"));
     // clang-format on
@@ -493,7 +493,7 @@ TEST(ApplyIndentation, BreakAfterBeginNested) {
     )"), style), dedent(R"(
         module foo;
           always_comb begin
-            if (a)begin
+            if (a) begin
               x = 1;
             end
           end
@@ -652,7 +652,7 @@ TEST(ApplyIndentation, BreakBeforeAlwaysAlwaysTimingControl) {
     )"), style), dedent(R"(
         module foo;
 
-          always @(posedge clk)x <= y;
+          always @(posedge clk) x <= y;
         endmodule
     )"));
     // clang-format on
@@ -806,8 +806,8 @@ TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineSingleItemWithBlock) {
             y = 2;
           end
 
-          always_ff @(posedge clk_i)begin
-            if (x == 0)begin
+          always_ff @(posedge clk_i) begin
+            if (x == 0) begin
               y <= 1;
             end
           end
@@ -1157,7 +1157,7 @@ TEST(ApplyIndentation, BreakBeforeInitialOnlyMultilineSingleItemWithBlock) {
           end
 
           initial begin
-            if (x == 0)begin
+            if (x == 0) begin
               y = 1;
             end
           end
@@ -1829,7 +1829,7 @@ TEST(ApplyIndentation, NestedBeginEnd) {
     )"), style), dedent(R"(
         module foo;
           always_comb begin
-            if (a)begin
+            if (a) begin
               x = 1;
             end
           end
@@ -2647,7 +2647,7 @@ TEST(SpaceAfterSemicolon, Collapses) {
         module foo;
 
           initial begin
-            for (int i = 0; i < 4; i++)begin
+            for (int i = 0; i < 4; i++) begin
             end
           end
         endmodule
@@ -2672,7 +2672,7 @@ TEST(SpaceAfterSemicolon, Disabled) {
         module foo;
 
           initial begin
-            for (int i = 0;i < 4;i++)begin
+            for (int i = 0;i < 4;i++) begin
             end
           end
         endmodule
@@ -2726,7 +2726,7 @@ TEST(SpaceAfterSemicolon, Inserts) {
         module foo;
 
           initial begin
-            for (int i = 0; i < 4; i++)begin
+            for (int i = 0; i < 4; i++) begin
             end
           end
         endmodule
@@ -2751,7 +2751,7 @@ TEST(SpaceAfterSemicolon, NormalizesAround) {
         module foo;
 
           initial begin
-            for (int i = 0; i < 4; i++)begin
+            for (int i = 0; i < 4; i++) begin
             end
           end
         endmodule
@@ -2776,7 +2776,7 @@ TEST(SpaceAfterSemicolon, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            for (int i = 0;i < 4;i++)begin
+            for (int i = 0;i < 4;i++) begin
             end
           end
         endmodule
@@ -2794,7 +2794,7 @@ TEST(SpaceAfterSemicolon, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            for (int i = 0;i < 4;i++)begin
+            for (int i = 0;i < 4;i++) begin
             end
           end
         endmodule
@@ -2838,8 +2838,425 @@ TEST(SpaceAfterSemicolon, RemovesBefore) {
         module foo;
 
           initial begin
+            for (int i = 0; i < 4; i++) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensControlStatements, Collapses) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            if (a)   begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if (a) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensControlStatements, DisabledCase) {
+    Style style;
+    style.SpaceAfterParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            case (x) matches
+              default:;
+            endcase
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            case (x)matches
+              default:;
+            endcase
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensControlStatements, DisabledFor) {
+    Style style;
+    style.SpaceAfterParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            for (int i = 0; i < 4; i++) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
             for (int i = 0; i < 4; i++)begin
             end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensControlStatements, DisabledForeach) {
+    Style style;
+    style.SpaceAfterParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            foreach (arr[i]) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            foreach (arr [i])begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensControlStatements, DisabledIf) {
+    Style style;
+    style.SpaceAfterParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            if (a) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if (a)begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensControlStatements, DisabledWhile) {
+    Style style;
+    style.SpaceAfterParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            while (a) begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            while (a)begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensControlStatements, FormatOff) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            // slang-format off
+            if (a)begin
+            end
+            // slang-format on
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            // slang-format off
+            if (a)begin
+            end
+            // slang-format on
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensControlStatements, Inserts) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            if (a)begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if (a) begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensControlStatements, NormalizesWhenDisabled) {
+    Style style;
+    style.SpaceAfterParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            if (a)   begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if (a)begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensControlStatements, PreservesNewlines) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            if (a)
+              x = 1;
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if (a)
+              x = 1;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensEventControls, Collapses) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_ff @(posedge clk)   begin
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk) begin
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensEventControls, Disabled) {
+    Style style;
+    style.SpaceAfterParens.EventControls = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_ff @(posedge clk) begin
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk)begin
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensEventControls, DisabledImplicitEvent) {
+    Style style;
+    style.SpaceAfterParens.EventControls = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always @(*) x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always @(*)x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensEventControls, FormatOff) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          // slang-format off
+          always_ff @(posedge clk)begin
+          end
+          // slang-format on
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // slang-format off
+          always_ff @(posedge clk)begin
+          end
+          // slang-format on
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensEventControls, Inserts) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_ff @(posedge clk)begin
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk) begin
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensEventControls, NormalizesWhenDisabled) {
+    Style style;
+    style.SpaceAfterParens.EventControls = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_ff @(posedge clk)   begin
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk)begin
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensEventControls, PreservesNewlines) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_ff @(posedge clk)
+            x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensEventControls, SkipsAtStar) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always @* x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always @*x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensEventControls, SkipsDelay) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial
+            #(5)x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial
+              #(5)x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAfterParensEventControls, StandaloneTimingControl) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            @(posedge clk)x <= 1;
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            @(posedge clk) x <= 1;
           end
         endmodule
     )"));
@@ -3165,7 +3582,7 @@ TEST(SpaceBeforeParensControlStatements, Collapses) {
     )"), style), dedent(R"(
         module foo;
           initial begin
-            if (a)begin
+            if (a) begin
             end
           end
         endmodule
@@ -3236,7 +3653,7 @@ TEST(SpaceBeforeParensControlStatements, DisabledFor) {
     )"), style), dedent(R"(
         module foo;
           initial begin
-            for(int i = 0; i < 4; i++)begin
+            for(int i = 0; i < 4; i++) begin
             end
           end
         endmodule
@@ -3259,7 +3676,7 @@ TEST(SpaceBeforeParensControlStatements, DisabledForeach) {
     )"), style), dedent(R"(
         module foo;
           initial begin
-            foreach(arr [i])begin
+            foreach(arr [i]) begin
             end
           end
         endmodule
@@ -3282,7 +3699,7 @@ TEST(SpaceBeforeParensControlStatements, DisabledIf) {
     )"), style), dedent(R"(
         module foo;
           initial begin
-            if(a)begin
+            if(a) begin
             end
           end
         endmodule
@@ -3305,7 +3722,7 @@ TEST(SpaceBeforeParensControlStatements, DisabledWhile) {
     )"), style), dedent(R"(
         module foo;
           initial begin
-            while(a)begin
+            while(a) begin
             end
           end
         endmodule
@@ -3353,7 +3770,7 @@ TEST(SpaceBeforeParensControlStatements, Inserts) {
     )"), style), dedent(R"(
         module foo;
           initial begin
-            if (a)begin
+            if (a) begin
             end
           end
         endmodule
@@ -3376,7 +3793,7 @@ TEST(SpaceBeforeParensControlStatements, NormalizesWhenDisabled) {
     )"), style), dedent(R"(
         module foo;
           initial begin
-            if(a)begin
+            if(a) begin
             end
           end
         endmodule
@@ -3400,7 +3817,7 @@ TEST(SpaceBeforeParensControlStatements, PreservesNewlines) {
         module foo;
           initial begin
             if
-                (a)begin
+                (a) begin
             end
           end
         endmodule
@@ -3422,7 +3839,7 @@ TEST(SpaceBeforeParensControlStatements, UniqueIf) {
     )"), style), dedent(R"(
         module foo;
           initial begin
-            unique if (a)begin
+            unique if (a) begin
             end
           end
         endmodule
@@ -4231,7 +4648,7 @@ TEST(SpacesInParens, Collapses) {
         module foo;
 
           initial begin
-            if ( a )begin
+            if ( a ) begin
             end
           end
         endmodule
@@ -4255,7 +4672,7 @@ TEST(SpacesInParens, Disabled) {
         module foo;
 
           initial begin
-            if (a)begin
+            if (a) begin
             end
           end
         endmodule
@@ -4309,7 +4726,7 @@ TEST(SpacesInParens, Inserts) {
         module foo;
 
           initial begin
-            if ( a )begin
+            if ( a ) begin
             end
           end
         endmodule
@@ -4334,7 +4751,7 @@ TEST(SpacesInParens, NormalizesAround) {
         module foo;
 
           initial begin
-            for ( int i = 0; i < 4; i++ )begin
+            for ( int i = 0; i < 4; i++ ) begin
             end
           end
         endmodule
@@ -4358,7 +4775,7 @@ TEST(SpacesInParens, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            if (a)begin
+            if (a) begin
             end
           end
         endmodule
@@ -4376,7 +4793,7 @@ TEST(SpacesInParens, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            if (a)begin
+            if (a) begin
             end
           end
         endmodule
@@ -4423,7 +4840,7 @@ TEST(SpacesInParens, RemovesBefore) {
         module foo;
 
           initial begin
-            if ( a )begin
+            if ( a ) begin
             end
           end
         endmodule

@@ -700,6 +700,34 @@ TEST(ParseConfiguration, ParsesSpaceAfterComma) {
     EXPECT_TRUE(style.SpaceAfterComma);
 }
 
+TEST(ParseConfiguration, ParsesSpaceAfterParensControlStatements) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        SpaceAfterParens:
+          ControlStatements: false
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_FALSE(style.SpaceAfterParens.ControlStatements);
+}
+
+TEST(ParseConfiguration, ParsesSpaceAfterParensEventControls) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        SpaceAfterParens:
+          EventControls: false
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_FALSE(style.SpaceAfterParens.EventControls);
+}
+
 TEST(ParseConfiguration, ParsesSpaceAfterSemicolon) {
     YAML::Node const node = YAML::Load("SpaceAfterSemicolon: true");
     Style style;
@@ -854,6 +882,8 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("SpaceAfterBrackets: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterCaseColon: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterComma: true"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAfterParens:"), std::string::npos);
+    EXPECT_NE(result.find("EventControls: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeBrackets: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeCaseColon: false"), std::string::npos);
@@ -898,6 +928,8 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.SpaceAfterBrackets = false;
     style.SpaceAfterCaseColon = false;
     style.SpaceAfterComma = false;
+    style.SpaceAfterParens.ControlStatements = false;
+    style.SpaceAfterParens.EventControls = false;
     style.SpaceAfterSemicolon = false;
     style.SpaceBeforeBrackets = false;
     style.SpaceBeforeCaseColon = true;
@@ -926,6 +958,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("SpaceAfterBrackets: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterCaseColon: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterComma: false"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAfterParens:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeBrackets: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeCaseColon: true"), std::string::npos);
@@ -970,6 +1003,8 @@ TEST(DumpConfiguration, RoundTrip) {
     original.SpaceAfterBrackets = false;
     original.SpaceAfterCaseColon = false;
     original.SpaceAfterComma = true;
+    original.SpaceAfterParens.ControlStatements = false;
+    original.SpaceAfterParens.EventControls = false;
     original.SpaceAfterSemicolon = true;
     original.SpaceBeforeBrackets = false;
     original.SpaceBeforeCaseColon = true;

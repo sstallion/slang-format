@@ -93,6 +93,17 @@ struct SpaceBeforeParensStyle {
     bool operator==(const SpaceBeforeParensStyle&) const = default;
 };
 
+/// Controls whitespace after a closing parenthesis.
+struct SpaceAfterParensStyle {
+    /// If true, insert a space after parentheses in control statements.
+    bool ControlStatements = true;
+
+    /// If true, insert a space after parentheses in event controls.
+    bool EventControls = true;
+
+    bool operator==(const SpaceAfterParensStyle&) const = default;
+};
+
 /// Defines all formatting style options.
 struct Style {
     /// Controls alignment of assignment operators in consecutive declarations.
@@ -151,6 +162,9 @@ struct Style {
 
     /// Normalizes whitespace around commas.
     bool SpaceAfterComma = true;
+
+    /// Controls whitespace after a closing parenthesis.
+    SpaceAfterParensStyle SpaceAfterParens;
 
     /// Normalizes whitespace around semicolons.
     bool SpaceAfterSemicolon = true;

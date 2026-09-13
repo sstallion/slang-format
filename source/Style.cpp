@@ -245,12 +245,29 @@ void emitInsertParens(YAML::Emitter& out, const InsertParensStyle& config) {
     out << YAML::EndMap;
 }
 
+void emitSpaceAfterParens(YAML::Emitter& out, const SpaceAfterParensStyle& config) {
+    out << YAML::BeginMap;
+    out << YAML::Key << "ControlStatements" << YAML::Value << config.ControlStatements;
+    out << YAML::Key << "EventControls" << YAML::Value << config.EventControls;
+    out << YAML::EndMap;
+}
+
 void emitSpaceBeforeParens(YAML::Emitter& out, const SpaceBeforeParensStyle& config) {
     out << YAML::BeginMap;
     out << YAML::Key << "ControlStatements" << YAML::Value << config.ControlStatements;
     out << YAML::Key << "ParameterList" << YAML::Value << config.ParameterList;
     out << YAML::Key << "PortList" << YAML::Value << config.PortList;
     out << YAML::EndMap;
+}
+
+void parseSpaceAfterParens(const YAML::Node& node, SpaceAfterParensStyle& config) {
+    if (auto v = node["ControlStatements"]) {
+        config.ControlStatements = v.as<bool>();
+    }
+
+    if (auto v = node["EventControls"]) {
+        config.EventControls = v.as<bool>();
+    }
 }
 
 void parseSpaceBeforeParens(const YAML::Node& node, SpaceBeforeParensStyle& config) {
@@ -373,6 +390,8 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::Key << "SpaceAfterBrackets" << YAML::Value << style.SpaceAfterBrackets;
     out << YAML::Key << "SpaceAfterCaseColon" << YAML::Value << style.SpaceAfterCaseColon;
     out << YAML::Key << "SpaceAfterComma" << YAML::Value << style.SpaceAfterComma;
+    out << YAML::Key << "SpaceAfterParens" << YAML::Value;
+    emitSpaceAfterParens(out, style.SpaceAfterParens);
     out << YAML::Key << "SpaceAfterSemicolon" << YAML::Value << style.SpaceAfterSemicolon;
     out << YAML::Key << "SpaceBeforeBrackets" << YAML::Value << style.SpaceBeforeBrackets;
     out << YAML::Key << "SpaceBeforeCaseColon" << YAML::Value << style.SpaceBeforeCaseColon;
@@ -476,6 +495,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto n = node["InsertParens"]) {
         parseInsertParens(n, style.InsertParens);
+    }
+
+    if (auto n = node["SpaceAfterParens"]) {
+        parseSpaceAfterParens(n, style.SpaceAfterParens);
     }
 
     if (auto n = node["SpaceBeforeParens"]) {
