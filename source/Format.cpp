@@ -583,6 +583,7 @@ private:
     bool afterOpenBracket = false;
     bool afterOpenParen = false;
     bool afterCloseBracket = false;
+    bool afterIntegerBase = false;
     bool spaceBeforeCloseBracePending = false;
     bool spaceBeforeCloseBracketPending = false;
     bool spaceBeforeCloseParenPending = false;
@@ -695,6 +696,7 @@ private:
             beforeOperator = false;
             afterOperator = false;
             afterComma = false;
+            afterIntegerBase = false;
             afterSemicolon = false;
             afterOpenBrace = false;
             afterOpenBracket = false;
@@ -734,6 +736,7 @@ private:
         beforeOperator = false;
         afterOperator = false;
         afterComma = false;
+        afterIntegerBase = false;
         afterSemicolon = false;
         afterOpenBrace = false;
         afterOpenBracket = false;
@@ -869,7 +872,7 @@ private:
     }
 
     void emitSeparator(std::string_view raw) {
-        if (formatEnabled && !atLineStart && !raw.empty() && !output.empty() &&
+        if (formatEnabled && !atLineStart && !afterIntegerBase && !raw.empty() && !output.empty() &&
             needsSeparator(output.back(), raw.front())) {
             output += ' ';
         }
@@ -970,6 +973,7 @@ private:
             spaceBeforeCloseParenPending = true;
         }
         afterCloseBracket = formatEnabled && tok.kind == TokenKind::CloseBracket;
+        afterIntegerBase = formatEnabled && tok.kind == TokenKind::IntegerBase;
     }
 
     // Emit all elements and separators of a SeparatedSyntaxList.

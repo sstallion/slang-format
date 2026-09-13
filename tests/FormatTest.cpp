@@ -1450,7 +1450,7 @@ TEST(ApplyIndentation, CaseItemNextLineIndented) {
         module foo;
           always_comb
             case(x)
-              2'b 00:
+              2'b00:
                 y = 0;
               default:y = 1;
             endcase
@@ -1477,7 +1477,7 @@ TEST(ApplyIndentation, CaseItemNextLineNotIndented) {
         module foo;
           always_comb
             case(x)
-              2'b 00:
+              2'b00:
               y = 0;
               default:y = 1;
             endcase
@@ -1504,7 +1504,7 @@ TEST(ApplyIndentation, CaseItemSameLineBeginUnchanged) {
         module foo;
           always_comb
             case(x)
-              2'b 00:begin
+              2'b00:begin
                 y = 0;
               end
             endcase
@@ -1529,7 +1529,7 @@ TEST(ApplyIndentation, CaseItems) {
         module foo;
           always_comb
             case(x)
-              2'b 00:y = 0;
+              2'b00:y = 0;
               default:y = 1;
             endcase
         endmodule
@@ -3204,6 +3204,32 @@ TEST(SpacesInParens, RemovesBefore) {
             if( a )begin
             end
           end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(WhitespaceNormalization, IntegerVectorLiteral) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign a = 4'b0000;
+        assign b = 8'hFF;
+        assign c = 4'd15;
+        assign d = 3'o7;
+        assign e = 4'sb1010;
+        assign f = 4'bxxxx;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign a = 4'b0000;
+          assign b = 8'hFF;
+          assign c = 4'd15;
+          assign d = 3'o7;
+          assign e = 4'sb1010;
+          assign f = 4'bxxxx;
         endmodule
     )"));
     // clang-format on
