@@ -1388,6 +1388,34 @@ endmodule
 
 ---
 
+### SpaceBeforePortList (bool)
+
+Normalizes whitespace before a port list. If `true`, a single space is inserted
+before `(`; multiple spaces are collapsed to a single space. If `false`,
+whitespace before `(` is removed. Newlines are not affected.
+
+**Default:** `true`
+
+`SpaceBeforePortList: false`:
+
+```sv
+module foo(
+    input a
+);
+endmodule
+```
+
+`SpaceBeforePortList: true` (default):
+
+```sv
+module foo (
+    input a
+);
+endmodule
+```
+
+---
+
 ### SpaceAroundOperators (bool)
 
 Normalizes whitespace around assignment, binary, and ternary operators. If

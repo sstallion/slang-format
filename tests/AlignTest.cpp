@@ -221,7 +221,7 @@ TEST(AlignConsecutiveDeclarations, AcrossParameterPortList) {
         module foo #(
           parameter             N = 4,
           parameter logic [7:0] M = 8
-        )(
+        ) (
           input                 a,
           input logic [7:0]     b
         );
@@ -263,7 +263,7 @@ TEST(AlignConsecutiveDeclarations, DirectionKeywords) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo(
+        module foo (
           input             a,
           input logic [7:0] b,
           output            c
@@ -351,7 +351,7 @@ TEST(AlignConsecutiveDeclarations, IndentLevelBreaksGroup) {
         module foo #(
           parameter             N = 4,
           parameter logic [7:0] M = 8
-        )(
+        ) (
           input             a,
           input logic [7:0] b
         );
@@ -546,7 +546,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossParameterPortList) {
         module foo #(
           parameter bit   [7:0] M = 8,
           parameter logic [15:0] N = 16
-        )(
+        ) (
           input bit       [7:0] a,
           input logic     [31:0] b
         );
@@ -567,7 +567,7 @@ TEST(AlignConsecutivePackedDimensions, DirectionKeywords) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo(
+        module foo (
           input bit   [7:0] a,
           input logic [15:0] b
         );
@@ -1291,7 +1291,7 @@ TEST(AlignConsecutiveAssignments, AcrossParameterPortList) {
         module foo #(
           parameter N             = 4,
           parameter logic [7:0] M = 8
-        )(
+        ) (
           input a,
           input logic [7:0] b
         );
@@ -1964,7 +1964,7 @@ TEST(AlignTrailingComments, AcrossParameterPortList) {
               dedent(R"(
         module foo #(
           parameter N = 4 // width
-        )(
+        ) (
           input a         // port a
         );
           assign x = 1;   // body

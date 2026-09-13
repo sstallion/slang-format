@@ -132,6 +132,14 @@ public:
     }
 
     void handle(const AnsiPortListSyntax& p) {
+        if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(p.openParen)) {
+            if (style.SpaceBeforePortList && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforePortList) {
+                stripTrailingSpaces();
+            }
+        }
         emitToken(p.openParen);
 
         depth++;
@@ -156,6 +164,14 @@ public:
     }
 
     void handle(const NonAnsiPortListSyntax& p) {
+        if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(p.openParen)) {
+            if (style.SpaceBeforePortList && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforePortList) {
+                stripTrailingSpaces();
+            }
+        }
         emitToken(p.openParen);
 
         depth++;
@@ -185,6 +201,21 @@ public:
         depth--;
         nextIsPrimary = true;
         nextLineKind = LineMetadata::Kind::PortListBoundary;
+        emitToken(p.closeParen);
+    }
+
+    void handle(const WildcardPortListSyntax& p) {
+        if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(p.openParen)) {
+            if (style.SpaceBeforePortList && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforePortList) {
+                stripTrailingSpaces();
+            }
+        }
+        emitToken(p.openParen);
+        emitToken(p.dot);
+        emitToken(p.star);
         emitToken(p.closeParen);
     }
 

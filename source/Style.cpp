@@ -266,6 +266,10 @@ void parseSpacingOptions(const YAML::Node& node, Style& style) {
         style.SpaceBeforeParameterList = v.as<bool>();
     }
 
+    if (auto v = node["SpaceBeforePortList"]) {
+        style.SpaceBeforePortList = v.as<bool>();
+    }
+
     if (auto v = node["SpaceAroundOperators"]) {
         style.SpaceAroundOperators = v.as<bool>();
     }
@@ -343,6 +347,7 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::Key << "SpaceAfterSemicolon" << YAML::Value << style.SpaceAfterSemicolon;
     out << YAML::Key << "SpaceBeforeBrackets" << YAML::Value << style.SpaceBeforeBrackets;
     out << YAML::Key << "SpaceBeforeParameterList" << YAML::Value << style.SpaceBeforeParameterList;
+    out << YAML::Key << "SpaceBeforePortList" << YAML::Value << style.SpaceBeforePortList;
     out << YAML::Key << "SpaceAroundOperators" << YAML::Value << style.SpaceAroundOperators;
     out << YAML::Key << "SpacesInBraces" << YAML::Value << style.SpacesInBraces;
     out << YAML::Key << "SpacesInBrackets" << YAML::Value << style.SpacesInBrackets;

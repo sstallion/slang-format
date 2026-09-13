@@ -211,7 +211,7 @@ TEST(ApplyPackedDimensionBounds, ImplicitType) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo(
+        module foo (
           input [7:0] x
         );
         endmodule

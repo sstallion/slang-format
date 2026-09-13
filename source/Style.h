@@ -138,6 +138,9 @@ struct Style {
     /// Normalizes whitespace before a parameter port list.
     bool SpaceBeforeParameterList = true;
 
+    /// Normalizes whitespace before a port list.
+    bool SpaceBeforePortList = true;
+
     /// Normalizes whitespace around assignment, binary, and ternary operators.
     bool SpaceAroundOperators = true;
 

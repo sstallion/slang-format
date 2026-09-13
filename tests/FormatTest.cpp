@@ -1777,7 +1777,7 @@ TEST(ApplyIndentation, ParameterPortListIndented) {
     )"), style), dedent(R"(
         module foo #(
           parameter N = 4
-        )(
+        ) (
           input a
         );
         endmodule
@@ -1800,7 +1800,7 @@ TEST(ApplyIndentation, ParameterPortListIndentWidthCustom) {
     )"), style), dedent(R"(
         module foo #(
             parameter N = 4
-        )(
+        ) (
             input a
         );
         endmodule
@@ -1820,7 +1820,7 @@ TEST(ApplyIndentation, PortListIndented) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo(
+        module foo (
           input a,
           input b
         );
@@ -2107,7 +2107,7 @@ TEST(SpaceAfterComma, PreservesNewlines) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo(
+        module foo (
           input a,
           input b
         );
@@ -2512,7 +2512,7 @@ TEST(SpaceBeforeParameterList, Collapses) {
     )"), style), dedent(R"(
         module foo #(
             parameter N = 4
-        )(
+        ) (
             input a
         );
         endmodule
@@ -2535,7 +2535,7 @@ TEST(SpaceBeforeParameterList, Disabled) {
     )"), style), dedent(R"(
         module foo#(
             parameter N = 4
-        )(
+        ) (
             input a
         );
         endmodule
@@ -2583,7 +2583,7 @@ TEST(SpaceBeforeParameterList, Inserts) {
     )"), style), dedent(R"(
         module foo #(
             parameter N = 4
-        )(
+        ) (
             input a
         );
         endmodule
@@ -2606,7 +2606,7 @@ TEST(SpaceBeforeParameterList, NormalizesWhenDisabled) {
     )"), style), dedent(R"(
         module foo#(
             parameter N = 4
-        )(
+        ) (
             input a
         );
         endmodule
@@ -2630,7 +2630,123 @@ TEST(SpaceBeforeParameterList, PreservesNewlines) {
         module foo
             #(
             parameter N = 4
-        )(
+        ) (
+            input a
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforePortList, Collapses) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo   (
+          input a
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo (
+            input a
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforePortList, Disabled) {
+    Style style;
+    style.SpaceBeforePortList = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo (
+          input a
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo(
+            input a
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforePortList, FormatOff) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        // slang-format off
+        module foo(
+          input a
+        );
+        endmodule
+        // slang-format on
+    )"), style), dedent(R"(
+        // slang-format off
+        module foo(
+          input a
+        );
+        endmodule
+        // slang-format on
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforePortList, Inserts) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo(
+          input a
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo (
+            input a
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforePortList, NormalizesWhenDisabled) {
+    Style style;
+    style.SpaceBeforePortList = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo   (
+          input a
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo(
+            input a
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforePortList, PreservesNewlines) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo
+        (
+          input a
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo
+            (
             input a
         );
         endmodule
@@ -3349,7 +3465,7 @@ TEST(SpacesInParens, PreservesNewlines) {
         );
         endmodule
     )"), style), dedent(R"(
-        module foo(
+        module foo (
           input a,
           input b
         );
