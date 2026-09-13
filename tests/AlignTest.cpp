@@ -1508,7 +1508,7 @@ TEST(AlignConsecutiveAssignments, CaseStatementDoesNotBreakGroup) {
         module foo;
           always_comb begin
             x        = 1;
-            case(state)
+            case (state)
               STATE_A: a = 1;
               STATE_B: a = 2;
             endcase
@@ -1643,7 +1643,7 @@ TEST(AlignConsecutiveAssignments, IfStatementDoesNotBreakGroup) {
         module foo;
           always_comb begin
             x        = 1;
-            if(cond)begin
+            if (cond)begin
               y = 2;
             end
             else begin
@@ -1736,7 +1736,7 @@ TEST(AlignConsecutiveAssignments, ControlFlowDoesNotBreakGroup) {
         module foo;
           always_comb begin
             a        = 1;
-            if(x == 1)begin
+            if (x == 1)begin
               b = 2;
             end
             longname = 3;

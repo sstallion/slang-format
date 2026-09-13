@@ -1346,7 +1346,7 @@ whitespace after `:` is removed. Newlines are not affected.
 ```sv
 module foo;
   always_comb
-    case(x)
+    case (x)
       2'b00:y = 0;
       default:y = 1;
     endcase
@@ -1358,7 +1358,7 @@ endmodule
 ```sv
 module foo;
   always_comb
-    case(x)
+    case (x)
       2'b00: y = 0;
       default: y = 1;
     endcase
@@ -1466,7 +1466,7 @@ inserted before `:`; multiple spaces are collapsed to a single space. If
 ```sv
 module foo;
   always_comb
-    case(x)
+    case (x)
       2'b00:y = 0;
       default:y = 1;
     endcase
@@ -1478,7 +1478,7 @@ endmodule
 ```sv
 module foo;
   always_comb
-    case(x)
+    case (x)
       2'b00 :y = 0;
       default :y = 1;
     endcase
@@ -1487,15 +1487,56 @@ endmodule
 
 ---
 
-### SpaceBeforeParameterList (bool)
+### SpaceBeforeParens (SpaceBeforeParensStyle)
 
-Normalizes whitespace before a parameter port list. If `true`, a single space is
-inserted before `#(`; multiple spaces are collapsed to a single space. If
-`false`, whitespace before `#(` is removed. Newlines are not affected.
+Controls whitespace before an opening parenthesis. Each sub-option independently
+controls its scope.
+
+**Default:**
+
+```yaml
+SpaceBeforeParens:
+  ControlStatements: true
+  ParameterList: true
+  PortList: true
+```
+
+#### ControlStatements (bool)
+
+If `true`, a single space is inserted between a control statement keyword (`if`,
+`case`, `casex`, `casez`, `for`, `while`, `repeat`, `foreach`, `do`-`while`) and
+its opening parenthesis; multiple spaces are collapsed to a single space. If
+`false`, whitespace before the parenthesis is removed. Newlines are not affected.
 
 **Default:** `true`
 
-`SpaceBeforeParameterList: false`:
+`ControlStatements: false`:
+
+```sv
+module foo;
+  always_comb
+    if(a) x = 1;
+endmodule
+```
+
+`ControlStatements: true` (default):
+
+```sv
+module foo;
+  always_comb
+    if (a) x = 1;
+endmodule
+```
+
+#### ParameterList (bool)
+
+If `true`, a single space is inserted before a parameter port list `#(`;
+multiple spaces are collapsed to a single space. If `false`, whitespace before
+`#(` is removed. Newlines are not affected.
+
+**Default:** `true`
+
+`ParameterList: false`:
 
 ```sv
 module foo#(
@@ -1506,7 +1547,7 @@ module foo#(
 endmodule
 ```
 
-`SpaceBeforeParameterList: true` (default):
+`ParameterList: true` (default):
 
 ```sv
 module foo #(
@@ -1517,17 +1558,15 @@ module foo #(
 endmodule
 ```
 
----
+#### PortList (bool)
 
-### SpaceBeforePortList (bool)
-
-Normalizes whitespace before a port list. If `true`, a single space is inserted
-before `(`; multiple spaces are collapsed to a single space. If `false`,
-whitespace before `(` is removed. Newlines are not affected.
+If `true`, a single space is inserted before a port list `(`; multiple spaces are
+collapsed to a single space. If `false`, whitespace before `(` is removed.
+Newlines are not affected.
 
 **Default:** `true`
 
-`SpaceBeforePortList: false`:
+`PortList: false`:
 
 ```sv
 module foo(
@@ -1536,7 +1575,7 @@ module foo(
 endmodule
 ```
 
-`SpaceBeforePortList: true` (default):
+`PortList: true` (default):
 
 ```sv
 module foo (

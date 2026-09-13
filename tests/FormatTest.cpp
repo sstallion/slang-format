@@ -327,7 +327,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalWithBlocks) {
     )"), style), dedent(R"(
         module foo;
           always @(posedge clk_i)
-            if(a)begin
+            if (a)begin
               x <= 1;
             end else begin
               y <= 2;
@@ -373,7 +373,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineSimpleIf) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_comb if(a)x = 1;
+          always_comb if (a)x = 1;
         endmodule
     )"));
     // clang-format on
@@ -493,7 +493,7 @@ TEST(ApplyIndentation, BreakAfterBeginNested) {
     )"), style), dedent(R"(
         module foo;
           always_comb begin
-            if(a)begin
+            if (a)begin
               x = 1;
             end
           end
@@ -807,7 +807,7 @@ TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineSingleItemWithBlock) {
           end
 
           always_ff @(posedge clk_i)begin
-            if(x == 0)begin
+            if (x == 0)begin
               y <= 1;
             end
           end
@@ -1157,7 +1157,7 @@ TEST(ApplyIndentation, BreakBeforeInitialOnlyMultilineSingleItemWithBlock) {
           end
 
           initial begin
-            if(x == 0)begin
+            if (x == 0)begin
               y = 1;
             end
           end
@@ -1454,7 +1454,7 @@ TEST(ApplyIndentation, CaseItemNextLineIndented) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00:
                 y = 0;
               default: y = 1;
@@ -1481,7 +1481,7 @@ TEST(ApplyIndentation, CaseItemNextLineNotIndented) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00:
               y = 0;
               default: y = 1;
@@ -1508,7 +1508,7 @@ TEST(ApplyIndentation, CaseItemSameLineBeginUnchanged) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00: begin
                 y = 0;
               end
@@ -1533,7 +1533,7 @@ TEST(ApplyIndentation, CaseItems) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00: y = 0;
               default: y = 1;
             endcase
@@ -1683,7 +1683,7 @@ TEST(ApplyIndentation, ForLoopWithoutBegin) {
     )"), style), dedent(R"(
         module foo;
           initial
-            for(int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
               x = i;
         endmodule
     )"));
@@ -1749,7 +1749,7 @@ TEST(ApplyIndentation, IfBodyWithoutBegin) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if(a)
+            if (a)
               x = 1;
             else
               x = 0;
@@ -1829,7 +1829,7 @@ TEST(ApplyIndentation, NestedBeginEnd) {
     )"), style), dedent(R"(
         module foo;
           always_comb begin
-            if(a)begin
+            if (a)begin
               x = 1;
             end
           end
@@ -2333,7 +2333,7 @@ TEST(SpaceAfterCaseColon, Collapses) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00: y = 0;
               default: y = 1;
             endcase
@@ -2358,7 +2358,7 @@ TEST(SpaceAfterCaseColon, Disabled) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00:y = 0;
               default:y = 1;
             endcase
@@ -2376,7 +2376,7 @@ TEST(SpaceAfterCaseColon, FormatOff) {
         module foo;
           always_comb
             // slang-format off
-            case(x)
+            case (x)
               2'b00:y = 0;
               default:y = 1;
             endcase
@@ -2386,7 +2386,7 @@ TEST(SpaceAfterCaseColon, FormatOff) {
         module foo;
           always_comb
             // slang-format off
-            case(x)
+            case (x)
               2'b00:y = 0;
               default:y = 1;
             endcase
@@ -2412,7 +2412,7 @@ TEST(SpaceAfterCaseColon, Inserts) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00: y = 0;
               default: y = 1;
             endcase
@@ -2437,7 +2437,7 @@ TEST(SpaceAfterCaseColon, NormalizesWhenDisabled) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00:y = 0;
               default:y = 1;
             endcase
@@ -2464,7 +2464,7 @@ TEST(SpaceAfterCaseColon, PreservesNewlines) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00:
               y = 0;
               default:
@@ -2647,7 +2647,7 @@ TEST(SpaceAfterSemicolon, Collapses) {
         module foo;
 
           initial begin
-            for(int i = 0; i < 4; i++)begin
+            for (int i = 0; i < 4; i++)begin
             end
           end
         endmodule
@@ -2672,7 +2672,7 @@ TEST(SpaceAfterSemicolon, Disabled) {
         module foo;
 
           initial begin
-            for(int i = 0;i < 4;i++)begin
+            for (int i = 0;i < 4;i++)begin
             end
           end
         endmodule
@@ -2726,7 +2726,7 @@ TEST(SpaceAfterSemicolon, Inserts) {
         module foo;
 
           initial begin
-            for(int i = 0; i < 4; i++)begin
+            for (int i = 0; i < 4; i++)begin
             end
           end
         endmodule
@@ -2751,7 +2751,7 @@ TEST(SpaceAfterSemicolon, NormalizesAround) {
         module foo;
 
           initial begin
-            for(int i = 0; i < 4; i++)begin
+            for (int i = 0; i < 4; i++)begin
             end
           end
         endmodule
@@ -2776,7 +2776,7 @@ TEST(SpaceAfterSemicolon, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            for(int i = 0;i < 4;i++)begin
+            for (int i = 0;i < 4;i++)begin
             end
           end
         endmodule
@@ -2794,7 +2794,7 @@ TEST(SpaceAfterSemicolon, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            for(int i = 0;i < 4;i++)begin
+            for (int i = 0;i < 4;i++)begin
             end
           end
         endmodule
@@ -2838,7 +2838,7 @@ TEST(SpaceAfterSemicolon, RemovesBefore) {
         module foo;
 
           initial begin
-            for(int i = 0; i < 4; i++)begin
+            for (int i = 0; i < 4; i++)begin
             end
           end
         endmodule
@@ -3011,7 +3011,7 @@ TEST(SpaceBeforeCaseColon, Collapses) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00 : y = 0;
               default : y = 1;
             endcase
@@ -3035,7 +3035,7 @@ TEST(SpaceBeforeCaseColon, Disabled) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00: y = 0;
               default: y = 1;
             endcase
@@ -3053,7 +3053,7 @@ TEST(SpaceBeforeCaseColon, FormatOff) {
         module foo;
           always_comb
             // slang-format off
-            case(x)
+            case (x)
               2'b00:y = 0;
               default:y = 1;
             endcase
@@ -3063,7 +3063,7 @@ TEST(SpaceBeforeCaseColon, FormatOff) {
         module foo;
           always_comb
             // slang-format off
-            case(x)
+            case (x)
               2'b00:y = 0;
               default:y = 1;
             endcase
@@ -3089,7 +3089,7 @@ TEST(SpaceBeforeCaseColon, Inserts) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00 : y = 0;
               default : y = 1;
             endcase
@@ -3113,7 +3113,7 @@ TEST(SpaceBeforeCaseColon, NormalizesWhenDisabled) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00: y = 0;
               default: y = 1;
             endcase
@@ -3140,7 +3140,7 @@ TEST(SpaceBeforeCaseColon, PreservesNewlines) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(x)
+            case (x)
               2'b00
                   : y = 0;
               default
@@ -3151,7 +3151,286 @@ TEST(SpaceBeforeCaseColon, PreservesNewlines) {
     // clang-format on
 }
 
-TEST(SpaceBeforeParameterList, Collapses) {
+TEST(SpaceBeforeParensControlStatements, Collapses) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            if   (a)begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if (a)begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensControlStatements, DisabledCase) {
+    Style style;
+    style.SpaceBeforeParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            case (x)
+              default:;
+            endcase
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            case(x)
+              default:;
+            endcase
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensControlStatements, DisabledDoWhile) {
+    Style style;
+    style.SpaceBeforeParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            do begin
+            end while (a);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            do begin
+            end while(a);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensControlStatements, DisabledFor) {
+    Style style;
+    style.SpaceBeforeParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            for (int i = 0; i < 4; i++)begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            for(int i = 0; i < 4; i++)begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensControlStatements, DisabledForeach) {
+    Style style;
+    style.SpaceBeforeParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            foreach (arr[i])begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            foreach(arr [i])begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensControlStatements, DisabledIf) {
+    Style style;
+    style.SpaceBeforeParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            if (a)begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if(a)begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensControlStatements, DisabledWhile) {
+    Style style;
+    style.SpaceBeforeParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            while (a)begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            while(a)begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensControlStatements, FormatOff) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            // slang-format off
+            if(a)begin
+            end
+            // slang-format on
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            // slang-format off
+            if(a)begin
+            end
+            // slang-format on
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensControlStatements, Inserts) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            if(a)begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if (a)begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensControlStatements, NormalizesWhenDisabled) {
+    Style style;
+    style.SpaceBeforeParens.ControlStatements = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            if   (a)begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if(a)begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensControlStatements, PreservesNewlines) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            if
+            (a)begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if
+                (a)begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensControlStatements, UniqueIf) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            unique if(a)begin
+            end
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            unique if (a)begin
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceBeforeParensParameterList, Collapses) {
     Style const style{};
 
     // clang-format off
@@ -3173,9 +3452,9 @@ TEST(SpaceBeforeParameterList, Collapses) {
     // clang-format on
 }
 
-TEST(SpaceBeforeParameterList, Disabled) {
+TEST(SpaceBeforeParensParameterList, Disabled) {
     Style style;
-    style.SpaceBeforeParameterList = false;
+    style.SpaceBeforeParens.ParameterList = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3196,7 +3475,7 @@ TEST(SpaceBeforeParameterList, Disabled) {
     // clang-format on
 }
 
-TEST(SpaceBeforeParameterList, FormatOff) {
+TEST(SpaceBeforeParensParameterList, FormatOff) {
     Style const style{};
 
     // clang-format off
@@ -3222,7 +3501,7 @@ TEST(SpaceBeforeParameterList, FormatOff) {
     // clang-format on
 }
 
-TEST(SpaceBeforeParameterList, Inserts) {
+TEST(SpaceBeforeParensParameterList, Inserts) {
     Style const style{};
 
     // clang-format off
@@ -3244,9 +3523,9 @@ TEST(SpaceBeforeParameterList, Inserts) {
     // clang-format on
 }
 
-TEST(SpaceBeforeParameterList, NormalizesWhenDisabled) {
+TEST(SpaceBeforeParensParameterList, NormalizesWhenDisabled) {
     Style style;
-    style.SpaceBeforeParameterList = false;
+    style.SpaceBeforeParens.ParameterList = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3267,7 +3546,7 @@ TEST(SpaceBeforeParameterList, NormalizesWhenDisabled) {
     // clang-format on
 }
 
-TEST(SpaceBeforeParameterList, PreservesNewlines) {
+TEST(SpaceBeforeParensParameterList, PreservesNewlines) {
     Style const style{};
 
     // clang-format off
@@ -3291,7 +3570,7 @@ TEST(SpaceBeforeParameterList, PreservesNewlines) {
     // clang-format on
 }
 
-TEST(SpaceBeforePortList, Collapses) {
+TEST(SpaceBeforeParensPortList, Collapses) {
     Style const style{};
 
     // clang-format off
@@ -3309,9 +3588,9 @@ TEST(SpaceBeforePortList, Collapses) {
     // clang-format on
 }
 
-TEST(SpaceBeforePortList, Disabled) {
+TEST(SpaceBeforeParensPortList, Disabled) {
     Style style;
-    style.SpaceBeforePortList = false;
+    style.SpaceBeforeParens.PortList = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3328,7 +3607,7 @@ TEST(SpaceBeforePortList, Disabled) {
     // clang-format on
 }
 
-TEST(SpaceBeforePortList, FormatOff) {
+TEST(SpaceBeforeParensPortList, FormatOff) {
     Style const style{};
 
     // clang-format off
@@ -3350,7 +3629,7 @@ TEST(SpaceBeforePortList, FormatOff) {
     // clang-format on
 }
 
-TEST(SpaceBeforePortList, Inserts) {
+TEST(SpaceBeforeParensPortList, Inserts) {
     Style const style{};
 
     // clang-format off
@@ -3368,9 +3647,9 @@ TEST(SpaceBeforePortList, Inserts) {
     // clang-format on
 }
 
-TEST(SpaceBeforePortList, NormalizesWhenDisabled) {
+TEST(SpaceBeforeParensPortList, NormalizesWhenDisabled) {
     Style style;
-    style.SpaceBeforePortList = false;
+    style.SpaceBeforeParens.PortList = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3387,7 +3666,7 @@ TEST(SpaceBeforePortList, NormalizesWhenDisabled) {
     // clang-format on
 }
 
-TEST(SpaceBeforePortList, PreservesNewlines) {
+TEST(SpaceBeforeParensPortList, PreservesNewlines) {
     Style const style{};
 
     // clang-format off
@@ -3952,7 +4231,7 @@ TEST(SpacesInParens, Collapses) {
         module foo;
 
           initial begin
-            if( a )begin
+            if ( a )begin
             end
           end
         endmodule
@@ -3976,7 +4255,7 @@ TEST(SpacesInParens, Disabled) {
         module foo;
 
           initial begin
-            if(a)begin
+            if (a)begin
             end
           end
         endmodule
@@ -4030,7 +4309,7 @@ TEST(SpacesInParens, Inserts) {
         module foo;
 
           initial begin
-            if( a )begin
+            if ( a )begin
             end
           end
         endmodule
@@ -4055,7 +4334,7 @@ TEST(SpacesInParens, NormalizesAround) {
         module foo;
 
           initial begin
-            for( int i = 0; i < 4; i++ )begin
+            for ( int i = 0; i < 4; i++ )begin
             end
           end
         endmodule
@@ -4079,7 +4358,7 @@ TEST(SpacesInParens, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            if(a)begin
+            if (a)begin
             end
           end
         endmodule
@@ -4097,7 +4376,7 @@ TEST(SpacesInParens, NormalizesWhenDisabled) {
         module foo;
 
           initial begin
-            if(a)begin
+            if (a)begin
             end
           end
         endmodule
@@ -4144,7 +4423,7 @@ TEST(SpacesInParens, RemovesBefore) {
         module foo;
 
           initial begin
-            if( a )begin
+            if ( a )begin
             end
           end
         endmodule

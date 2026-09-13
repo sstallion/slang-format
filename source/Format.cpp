@@ -136,10 +136,10 @@ public:
 
     void handle(const AnsiPortListSyntax& p) {
         if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(p.openParen)) {
-            if (style.SpaceBeforePortList && output.back() != ' ') {
+            if (style.SpaceBeforeParens.PortList && output.back() != ' ') {
                 output += ' ';
             }
-            else if (!style.SpaceBeforePortList) {
+            else if (!style.SpaceBeforeParens.PortList) {
                 stripTrailingSpaces();
             }
         }
@@ -173,10 +173,10 @@ public:
 
     void handle(const NonAnsiPortListSyntax& p) {
         if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(p.openParen)) {
-            if (style.SpaceBeforePortList && output.back() != ' ') {
+            if (style.SpaceBeforeParens.PortList && output.back() != ' ') {
                 output += ' ';
             }
-            else if (!style.SpaceBeforePortList) {
+            else if (!style.SpaceBeforeParens.PortList) {
                 stripTrailingSpaces();
             }
         }
@@ -198,10 +198,10 @@ public:
 
     void handle(const ParameterPortListSyntax& p) {
         if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(p.hash)) {
-            if (style.SpaceBeforeParameterList && output.back() != ' ') {
+            if (style.SpaceBeforeParens.ParameterList && output.back() != ' ') {
                 output += ' ';
             }
-            else if (!style.SpaceBeforeParameterList) {
+            else if (!style.SpaceBeforeParens.ParameterList) {
                 stripTrailingSpaces();
             }
         }
@@ -224,10 +224,10 @@ public:
 
     void handle(const WildcardPortListSyntax& p) {
         if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(p.openParen)) {
-            if (style.SpaceBeforePortList && output.back() != ' ') {
+            if (style.SpaceBeforeParens.PortList && output.back() != ' ') {
                 output += ' ';
             }
-            else if (!style.SpaceBeforePortList) {
+            else if (!style.SpaceBeforeParens.PortList) {
                 stripTrailingSpaces();
             }
         }
@@ -363,6 +363,17 @@ public:
 
         emitToken(stmt.uniqueOrPriority);
         emitToken(stmt.ifKeyword);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(stmt.openParen)) {
+            if (style.SpaceBeforeParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+        }
+
         emitToken(stmt.openParen);
         stmt.predicate->visit(*this);
         emitToken(stmt.closeParen);
@@ -394,6 +405,17 @@ public:
 
         emitToken(caseStmt.uniqueOrPriority);
         emitToken(caseStmt.caseKeyword);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(caseStmt.openParen)) {
+            if (style.SpaceBeforeParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+        }
+
         emitToken(caseStmt.openParen);
         caseStmt.expr->visit(*this);
         emitToken(caseStmt.closeParen);
@@ -488,6 +510,17 @@ public:
         }
 
         emitToken(loop.repeatOrWhile);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(loop.openParen)) {
+            if (style.SpaceBeforeParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+        }
+
         emitToken(loop.openParen);
         loop.expr->visit(*this);
         emitToken(loop.closeParen);
@@ -504,6 +537,17 @@ public:
         }
 
         emitToken(loop.forKeyword);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(loop.openParen)) {
+            if (style.SpaceBeforeParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+        }
+
         emitToken(loop.openParen);
         for (const auto& elem : loop.initializers.elems()) {
             if (elem.isNode()) {
@@ -556,6 +600,17 @@ public:
         }
 
         emitToken(loop.keyword);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(loop.loopList->openParen)) {
+            if (style.SpaceBeforeParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+        }
+
         loop.loopList->visit(*this);
         visitBody(*loop.statement);
     }
@@ -572,6 +627,17 @@ public:
         emitToken(loop.doKeyword);
         visitBody(*loop.statement);
         emitToken(loop.whileKeyword);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(loop.openParen)) {
+            if (style.SpaceBeforeParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+        }
+
         emitToken(loop.openParen);
         loop.expr->visit(*this);
         emitToken(loop.closeParen);

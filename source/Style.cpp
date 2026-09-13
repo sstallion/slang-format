@@ -245,6 +245,28 @@ void emitInsertParens(YAML::Emitter& out, const InsertParensStyle& config) {
     out << YAML::EndMap;
 }
 
+void emitSpaceBeforeParens(YAML::Emitter& out, const SpaceBeforeParensStyle& config) {
+    out << YAML::BeginMap;
+    out << YAML::Key << "ControlStatements" << YAML::Value << config.ControlStatements;
+    out << YAML::Key << "ParameterList" << YAML::Value << config.ParameterList;
+    out << YAML::Key << "PortList" << YAML::Value << config.PortList;
+    out << YAML::EndMap;
+}
+
+void parseSpaceBeforeParens(const YAML::Node& node, SpaceBeforeParensStyle& config) {
+    if (auto v = node["ControlStatements"]) {
+        config.ControlStatements = v.as<bool>();
+    }
+
+    if (auto v = node["ParameterList"]) {
+        config.ParameterList = v.as<bool>();
+    }
+
+    if (auto v = node["PortList"]) {
+        config.PortList = v.as<bool>();
+    }
+}
+
 void parseSpacingOptions(const YAML::Node& node, Style& style) {
     if (auto v = node["SpaceAfterAlways"]) {
         style.SpaceAfterAlways = v.as<bool>();
@@ -272,14 +294,6 @@ void parseSpacingOptions(const YAML::Node& node, Style& style) {
 
     if (auto v = node["SpaceBeforeCaseColon"]) {
         style.SpaceBeforeCaseColon = v.as<bool>();
-    }
-
-    if (auto v = node["SpaceBeforeParameterList"]) {
-        style.SpaceBeforeParameterList = v.as<bool>();
-    }
-
-    if (auto v = node["SpaceBeforePortList"]) {
-        style.SpaceBeforePortList = v.as<bool>();
     }
 
     if (auto v = node["SpaceAroundOperators"]) {
@@ -362,8 +376,8 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::Key << "SpaceAfterSemicolon" << YAML::Value << style.SpaceAfterSemicolon;
     out << YAML::Key << "SpaceBeforeBrackets" << YAML::Value << style.SpaceBeforeBrackets;
     out << YAML::Key << "SpaceBeforeCaseColon" << YAML::Value << style.SpaceBeforeCaseColon;
-    out << YAML::Key << "SpaceBeforeParameterList" << YAML::Value << style.SpaceBeforeParameterList;
-    out << YAML::Key << "SpaceBeforePortList" << YAML::Value << style.SpaceBeforePortList;
+    out << YAML::Key << "SpaceBeforeParens" << YAML::Value;
+    emitSpaceBeforeParens(out, style.SpaceBeforeParens);
     out << YAML::Key << "SpaceAroundOperators" << YAML::Value << style.SpaceAroundOperators;
     out << YAML::Key << "SpacesInBraces" << YAML::Value << style.SpacesInBraces;
     out << YAML::Key << "SpacesInBrackets" << YAML::Value << style.SpacesInBrackets;
@@ -462,6 +476,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto n = node["InsertParens"]) {
         parseInsertParens(n, style.InsertParens);
+    }
+
+    if (auto n = node["SpaceBeforeParens"]) {
+        parseSpaceBeforeParens(n, style.SpaceBeforeParens);
     }
 }
 

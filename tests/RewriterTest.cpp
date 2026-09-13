@@ -526,7 +526,7 @@ TEST(ApplyInsertBeginEnd, AlreadyWrapped) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if(a)
+            if (a)
             begin
               x = 1;
             end
@@ -639,7 +639,7 @@ TEST(ApplyInsertBeginEnd, AlwaysWithControlStatement) {
     )"), style), dedent(R"(
         module foo;
           always @(*)begin
-            if(a)begin
+            if (a)begin
               x = 1;
             end else begin
               y = 0;
@@ -669,7 +669,7 @@ TEST(ApplyInsertBeginEnd, AlwaysWithNestedControl) {
     )"), style), dedent(R"(
         module foo;
           always_comb begin
-            if(a)begin
+            if (a)begin
               x = 1;
             end
           end
@@ -699,7 +699,7 @@ TEST(ApplyInsertBeginEnd, CaseItem) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(a)
+            case (a)
               1: begin
                 x = 1;
               end
@@ -729,7 +729,7 @@ TEST(ApplyInsertBeginEnd, CaseItemAlreadyWrapped) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            case(a)
+            case (a)
               1: begin
                 x = 1;
               end
@@ -753,7 +753,7 @@ TEST(ApplyInsertBeginEnd, ControlStatementsDisabled) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if(a)
+            if (a)
               x = 1;
         endmodule
     )"));
@@ -781,9 +781,9 @@ TEST(ApplyInsertBeginEnd, DeepNesting) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if(a)begin
-              if(b)begin
-                if(c)begin
+            if (a)begin
+              if (b)begin
+                if (c)begin
                   x = 1;
                 end
               end
@@ -817,7 +817,7 @@ TEST(ApplyInsertBeginEnd, DoWhile) {
             do begin
               x = 1;
             end
-              while(a);
+              while (a);
         endmodule
     )"));
     // clang-format on
@@ -846,10 +846,10 @@ TEST(ApplyInsertBeginEnd, ElseIf) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if(a)begin
+            if (a)begin
               x = 1;
             end
-            else if(b)begin
+            else if (b)begin
               y = 2;
             end
             else begin
@@ -874,7 +874,7 @@ TEST(ApplyInsertBeginEnd, EnabledFalse) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if(a)
+            if (a)
               x = 1;
         endmodule
     )"));
@@ -923,7 +923,7 @@ TEST(ApplyInsertBeginEnd, ForLoop) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            for(int i = 0; i < 4; i++)begin
+            for (int i = 0; i < 4; i++)begin
               x = i;
             end
         endmodule
@@ -952,7 +952,7 @@ TEST(ApplyInsertBeginEnd, IfElse) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if(a)begin
+            if (a)begin
               x = 1;
             end
             else begin
@@ -982,7 +982,7 @@ TEST(ApplyInsertBeginEnd, IfSingleStatement) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if(a)begin
+            if (a)begin
               x = 1;
             end
         endmodule
@@ -1074,8 +1074,8 @@ TEST(ApplyInsertBeginEnd, NestedIf) {
     )"), style), dedent(R"(
         module foo;
           always_comb
-            if(a)begin
-              if(b)begin
+            if (a)begin
+              if (b)begin
                 x = 1;
               end
             end

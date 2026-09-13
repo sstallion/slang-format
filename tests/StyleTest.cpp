@@ -721,18 +721,46 @@ TEST(ParseConfiguration, ParsesSpaceBeforeCaseColon) {
     EXPECT_TRUE(style.SpaceBeforeCaseColon);
 }
 
-TEST(ParseConfiguration, ParsesSpaceBeforeParameterList) {
-    YAML::Node const node = YAML::Load("SpaceBeforeParameterList: false");
+TEST(ParseConfiguration, ParsesSpaceBeforeParensControlStatements) {
     Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.SpaceBeforeParameterList);
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        SpaceBeforeParens:
+          ControlStatements: false
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_FALSE(style.SpaceBeforeParens.ControlStatements);
 }
 
-TEST(ParseConfiguration, ParsesSpaceBeforePortList) {
-    YAML::Node const node = YAML::Load("SpaceBeforePortList: false");
+TEST(ParseConfiguration, ParsesSpaceBeforeParensParameterList) {
     Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.SpaceBeforePortList);
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        SpaceBeforeParens:
+          ParameterList: false
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_FALSE(style.SpaceBeforeParens.ParameterList);
+}
+
+TEST(ParseConfiguration, ParsesSpaceBeforeParensPortList) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        SpaceBeforeParens:
+          PortList: false
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_FALSE(style.SpaceBeforeParens.PortList);
 }
 
 TEST(ParseConfiguration, ParsesSpaceAroundOperators) {
@@ -829,8 +857,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("SpaceAfterSemicolon: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeBrackets: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeCaseColon: false"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforeParameterList: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforePortList: true"), std::string::npos);
+    EXPECT_NE(result.find("SpaceBeforeParens:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAroundOperators: true"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBraces: false"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBrackets: false"), std::string::npos);
@@ -874,8 +901,9 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.SpaceAfterSemicolon = false;
     style.SpaceBeforeBrackets = false;
     style.SpaceBeforeCaseColon = true;
-    style.SpaceBeforeParameterList = false;
-    style.SpaceBeforePortList = false;
+    style.SpaceBeforeParens.ControlStatements = false;
+    style.SpaceBeforeParens.ParameterList = false;
+    style.SpaceBeforeParens.PortList = false;
     style.SpaceAroundOperators = false;
     style.SpacesInBraces = true;
     style.SpacesInBrackets = true;
@@ -901,8 +929,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("SpaceAfterSemicolon: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeBrackets: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeCaseColon: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforeParameterList: false"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforePortList: false"), std::string::npos);
+    EXPECT_NE(result.find("SpaceBeforeParens:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAroundOperators: false"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBraces: true"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBrackets: true"), std::string::npos);
@@ -946,8 +973,9 @@ TEST(DumpConfiguration, RoundTrip) {
     original.SpaceAfterSemicolon = true;
     original.SpaceBeforeBrackets = false;
     original.SpaceBeforeCaseColon = true;
-    original.SpaceBeforeParameterList = false;
-    original.SpaceBeforePortList = false;
+    original.SpaceBeforeParens.ControlStatements = false;
+    original.SpaceBeforeParens.ParameterList = false;
+    original.SpaceBeforeParens.PortList = false;
     original.SpaceAroundOperators = false;
     original.SpacesInBraces = true;
     original.SpacesInBrackets = true;

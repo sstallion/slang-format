@@ -79,6 +79,20 @@ struct InsertParensStyle {
     bool operator==(const InsertParensStyle&) const = default;
 };
 
+/// Controls whitespace before an opening parenthesis.
+struct SpaceBeforeParensStyle {
+    /// If true, insert a space before parentheses in control statements.
+    bool ControlStatements = true;
+
+    /// If true, insert a space before a parameter port list.
+    bool ParameterList = true;
+
+    /// If true, insert a space before a port list.
+    bool PortList = true;
+
+    bool operator==(const SpaceBeforeParensStyle&) const = default;
+};
+
 /// Defines all formatting style options.
 struct Style {
     /// Controls alignment of assignment operators in consecutive declarations.
@@ -147,11 +161,8 @@ struct Style {
     /// Normalizes whitespace before a case item colon.
     bool SpaceBeforeCaseColon = false;
 
-    /// Normalizes whitespace before a parameter port list.
-    bool SpaceBeforeParameterList = true;
-
-    /// Normalizes whitespace before a port list.
-    bool SpaceBeforePortList = true;
+    /// Controls whitespace before an opening parenthesis.
+    SpaceBeforeParensStyle SpaceBeforeParens;
 
     /// Normalizes whitespace around assignment, binary, and ternary operators.
     bool SpaceAroundOperators = true;
