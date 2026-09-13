@@ -1099,9 +1099,9 @@ endmodule
 
 ### MaxEmptyLinesToKeep (unsigned)
 
-Maximum number of consecutive empty lines to keep. slang-format collapses any
-run of empty lines exceeding this limit. Empty lines inside a
-`// slang-format off` region are not affected.
+Maximum number of consecutive empty lines to keep. When `RemoveEmptyLines` is
+`true`, slang-format collapses any run of empty lines exceeding this limit.
+Empty lines inside a `// slang-format off` region are not affected.
 
 **Default:** `1`
 
@@ -1239,6 +1239,40 @@ module foo #(
 ) (
     input a
 );
+endmodule
+```
+
+---
+
+### RemoveEmptyLines (bool)
+
+Enables enforcement of `MaxEmptyLinesToKeep`. When `true`, slang-format
+collapses any run of consecutive empty lines exceeding the limit. When `false`,
+empty lines in the source are preserved as-is. Empty lines inside a
+`// slang-format off` region are never affected.
+
+**Default:** `false`
+
+`RemoveEmptyLines: false` (default) - all empty lines preserved:
+
+```sv
+module foo;
+  assign x = 1;
+
+
+
+  assign y = 2;
+endmodule
+```
+
+`RemoveEmptyLines: true` (with `MaxEmptyLinesToKeep: 1`) - three empty lines
+collapsed to one:
+
+```sv
+module foo;
+  assign x = 1;
+
+  assign y = 2;
 endmodule
 ```
 

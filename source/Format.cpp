@@ -844,6 +844,13 @@ private:
         emptyLineCount = style.MaxEmptyLinesToKeep;
     }
 
+    bool shouldSuppressBlankLine() {
+        if (style.RemoveEmptyLines || emptyLineCount > 0) {
+            emptyLineCount++;
+        }
+        return formatEnabled && emptyLineCount > style.MaxEmptyLinesToKeep;
+    }
+
     void emitTrivia(const Trivia& t) {
         if (t.kind == TriviaKind::EndOfLine) {
             beforeOperator = false;
@@ -859,9 +866,7 @@ private:
             spaceBeforeCloseParenPending = false;
 
             if (atLineStart) {
-                // Blank line.
-                emptyLineCount++;
-                if (formatEnabled && emptyLineCount > style.MaxEmptyLinesToKeep) {
+                if (shouldSuppressBlankLine()) {
                     return;
                 }
 

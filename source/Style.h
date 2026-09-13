@@ -100,6 +100,9 @@ struct Style {
     /// Maximum number of consecutive empty lines to keep.
     unsigned MaxEmptyLinesToKeep = 1;
 
+    /// If true, enables enforcement of MaxEmptyLinesToKeep.
+    bool RemoveEmptyLines = false;
+
     /// Number of spaces for each indentation level.
     unsigned IndentWidth = 2;
 

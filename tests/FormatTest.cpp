@@ -12,7 +12,8 @@
 using namespace slang::format;
 
 TEST(ApplyEmptyLineLimits, EmptyLinesAtEndOfInput) {
-    Style const style{};
+    Style style;
+    style.RemoveEmptyLines = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -31,7 +32,8 @@ TEST(ApplyEmptyLineLimits, EmptyLinesAtEndOfInput) {
 }
 
 TEST(ApplyEmptyLineLimits, FormatOffSkipsCollapse) {
-    Style const style{};
+    Style style;
+    style.RemoveEmptyLines = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -67,6 +69,7 @@ TEST(ApplyEmptyLineLimits, FormatOffSkipsCollapse) {
 TEST(ApplyEmptyLineLimits, LimitZeroRemovesAllEmptyLines) {
     Style style;
     style.MaxEmptyLinesToKeep = 0;
+    style.RemoveEmptyLines = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -126,6 +129,7 @@ TEST(ApplyEmptyLineLimits, SingleEmptyLinePreserved) {
 TEST(ApplyEmptyLineLimits, ThreeEmptyLinesCollapsedToTwo) {
     Style style;
     style.MaxEmptyLinesToKeep = 2;
+    style.RemoveEmptyLines = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -148,7 +152,8 @@ TEST(ApplyEmptyLineLimits, ThreeEmptyLinesCollapsedToTwo) {
 }
 
 TEST(ApplyEmptyLineLimits, TwoEmptyLinesCollapsedToOne) {
-    Style const style{};
+    Style style;
+    style.RemoveEmptyLines = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1941,6 +1946,80 @@ TEST(ApplyIndentation, PortListIndented) {
           input a,
           input b
         );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RemoveEmptyLines, DefaultPreservesAll) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+
+
+
+        assign y = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+
+
+          assign y = 2;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RemoveEmptyLines, EnabledCollapsesEmptyLines) {
+    Style style;
+    style.RemoveEmptyLines = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+
+
+
+        assign y = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+          assign y = 2;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RemoveEmptyLines, FormatOffPreservesEmptyLines) {
+    Style style;
+    style.RemoveEmptyLines = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        // slang-format off
+
+
+
+        assign x = 1;
+        // slang-format on
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // slang-format off
+
+
+
+        assign x = 1;
+        // slang-format on
         endmodule
     )"));
     // clang-format on

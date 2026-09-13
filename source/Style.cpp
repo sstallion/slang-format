@@ -354,6 +354,7 @@ std::string dumpConfiguration(const Style& style) {
         << std::string{toString(style.PackedDimensionBounds)};
     out << YAML::Key << "ParameterPortListIndentWidth" << YAML::Value
         << style.ParameterPortListIndentWidth;
+    out << YAML::Key << "RemoveEmptyLines" << YAML::Value << style.RemoveEmptyLines;
     out << YAML::Key << "SpaceAfterAlways" << YAML::Value << style.SpaceAfterAlways;
     out << YAML::Key << "SpaceAfterBrackets" << YAML::Value << style.SpaceAfterBrackets;
     out << YAML::Key << "SpaceAfterCaseColon" << YAML::Value << style.SpaceAfterCaseColon;
@@ -441,6 +442,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto v = node["PackedDimensionBounds"]) {
         style.PackedDimensionBounds = parseDimensionBounds(v.as<std::string>());
+    }
+
+    if (auto v = node["RemoveEmptyLines"]) {
+        style.RemoveEmptyLines = v.as<bool>();
     }
 
     parseSpacingOptions(node, style);
