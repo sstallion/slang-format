@@ -365,6 +365,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineMultiStatement) {
 TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineSimpleIf) {
     Style style;
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
+    style.OneStatementPerLine = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -384,6 +385,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineSingleLine) {
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
     style.BreakAfterBegin = true;
     style.BreakBeforeEnd = true;
+    style.OneStatementPerLine = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1946,6 +1948,130 @@ TEST(ApplyIndentation, PortListIndented) {
           input a,
           input b
         );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(OneStatementPerLine, AlreadySeparateLines) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1;
+            y = 2;
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1;
+            y = 2;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(OneStatementPerLine, DisabledPreservesLayout) {
+    Style style;
+    style.OneStatementPerLine = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1; y = 2; z = 3;
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1; y = 2; z = 3;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(OneStatementPerLine, MixedSameAndSeparate) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1; y = 2;
+            z = 3;
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1;
+            y = 2;
+            z = 3;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(OneStatementPerLine, ModuleMembers) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo; wire a; wire b;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          wire a;
+          wire b;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(OneStatementPerLine, MultipleStatementsInBlock) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1; y = 2; z = 3;
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1;
+            y = 2;
+            z = 3;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(OneStatementPerLine, SingleStatementInBlock) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1;
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb begin
+            x = 1;
+          end
         endmodule
     )"));
     // clang-format on

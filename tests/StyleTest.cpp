@@ -644,6 +644,13 @@ TEST(ParseConfiguration, ParsesMaxEmptyLinesToKeep) {
     EXPECT_EQ(style.MaxEmptyLinesToKeep, 2U);
 }
 
+TEST(ParseConfiguration, ParsesOneStatementPerLine) {
+    YAML::Node const node = YAML::Load("OneStatementPerLine: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.OneStatementPerLine);
+}
+
 TEST(ParseConfiguration, ParsesOneLineFormatOffRegex) {
     YAML::Node const node = YAML::Load("OneLineFormatOffRegex: '.*foo.*'");
     Style style;
@@ -891,6 +898,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("IndentWidth: 2"), std::string::npos);
     EXPECT_NE(result.find("MaxEmptyLinesToKeep: 1"), std::string::npos);
     EXPECT_NE(result.find("OneLineFormatOffRegex: \"\""), std::string::npos);
+    EXPECT_NE(result.find("OneStatementPerLine: true"), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: Preserve"), std::string::npos);
     EXPECT_NE(result.find("ParameterPortListIndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("RemoveEmptyLines: false"), std::string::npos);
@@ -938,6 +946,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.InsertParens.ExpressionEvents = true;
     style.InsertParens.ImplicitEvents = true;
     style.InsertParens.NamedEvents = true;
+    style.OneStatementPerLine = false;
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
     style.RemoveEmptyLines = true;
     style.SpaceAfterAlways = false;
@@ -968,6 +977,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("BreakBeforeTask: true"), std::string::npos);
     EXPECT_NE(result.find("EventSeparator: Comma"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
+    EXPECT_NE(result.find("OneStatementPerLine: false"), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
     EXPECT_NE(result.find("RemoveEmptyLines: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterAlways: false"), std::string::npos);
@@ -1014,6 +1024,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.BreakBeforeTask = false;
     original.EventSeparator = EventSeparatorStyle::Or;
     original.OneLineFormatOffRegex = ".*test.*";
+    original.OneStatementPerLine = false;
     original.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
     original.SpaceAfterAlways = false;
     original.SpaceAfterBrackets = false;

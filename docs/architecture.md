@@ -176,6 +176,22 @@ regex. The formatter applies this as a post-processing pass over the
 already-formatted string, because the regex needs the final rendered text that
 only exists after the tree walk.
 
+### Statement Break Interaction with Block Break Style
+
+The `OneStatementPerLine` option inserts line breaks between same-line
+statements during the formatting pass. The `BlockBreakStyle::OnlyMultiline`
+value for `BreakAfterAlways` and related options inspects source trivia to
+determine whether a block spans multiple lines, and only inserts a break when it
+does.
+
+These two features interact because the multiline check runs before the
+formatting pass inserts statement breaks. A block containing `x = 1; y = 2;` on
+a single source line would appear single-line to the trivia check, but
+`OneStatementPerLine` will split it during formatting. The `shouldBreakAfterProcedural`
+and `shouldBreakBeforeProcedural` helpers resolve this by accepting the
+`OneStatementPerLine` state: when enabled and the block contains more than one
+item, the block is treated as multiline regardless of source trivia.
+
 ### Fixture Tests
 
 Command-line features that live in `main.cpp` are not part of the object library

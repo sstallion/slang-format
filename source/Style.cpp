@@ -391,6 +391,7 @@ std::string dumpConfiguration(const Style& style) {
     emitInsertParens(out, style.InsertParens);
     out << YAML::Key << "MaxEmptyLinesToKeep" << YAML::Value << style.MaxEmptyLinesToKeep;
     out << YAML::Key << "OneLineFormatOffRegex" << YAML::Value << style.OneLineFormatOffRegex;
+    out << YAML::Key << "OneStatementPerLine" << YAML::Value << style.OneStatementPerLine;
     out << YAML::Key << "PackedDimensionBounds" << YAML::Value
         << std::string{toString(style.PackedDimensionBounds)};
     out << YAML::Key << "ParameterPortListIndentWidth" << YAML::Value
@@ -481,6 +482,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto v = node["OneLineFormatOffRegex"]) {
         style.OneLineFormatOffRegex = v.as<std::string>();
+    }
+
+    if (auto v = node["OneStatementPerLine"]) {
+        style.OneStatementPerLine = v.as<bool>();
     }
 
     if (auto v = node["PackedDimensionBounds"]) {

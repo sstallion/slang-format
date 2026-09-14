@@ -128,6 +128,9 @@ struct Style {
     /// Maximum number of consecutive empty lines to keep.
     unsigned MaxEmptyLinesToKeep = 1;
 
+    /// If true, enforce one statement per line.
+    bool OneStatementPerLine = true;
+
     /// If true, enables enforcement of MaxEmptyLinesToKeep.
     bool RemoveEmptyLines = false;
 

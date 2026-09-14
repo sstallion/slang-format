@@ -1180,6 +1180,45 @@ endmodule
 
 ---
 
+### OneStatementPerLine (bool)
+
+Enforces one statement per line. When `true`, consecutive statements that appear
+on the same source line are separated by line breaks.
+
+**Default:** `true`
+
+`OneStatementPerLine: true` (default):
+
+```sv
+// Before
+always_comb begin
+  x = 1; y = 2; z = 3;
+end
+
+// After
+always_comb begin
+  x = 1;
+  y = 2;
+  z = 3;
+end
+```
+
+`OneStatementPerLine: false`:
+
+```sv
+// Before
+always_comb begin
+  x = 1; y = 2; z = 3;
+end
+
+// After
+always_comb begin
+  x = 1; y = 2; z = 3;
+end
+```
+
+---
+
 ### PackedDimensionBounds (DimensionBoundsStyle)
 
 Controls the ordering of bounds in packed dimension ranges. When set to

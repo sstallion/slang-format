@@ -125,6 +125,11 @@ public:
 
         depth++;
         for (auto* member : module.members) {
+            if (style.OneStatementPerLine && formatEnabled &&
+                !hasLeadingNewline(member->getFirstToken())) {
+                forceNewline();
+            }
+
             nextIsPrimary = true;
             member->visit(*this);
         }
@@ -264,7 +269,11 @@ public:
         depth++;
         bool firstItem{true};
         for (auto* item : block.items) {
-            if (firstItem && breakAfterBegin) {
+            bool const needsBreak = (firstItem && breakAfterBegin) ||
+                                    (!firstItem && style.OneStatementPerLine && formatEnabled &&
+                                     !hasLeadingNewline(item->getFirstToken()));
+
+            if (needsBreak) {
                 forceNewline();
             }
 
@@ -289,12 +298,14 @@ public:
 
     void handle(const ProceduralBlockSyntax& proc) {
         if (isAlwaysBlockKind(proc.kind) &&
-            shouldBreakBeforeProcedural(style.BreakBeforeAlways, *proc.statement)) {
+            shouldBreakBeforeProcedural(style.BreakBeforeAlways, *proc.statement,
+                                        style.OneStatementPerLine)) {
             insertBlankLineBefore(proc.getFirstToken());
         }
 
         if (isInitialBlockKind(proc.kind) &&
-            shouldBreakBeforeProcedural(style.BreakBeforeInitial, *proc.statement)) {
+            shouldBreakBeforeProcedural(style.BreakBeforeInitial, *proc.statement,
+                                        style.OneStatementPerLine)) {
             insertBlankLineBefore(proc.getFirstToken());
         }
 
@@ -394,9 +405,17 @@ public:
             }
         }
 
+        if (!BlockStatementSyntax::isKind(stmt.statement->kind)) {
+            forceStatementBreak(stmt.statement->getFirstToken());
+        }
+
         visitBody(*stmt.statement);
 
         if (stmt.elseClause != nullptr) {
+            if (!BlockStatementSyntax::isKind(stmt.statement->kind)) {
+                forceStatementBreak(stmt.elseClause->elseKeyword);
+            }
+
             nextIsPrimary = true;
             emitToken(stmt.elseClause->elseKeyword);
 
@@ -405,6 +424,10 @@ public:
                 clause.visit(*this);
             }
             else {
+                if (!BlockStatementSyntax::isKind(clause.kind)) {
+                    forceStatementBreak(clause.getFirstToken());
+                }
+
                 visitBody(clause.as<StatementSyntax>());
             }
         }
@@ -564,6 +587,10 @@ public:
             }
         }
 
+        if (!BlockStatementSyntax::isKind(loop.statement->kind)) {
+            forceStatementBreak(loop.statement->getFirstToken());
+        }
+
         visitBody(*loop.statement);
     }
 
@@ -625,6 +652,10 @@ public:
             }
         }
 
+        if (!BlockStatementSyntax::isKind(loop.statement->kind)) {
+            forceStatementBreak(loop.statement->getFirstToken());
+        }
+
         visitBody(*loop.statement);
     }
 
@@ -638,6 +669,11 @@ public:
         }
 
         emitToken(loop.foreverKeyword);
+
+        if (!BlockStatementSyntax::isKind(loop.statement->kind)) {
+            forceStatementBreak(loop.statement->getFirstToken());
+        }
+
         visitBody(*loop.statement);
     }
 
@@ -674,6 +710,10 @@ public:
             }
         }
 
+        if (!BlockStatementSyntax::isKind(loop.statement->kind)) {
+            forceStatementBreak(loop.statement->getFirstToken());
+        }
+
         visitBody(*loop.statement);
     }
 
@@ -687,7 +727,19 @@ public:
         }
 
         emitToken(loop.doKeyword);
+
+        bool const bareBody = !BlockStatementSyntax::isKind(loop.statement->kind);
+        if (bareBody) {
+            forceStatementBreak(loop.statement->getFirstToken());
+        }
+
         visitBody(*loop.statement);
+
+        if (bareBody) {
+            forceStatementBreak(loop.whileKeyword);
+            nextIsPrimary = true;
+        }
+
         emitToken(loop.whileKeyword);
 
         if (formatEnabled && !atLineStart && !output.empty() &&
@@ -972,6 +1024,12 @@ private:
         currentLineMeta.depth = lineDepth;
         lineMetadata.push_back(std::move(currentLineMeta));
         currentLineMeta = {};
+    }
+
+    void forceStatementBreak(Token tok) {
+        if (style.OneStatementPerLine && formatEnabled && !hasLeadingNewline(tok)) {
+            forceNewline();
+        }
     }
 
     // Strip trailing spaces from output and emit a newline, setting atLineStart.
@@ -1376,7 +1434,8 @@ private:
             }
         }
 
-        bool const forceBreak = shouldBreakAfterProcedural(brkStyle, *body);
+        bool const forceBreak = shouldBreakAfterProcedural(brkStyle, *body,
+                                                           style.OneStatementPerLine);
         if (forceBreak && !hasLeadingNewline(body->getFirstToken())) {
             forceNewline();
             nextIsPrimary = true;
@@ -1385,7 +1444,8 @@ private:
         visitBody(*body);
     }
 
-    static bool shouldBreakAfterProcedural(BlockBreakStyle brkStyle, const StatementSyntax& body) {
+    static bool shouldBreakAfterProcedural(BlockBreakStyle brkStyle, const StatementSyntax& body,
+                                           bool oneStatementPerLine) {
         if (brkStyle == BlockBreakStyle::Never) {
             return false;
         }
@@ -1413,6 +1473,10 @@ private:
                 return false;
             }
 
+            if (oneStatementPerLine) {
+                return true;
+            }
+
             if (hasLeadingNewline(block.end)) {
                 return true;
             }
@@ -1425,7 +1489,8 @@ private:
         return containsBlock(body);
     }
 
-    static bool shouldBreakBeforeProcedural(BlockBreakStyle brkStyle, const StatementSyntax& stmt) {
+    static bool shouldBreakBeforeProcedural(BlockBreakStyle brkStyle, const StatementSyntax& stmt,
+                                            bool oneStatementPerLine) {
         if (brkStyle == BlockBreakStyle::Never) {
             return false;
         }
@@ -1443,6 +1508,10 @@ private:
             const auto& block = body->as<BlockStatementSyntax>();
             if (block.items.size() <= 1) {
                 return block.items.size() == 1 && containsBlock(*block.items.front());
+            }
+
+            if (oneStatementPerLine) {
+                return true;
             }
 
             if (hasLeadingNewline(block.end)) {
