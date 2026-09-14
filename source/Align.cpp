@@ -819,7 +819,7 @@ bool isAlignableKind(const LineInfo& info) {
 }
 
 void alignGroupEquals(std::string& result, const std::vector<std::string_view>& lines,
-                      const std::vector<LineInfo>& infos, GroupRange range) {
+                      const std::vector<LineInfo>& infos, GroupRange range, unsigned maxPadding) {
     // Collect unique depths present among alignable lines in this group.
     std::vector<unsigned> depths;
     for (auto i = range.start; i < range.end; i++) {
@@ -830,8 +830,9 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
         }
     }
 
-    // Compute the max equals column for each depth independently.
+    // Compute the max and min equals column for each depth independently.
     std::vector<size_t> maxEqualsCols(depths.size(), 0);
+    std::vector<size_t> minEqualsCols(depths.size(), npos);
     std::vector<size_t> equalsCounts(depths.size(), 0);
     for (auto i = range.start; i < range.end; i++) {
         if (!isAlignableKind(infos[i]) || infos[i].equalsPos == npos) {
@@ -843,6 +844,7 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
             auto idx = static_cast<size_t>(it - depths.begin());
             equalsCounts[idx]++;
             maxEqualsCols[idx] = std::max(maxEqualsCols[idx], infos[i].equalsPos);
+            minEqualsCols[idx] = std::min(minEqualsCols[idx], infos[i].equalsPos);
         }
     }
 
@@ -855,7 +857,8 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
 
         auto it = std::ranges::find(depths, infos[i].depth);
         auto idx = static_cast<size_t>(it - depths.begin());
-        if (equalsCounts[idx] >= 2) {
+        auto padding = maxEqualsCols[idx] - minEqualsCols[idx];
+        if (equalsCounts[idx] >= 2 && (maxPadding == 0 || padding <= maxPadding)) {
             auto line = lines[i];
             auto eqPos = infos[i].equalsPos;
 
@@ -1166,8 +1169,12 @@ std::string applyAlignment(const std::string& output, const Style& style,
                                    shouldBreakGroup, alignGroup, lineMetadata);
     result = applyAlignConsecutive(result, style.AlignConsecutiveTimingControls, timingConfig,
                                    shouldBreakGroup, alignGroupTiming, lineMetadata);
+    auto assignAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
+                                  const std::vector<LineInfo>& inf, GroupRange rng) {
+        alignGroupEquals(r, l, inf, rng, style.AlignConsecutiveAssignments.MaxPadding);
+    };
     result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments, assignConfig,
-                                   shouldBreakGroup, alignGroupEquals, lineMetadata);
+                                   shouldBreakGroup, assignAlignFn, lineMetadata);
     result = applyAlignConsecutive(result, style.AlignTrailingComments, trailingConfig,
                                    shouldBreakGroup, alignGroupTrailingComments, lineMetadata);
     return result;

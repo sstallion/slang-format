@@ -130,6 +130,20 @@ TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsEnabled) {
     EXPECT_TRUE(style.AlignConsecutiveAssignments.Enabled);
 }
 
+TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsMaxPadding) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveAssignments:
+          MaxPadding: 4
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_EQ(style.AlignConsecutiveAssignments.MaxPadding, 4U);
+}
+
 TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarationsAcrossComments) {
     Style style;
 
@@ -860,6 +874,8 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("AlignTrailingComments:"), std::string::npos);
     EXPECT_NE(result.find("AlignConsecutiveDeclarations:"), std::string::npos);
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
+    EXPECT_NE(result.find("Enabled: true"), std::string::npos);
+    EXPECT_NE(result.find("MaxPadding: 2"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: Never"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterInitial: Never"), std::string::npos);

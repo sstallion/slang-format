@@ -82,6 +82,10 @@ void parseAlignConsecutive(const YAML::Node& node, AlignConsecutiveStyle& config
         config.AlignColon = v.as<bool>();
     }
 
+    if (auto v = node["MaxPadding"]) {
+        config.MaxPadding = v.as<unsigned>();
+    }
+
     if (auto v = node["PadLeft"]) {
         config.PadLeft = v.as<bool>();
     }
@@ -204,6 +208,7 @@ void parseBreakStyle(const YAML::Node& node, Style& style) {
 struct AlignConsecutiveFields {
     bool acrossParameterPortList = false;
     bool alignColon = false;
+    bool maxPadding = false;
     bool padLeftRight = false;
 };
 
@@ -219,6 +224,9 @@ void emitAlignConsecutive(YAML::Emitter& out, const AlignConsecutiveStyle& confi
     }
     if (fields.alignColon) {
         out << YAML::Key << "AlignColon" << YAML::Value << config.AlignColon;
+    }
+    if (fields.maxPadding) {
+        out << YAML::Key << "MaxPadding" << YAML::Value << config.MaxPadding;
     }
     if (fields.padLeftRight) {
         out << YAML::Key << "PadLeft" << YAML::Value << config.PadLeft;
@@ -339,6 +347,8 @@ Style getDefaultStyle() {
 }
 
 std::string dumpConfiguration(const Style& style) {
+    constexpr AlignConsecutiveFields assignFields{.acrossParameterPortList = true,
+                                                  .maxPadding = true};
     constexpr AlignConsecutiveFields portListFields{.acrossParameterPortList = true};
     constexpr AlignConsecutiveFields allFields{.acrossParameterPortList = true,
                                                .alignColon = true,
@@ -348,7 +358,7 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::BeginDoc;
     out << YAML::BeginMap;
     out << YAML::Key << "AlignConsecutiveAssignments" << YAML::Value;
-    emitAlignConsecutive(out, style.AlignConsecutiveAssignments, portListFields);
+    emitAlignConsecutive(out, style.AlignConsecutiveAssignments, assignFields);
     out << YAML::Key << "AlignConsecutiveDeclarations" << YAML::Value;
     emitAlignConsecutive(out, style.AlignConsecutiveDeclarations, portListFields);
     out << YAML::Key << "AlignConsecutivePackedDimensions" << YAML::Value;

@@ -30,6 +30,9 @@ struct AlignConsecutiveStyle {
     /// the left-side value.
     bool AlignColon = false;
 
+    /// Maximum number of spaces any line may be padded; 0 means unlimited.
+    unsigned MaxPadding = 0;
+
     /// If true, left-pad content within brackets (right-justify).
     bool PadLeft = false;
 
@@ -107,7 +110,7 @@ struct SpaceAfterParensStyle {
 /// Defines all formatting style options.
 struct Style {
     /// Controls alignment of assignment operators in consecutive declarations.
-    AlignConsecutiveStyle AlignConsecutiveAssignments;
+    AlignConsecutiveStyle AlignConsecutiveAssignments{.Enabled = true, .MaxPadding = 2};
 
     /// Controls alignment of trailing comments in consecutive lines.
     AlignConsecutiveStyle AlignTrailingComments;

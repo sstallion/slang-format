@@ -63,7 +63,8 @@ remaining sub-options take effect only when `Enabled` is `true`.
 
 ```yaml
 AlignConsecutiveAssignments:
-  Enabled: false
+  Enabled: true
+  MaxPadding: 2
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
@@ -73,44 +74,70 @@ AlignConsecutiveAssignments:
 
 If `false`, disables all alignment regardless of other options.
 
-**Default:** `false`
+**Default:** `true`
 
 ```sv
-// Enabled: true (declaration initializers)
+// Enabled: true, MaxPadding: 0 (declaration initializers)
 module foo;
   logic a       = 1;
   logic [7:0] b = 2;
 endmodule
 
-// Enabled: true (continuous assignments)
+// Enabled: true, MaxPadding: 0 (continuous assignments)
 module foo;
   assign x        = 1;
   assign longname = 2;
 endmodule
 
-// Enabled: true (blocking assignments)
+// Enabled: true, MaxPadding: 0 (blocking assignments)
 always_comb begin
   a        = 1;
   longname = 2;
 end
 
-// Enabled: true (nonblocking assignments)
+// Enabled: true, MaxPadding: 0 (nonblocking assignments)
 always_ff @(posedge clk) begin
   a        <= 1;
   longname <= 2;
 end
 
-// Enabled: true (continuation lines)
+// Enabled: true, MaxPadding: 0 (continuation lines)
 module foo;
   localparam [1:0] STATE_0 = 1,
     STATE_1                = 2,
     STATE_2                = 3;
 endmodule
 
-// Enabled: false (default)
+// Enabled: false
 module foo;
   logic a = 1;
   logic [7:0] b = 2;
+endmodule
+```
+
+#### MaxPadding (unsigned)
+
+Maximum number of spaces any line in a group may be padded to reach the
+alignment column. If the required padding for any line in a group exceeds
+this limit, the entire group is left unaligned. A value of `0` means
+unlimited; all groups are aligned regardless of padding.
+
+**Default:** `2`
+
+```sv
+// MaxPadding: 2 (padding is 2, within limit)
+module foo #(
+    parameter CLKS_PER_BIT = 4,
+    parameter DATA_WIDTH   = 8
+) (
+    input clk_i
+);
+endmodule
+
+// MaxPadding: 2 (padding is 6, exceeds limit)
+module foo;
+  assign x = 1;
+  assign longname = 2;
 endmodule
 ```
 

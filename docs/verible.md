@@ -43,7 +43,7 @@ configuration with no changes needed:
 | Port declarations at 4-space indent    | `ParameterPortListIndentWidth: 4`                         |
 | Event separator preserved              | `EventSeparator: Preserve`                                |
 | Dimension bounds preserved             | `PackedDimensionBounds: Preserve`                         |
-| Alignment off                          | All `AlignConsecutive*` disabled                          |
+| Assignment alignment (infer)           | `AlignConsecutiveAssignments: {Enabled: true, MaxPadding: 2}` |
 
 In slang's syntax tree, `ModuleDeclarationSyntax` covers `module`, `interface`,
 `package`, and `program` declarations via a unified `isKind()` predicate. All
