@@ -1309,9 +1309,10 @@ endmodule
 
 ### SpaceAfterBrackets (bool)
 
-Normalizes whitespace after a closing square bracket. If `true`, a single space
-is inserted after `]`; multiple spaces are collapsed to a single space. If
-`false`, whitespace after `]` is removed. Newlines are not affected.
+Normalizes whitespace after a closing square bracket in declarations. If `true`,
+a single space is inserted after `]`; multiple spaces are collapsed to a single
+space. If `false`, whitespace after `]` is removed. Newlines are not affected.
+Brackets in expressions are not affected.
 
 **Default:** `true`
 
@@ -1501,9 +1502,10 @@ endmodule
 
 ### SpaceBeforeBrackets (bool)
 
-Normalizes whitespace before an opening square bracket. If `true`, a single
-space is inserted before `[`; multiple spaces are collapsed to a single space.
-If `false`, whitespace before `[` is removed. Newlines are not affected.
+Normalizes whitespace before an opening square bracket in declarations. If
+`true`, a single space is inserted before `[`; multiple spaces are collapsed to
+a single space. If `false`, whitespace before `[` is removed. Newlines are not
+affected. Brackets in expressions are not affected.
 
 **Default:** `true`
 
@@ -1752,11 +1754,12 @@ endmodule
 
 ### SpacesInBrackets (bool)
 
-Normalizes whitespace inside square brackets. If `true`, whitespace following an
-opening bracket is replaced with a single space and a single space is inserted
-before a closing bracket; multiple spaces are collapsed to a single space. If
-`false`, whitespace following an opening bracket and preceding a closing bracket
-is removed. Newlines are not affected.
+Normalizes whitespace inside square brackets in declarations. If `true`,
+whitespace following an opening bracket is replaced with a single space and a
+single space is inserted before a closing bracket; multiple spaces are collapsed
+to a single space. If `false`, whitespace following an opening bracket and
+preceding a closing bracket is removed. Newlines are not affected. Brackets in
+expressions are not affected.
 
 **Default:** `false`
 

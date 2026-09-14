@@ -812,6 +812,12 @@ public:
         emitToken(decl.semi);
     }
 
+    void handle(const VariableDimensionSyntax& dim) {
+        inDimension = true;
+        visitDefault(dim);
+        inDimension = false;
+    }
+
     void handle(const ContinuousAssignSyntax& assign) {
         nextLineKind = LineMetadata::Kind::Assignment;
         for (auto* attr : assign.attributes) {
@@ -856,6 +862,8 @@ private:
     bool beforeOperator = false;
     bool afterOperator = false;
     unsigned bracketDepth = 0;
+    bool inDimension = false;
+    bool afterDimCloseBracket = false;
     bool afterComma = false;
     bool afterSemicolon = false;
     bool afterOpenBrace = false;
@@ -1114,8 +1122,8 @@ private:
             return;
         }
 
-        if (kind == TokenKind::OpenBracket && style.SpaceBeforeBrackets && !output.empty() &&
-            output.back() != ' ') {
+        if (kind == TokenKind::OpenBracket && inDimension && style.SpaceBeforeBrackets &&
+            !output.empty() && output.back() != ' ') {
             output += ' ';
         }
     }
@@ -1129,7 +1137,7 @@ private:
         }
         if (spaceBeforeCloseBracketPending && kind == TokenKind::CloseBracket) {
             stripTrailingSpaces();
-            if (style.SpacesInBrackets) {
+            if (inDimension && style.SpacesInBrackets) {
                 output += ' ';
             }
         }
@@ -1173,13 +1181,13 @@ private:
         if (afterSemicolon && style.SpaceAfterSemicolon) {
             output += ' ';
         }
-        if (afterCloseBracket && style.SpaceAfterBrackets) {
+        if (afterDimCloseBracket && style.SpaceAfterBrackets) {
             output += ' ';
         }
         if (afterOpenBrace && style.SpacesInBraces) {
             output += ' ';
         }
-        if (afterOpenBracket && style.SpacesInBrackets) {
+        if (afterOpenBracket && inDimension && style.SpacesInBrackets) {
             output += ' ';
         }
         if (afterOpenParen && style.SpacesInParens) {
@@ -1289,6 +1297,7 @@ private:
             spaceBeforeCloseParenPending = true;
         }
         afterCloseBracket = formatEnabled && tok.kind == TokenKind::CloseBracket;
+        afterDimCloseBracket = afterCloseBracket && inDimension;
         afterIntegerBase = formatEnabled && tok.kind == TokenKind::IntegerBase;
     }
 

@@ -154,7 +154,7 @@ struct Style {
     /// Normalizes whitespace after an always keyword.
     bool SpaceAfterAlways = true;
 
-    /// Normalizes whitespace after a closing square bracket.
+    /// Normalizes whitespace after a closing square bracket in declarations.
     bool SpaceAfterBrackets = true;
 
     /// Normalizes whitespace after a case item colon.
@@ -169,7 +169,7 @@ struct Style {
     /// Normalizes whitespace around semicolons.
     bool SpaceAfterSemicolon = true;
 
-    /// Normalizes whitespace before an opening square bracket.
+    /// Normalizes whitespace before an opening square bracket in declarations.
     bool SpaceBeforeBrackets = true;
 
     /// Normalizes whitespace before a case item colon.
@@ -184,7 +184,7 @@ struct Style {
     /// Normalizes whitespace inside curly braces.
     bool SpacesInBraces = false;
 
-    /// Normalizes whitespace inside square brackets.
+    /// Normalizes whitespace inside square brackets in declarations.
     bool SpacesInBrackets = false;
 
     /// Normalizes whitespace inside parentheses.

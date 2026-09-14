@@ -1612,8 +1612,8 @@ TEST(AlignConsecutiveAssignments, BitSelectLHS) {
               dedent(R"(
         module foo;
           always_comb begin
-            x [0] = 1;
-            longname [3:0] = 2;
+            x[0]          = 1;
+            longname[3:0] = 2;
           end
         endmodule
     )"));

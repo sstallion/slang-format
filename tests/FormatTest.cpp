@@ -2221,6 +2221,28 @@ TEST(SpaceAfterBrackets, FormatOff) {
     // clang-format on
 }
 
+TEST(SpaceAfterBrackets, IgnoresExpressions) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            x = data[i];
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            x = data[i];
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(SpaceAfterBrackets, Inserts) {
     Style const style{};
 
@@ -2931,7 +2953,7 @@ TEST(SpaceAfterParensControlStatements, DisabledForeach) {
     )"), style), dedent(R"(
         module foo;
           initial begin
-            foreach (arr [i])begin
+            foreach (arr[i])begin
             end
           end
         endmodule
@@ -3316,6 +3338,28 @@ TEST(SpaceBeforeBrackets, FormatOff) {
     // clang-format on
 }
 
+TEST(SpaceBeforeBrackets, IgnoresExpressions) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            x = data[i];
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            x = data[i];
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(SpaceBeforeBrackets, Inserts) {
     Style const style{};
 
@@ -3676,7 +3720,7 @@ TEST(SpaceBeforeParensControlStatements, DisabledForeach) {
     )"), style), dedent(R"(
         module foo;
           initial begin
-            foreach(arr [i]) begin
+            foreach(arr[i]) begin
             end
           end
         endmodule
@@ -4525,6 +4569,29 @@ TEST(SpacesInBrackets, FormatOff) {
     // clang-format on
 }
 
+TEST(SpacesInBrackets, IgnoresExpressions) {
+    Style style;
+    style.SpacesInBrackets = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+
+          initial begin
+            x = data[i];
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+
+          initial begin
+            x = data[i];
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(SpacesInBrackets, Inserts) {
     Style style;
     style.SpacesInBrackets = true;
@@ -4553,14 +4620,14 @@ TEST(SpacesInBrackets, NormalizesAround) {
         module foo;
 
           initial begin
-            x = data[  i  ];
+            x = data[i];
           end
         endmodule
     )"), style), dedent(R"(
         module foo;
 
           initial begin
-            x = data [ i ];
+            x = data[i];
           end
         endmodule
     )"));
