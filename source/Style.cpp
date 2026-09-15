@@ -380,6 +380,7 @@ std::string dumpConfiguration(const Style& style) {
         << std::string{toString(style.BreakBeforeInitial)};
     out << YAML::Key << "BreakBeforeSpecifyBlock" << YAML::Value << style.BreakBeforeSpecifyBlock;
     out << YAML::Key << "BreakBeforeTask" << YAML::Value << style.BreakBeforeTask;
+    out << YAML::Key << "ColumnLimit" << YAML::Value << style.ColumnLimit;
     out << YAML::Key << "ContinuationIndentWidth" << YAML::Value << style.ContinuationIndentWidth;
     out << YAML::Key << "EventSeparator" << YAML::Value
         << std::string{toString(style.EventSeparator)};
@@ -442,6 +443,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto n = node["AlignConsecutiveTimingControls"]) {
         parseAlignConsecutive(n, style.AlignConsecutiveTimingControls);
+    }
+
+    if (auto v = node["ColumnLimit"]) {
+        style.ColumnLimit = v.as<unsigned>();
     }
 
     if (auto v = node["MaxEmptyLinesToKeep"]) {

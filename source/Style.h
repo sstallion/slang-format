@@ -227,6 +227,9 @@ struct Style {
     /// If true, insert a blank line before task declarations.
     bool BreakBeforeTask = false;
 
+    /// The column limit.
+    unsigned ColumnLimit = 100; // NOLINT
+
     /// Controls insertion of begin/end around bare statements.
     InsertBeginEndStyle InsertBeginEnd;
 

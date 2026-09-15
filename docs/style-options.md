@@ -829,6 +829,16 @@ endmodule
 
 ---
 
+### ColumnLimit (unsigned)
+
+The column limit. A column limit of `0` means that no column limit is applied.
+
+This option functions the same as the clang-format option of the [same name][3].
+
+**Default:** `100`
+
+---
+
 ### EventSeparator (EventSeparatorStyle)
 
 Controls the separator used between signals in event expressions (sensitivity
