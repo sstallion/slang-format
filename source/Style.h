@@ -201,16 +201,16 @@ struct Style {
     DimensionBoundsStyle UnpackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
     /// Controls insertion of a newline between always and its body.
-    BlockBreakStyle BreakAfterAlways = BlockBreakStyle::Never;
+    BlockBreakStyle BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
     /// Controls insertion of a newline between initial and its body.
-    BlockBreakStyle BreakAfterInitial = BlockBreakStyle::Never;
+    BlockBreakStyle BreakAfterInitial = BlockBreakStyle::OnlyMultiline;
 
     /// Controls insertion of a blank line before always and its body.
-    BlockBreakStyle BreakBeforeAlways = BlockBreakStyle::Never;
+    BlockBreakStyle BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
 
     /// Controls insertion of a blank line before initial and its body.
-    BlockBreakStyle BreakBeforeInitial = BlockBreakStyle::Never;
+    BlockBreakStyle BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
 
     /// If true, enforce a newline after every begin statement.
     bool BreakAfterBegin = true;

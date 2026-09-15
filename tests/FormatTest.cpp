@@ -312,6 +312,27 @@ TEST(ApplyIndentation, BreakAfterAlwaysNone) {
     // clang-format on
 }
 
+TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalBare) {
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always @(posedge clk_i) if (!enable_i) state_cs <= STATE_RESET; else state_cs <= state_ns;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always @(posedge clk_i)
+            if (!enable_i)
+              state_cs <= STATE_RESET;
+            else
+              state_cs <= state_ns;
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalWithBlocks) {
     Style style;
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
@@ -730,6 +751,30 @@ TEST(ApplyIndentation, BreakBeforeAlwaysNever) {
             x = 1;
             y = 2;
           end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineConditionalBare) {
+    Style style;
+    style.BreakAfterAlways = BlockBreakStyle::Never;
+    style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1;
+        always @(posedge clk_i) if (!enable_i) state_cs <= STATE_RESET; else state_cs <= state_ns;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+
+          always @(posedge clk_i) if (!enable_i)
+              state_cs <= STATE_RESET;
+            else
+              state_cs <= state_ns;
         endmodule
     )"));
     // clang-format on
@@ -1737,7 +1782,8 @@ TEST(ApplyIndentation, FormatOffSkipsReindent) {
 }
 
 TEST(ApplyIndentation, IfBodyWithoutBegin) {
-    Style const style{};
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1954,7 +2000,8 @@ TEST(ApplyIndentation, PortListIndented) {
 }
 
 TEST(OneStatementPerLine, AlreadySeparateLines) {
-    Style const style;
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1977,6 +2024,7 @@ TEST(OneStatementPerLine, AlreadySeparateLines) {
 
 TEST(OneStatementPerLine, DisabledPreservesLayout) {
     Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
     style.OneStatementPerLine = false;
 
     // clang-format off
@@ -1997,7 +2045,8 @@ TEST(OneStatementPerLine, DisabledPreservesLayout) {
 }
 
 TEST(OneStatementPerLine, MixedSameAndSeparate) {
-    Style const style;
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2036,7 +2085,8 @@ TEST(OneStatementPerLine, ModuleMembers) {
 }
 
 TEST(OneStatementPerLine, MultipleStatementsInBlock) {
-    Style const style;
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2995,7 +3045,8 @@ TEST(SpaceAfterSemicolon, RemovesBefore) {
 }
 
 TEST(SpaceAfterParensControlStatements, Collapses) {
-    Style const style{};
+    Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3043,6 +3094,7 @@ TEST(SpaceAfterParensControlStatements, DisabledCase) {
 
 TEST(SpaceAfterParensControlStatements, DisabledFor) {
     Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
     style.SpaceAfterParens.ControlStatements = false;
 
     // clang-format off
@@ -3066,6 +3118,7 @@ TEST(SpaceAfterParensControlStatements, DisabledFor) {
 
 TEST(SpaceAfterParensControlStatements, DisabledForeach) {
     Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
     style.SpaceAfterParens.ControlStatements = false;
 
     // clang-format off
@@ -3089,6 +3142,7 @@ TEST(SpaceAfterParensControlStatements, DisabledForeach) {
 
 TEST(SpaceAfterParensControlStatements, DisabledIf) {
     Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
     style.SpaceAfterParens.ControlStatements = false;
 
     // clang-format off
@@ -3112,6 +3166,7 @@ TEST(SpaceAfterParensControlStatements, DisabledIf) {
 
 TEST(SpaceAfterParensControlStatements, DisabledWhile) {
     Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
     style.SpaceAfterParens.ControlStatements = false;
 
     // clang-format off
@@ -3134,7 +3189,8 @@ TEST(SpaceAfterParensControlStatements, DisabledWhile) {
 }
 
 TEST(SpaceAfterParensControlStatements, FormatOff) {
-    Style const style{};
+    Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3160,7 +3216,8 @@ TEST(SpaceAfterParensControlStatements, FormatOff) {
 }
 
 TEST(SpaceAfterParensControlStatements, Inserts) {
-    Style const style{};
+    Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3183,6 +3240,7 @@ TEST(SpaceAfterParensControlStatements, Inserts) {
 
 TEST(SpaceAfterParensControlStatements, NormalizesWhenDisabled) {
     Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
     style.SpaceAfterParens.ControlStatements = false;
 
     // clang-format off
@@ -3739,7 +3797,8 @@ TEST(SpaceBeforeCaseColon, PreservesNewlines) {
 }
 
 TEST(SpaceBeforeParensControlStatements, Collapses) {
-    Style const style{};
+    Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3787,6 +3846,7 @@ TEST(SpaceBeforeParensControlStatements, DisabledCase) {
 
 TEST(SpaceBeforeParensControlStatements, DisabledDoWhile) {
     Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
     style.SpaceBeforeParens.ControlStatements = false;
 
     // clang-format off
@@ -3810,6 +3870,7 @@ TEST(SpaceBeforeParensControlStatements, DisabledDoWhile) {
 
 TEST(SpaceBeforeParensControlStatements, DisabledFor) {
     Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
     style.SpaceBeforeParens.ControlStatements = false;
 
     // clang-format off
@@ -3833,6 +3894,7 @@ TEST(SpaceBeforeParensControlStatements, DisabledFor) {
 
 TEST(SpaceBeforeParensControlStatements, DisabledForeach) {
     Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
     style.SpaceBeforeParens.ControlStatements = false;
 
     // clang-format off
@@ -3856,6 +3918,7 @@ TEST(SpaceBeforeParensControlStatements, DisabledForeach) {
 
 TEST(SpaceBeforeParensControlStatements, DisabledIf) {
     Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
     style.SpaceBeforeParens.ControlStatements = false;
 
     // clang-format off
@@ -3879,6 +3942,7 @@ TEST(SpaceBeforeParensControlStatements, DisabledIf) {
 
 TEST(SpaceBeforeParensControlStatements, DisabledWhile) {
     Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
     style.SpaceBeforeParens.ControlStatements = false;
 
     // clang-format off
@@ -3901,7 +3965,8 @@ TEST(SpaceBeforeParensControlStatements, DisabledWhile) {
 }
 
 TEST(SpaceBeforeParensControlStatements, FormatOff) {
-    Style const style{};
+    Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3927,7 +3992,8 @@ TEST(SpaceBeforeParensControlStatements, FormatOff) {
 }
 
 TEST(SpaceBeforeParensControlStatements, Inserts) {
-    Style const style{};
+    Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3950,6 +4016,7 @@ TEST(SpaceBeforeParensControlStatements, Inserts) {
 
 TEST(SpaceBeforeParensControlStatements, NormalizesWhenDisabled) {
     Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
     style.SpaceBeforeParens.ControlStatements = false;
 
     // clang-format off
@@ -3972,7 +4039,8 @@ TEST(SpaceBeforeParensControlStatements, NormalizesWhenDisabled) {
 }
 
 TEST(SpaceBeforeParensControlStatements, PreservesNewlines) {
-    Style const style{};
+    Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3996,7 +4064,8 @@ TEST(SpaceBeforeParensControlStatements, PreservesNewlines) {
 }
 
 TEST(SpaceBeforeParensControlStatements, UniqueIf) {
-    Style const style{};
+    Style style;
+    style.BreakBeforeInitial = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(

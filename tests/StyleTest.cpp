@@ -883,11 +883,11 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("MaxPadding: 2"), std::string::npos);
-    EXPECT_NE(result.find("BreakAfterAlways: Never"), std::string::npos);
+    EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
-    EXPECT_NE(result.find("BreakAfterInitial: Never"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeAlways: Never"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeInitial: Never"), std::string::npos);
+    EXPECT_NE(result.find("BreakAfterInitial: OnlyMultiline"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeAlways: OnlyMultiline"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeInitial: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeEnd: true"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeFunction: false"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeSpecifyBlock: false"), std::string::npos);

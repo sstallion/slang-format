@@ -1850,6 +1850,7 @@ TEST(AlignConsecutiveAssignments, MaxPaddingUnlimited) {
 TEST(AlignConsecutiveAssignments, MaxPaddingMixedDepths) {
     Style style;
     style.AlignConsecutiveAssignments = {.Enabled = true, .MaxPadding = 2};
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;

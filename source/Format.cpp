@@ -1486,6 +1486,11 @@ private:
             });
         }
 
+        if (ConditionalStatementSyntax::isKind(body.kind) &&
+            body.as<ConditionalStatementSyntax>().elseClause != nullptr) {
+            return true;
+        }
+
         return containsBlock(body);
     }
 
@@ -1521,6 +1526,11 @@ private:
             return std::ranges::any_of(block.items, [](const auto* item) {
                 return item->getFirstToken() && hasLeadingNewline(item->getFirstToken());
             });
+        }
+
+        if (ConditionalStatementSyntax::isKind(body->kind) &&
+            body->as<ConditionalStatementSyntax>().elseClause != nullptr) {
+            return true;
         }
 
         return containsBlock(*body);

@@ -191,6 +191,9 @@ a single source line would appear single-line to the trivia check, but
 and `shouldBreakBeforeProcedural` helpers resolve this by accepting the
 `OneStatementPerLine` state: when enabled and the block contains more than one
 item, the block is treated as multiline regardless of source trivia.
+Conditional statements with else clauses are also treated as inherently
+multiline, because the formatting pass unconditionally breaks between the if
+body and the else keyword.
 
 ### Fixture Tests
 
