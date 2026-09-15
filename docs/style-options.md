@@ -839,6 +839,48 @@ This option functions the same as the clang-format option of the [same name][3].
 
 ---
 
+### CompactConditionals (bool)
+
+Compacts bare conditional statement bodies onto the same line as their `if`,
+`else if`, or `else` keyword when the resulting line fits within
+[`ColumnLimit`](#columnlimit-unsigned). Only applies to bare statement bodies
+(not `begin`/`end` blocks). Requires
+[`OneStatementPerLine`](#onestatementperline-bool) to be enabled.
+
+**Default:** `true`
+
+`CompactConditionals: true` (default):
+
+```sv
+always_comb
+  if (a) x = 1;
+  else if (b) y = 2;
+  else z = 3;
+```
+
+`CompactConditionals: false`:
+
+```sv
+always_comb
+  if (a)
+    x = 1;
+  else if (b)
+    y = 2;
+  else
+    z = 3;
+```
+
+When the compacted line would exceed the column limit, the body falls back to a
+new indented line:
+
+```sv
+always_comb
+  if (some_very_long_condition_expression)
+    some_very_long_assignment_target = some_very_long_value;
+```
+
+---
+
 ### EventSeparator (EventSeparatorStyle)
 
 Controls the separator used between signals in event expressions (sensitivity

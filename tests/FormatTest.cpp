@@ -315,6 +315,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysNone) {
 TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalBare) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
+    style.CompactConditionals = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -760,6 +761,7 @@ TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineConditionalBare) {
     Style style;
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
+    style.CompactConditionals = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1994,6 +1996,193 @@ TEST(ApplyIndentation, PortListIndented) {
           input a,
           input b
         );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactConditionals, BasicIf) {
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb if (a) x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb if (a) x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactConditionals, BlockBodyNotCompacted) {
+    Style style;
+    style.BreakAfterBegin = true;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
+    style.BreakBeforeEnd = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb if (a) begin x = 1; end else begin y = 2; end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            if (a) begin
+              x = 1;
+            end else begin
+              y = 2;
+            end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactConditionals, Disabled) {
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
+    style.CompactConditionals = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb if (a) x = 1; else y = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            if (a)
+              x = 1;
+            else
+              y = 2;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactConditionals, ExceedsColumnLimit) {
+    Style style;
+    style.BreakAfterAlways = BlockBreakStyle::Always;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
+    style.ColumnLimit = 30; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb if (some_cond) some_long_target = some_long_value;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            if (some_cond)
+              some_long_target = some_long_value;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactConditionals, IfElse) {
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb if (a) x = 1; else y = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            if (a) x = 1;
+            else y = 2;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactConditionals, IfElseIfElse) {
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb if (a) x = 1; else if (b) y = 2; else z = 3;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            if (a) x = 1;
+            else if (b) y = 2;
+            else z = 3;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactConditionals, NoColumnLimit) {
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
+    style.ColumnLimit = 0;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb if (some_very_long_condition) some_very_long_target = some_very_long_value;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb if (some_very_long_condition) some_very_long_target = some_very_long_value;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactConditionals, PartialCompaction) {
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
+    style.ColumnLimit = 30; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb if (a) x = 1; else some_long_target = some_long_value;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            if (a) x = 1;
+            else
+              some_long_target = some_long_value;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactConditionals, PreservesExistingNewlines) {
+    Style style;
+    style.BreakBeforeAlways = BlockBreakStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+          if (a)
+            x = 1;
+          else
+            y = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            if (a)
+              x = 1;
+            else
+              y = 2;
         endmodule
     )"));
     // clang-format on

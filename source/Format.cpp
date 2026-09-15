@@ -62,6 +62,32 @@ bool needsSeparator(char last, char next) {
     return isIdentChar(last) && isIdentChar(next);
 }
 
+size_t flatWidth(const SyntaxNode& node) {
+    size_t width = 0;
+    bool first = true;
+    for (auto it = node.tokens_begin(); it != node.tokens_end(); ++it) {
+        auto tok = *it;
+        for (const auto& t : tok.trivia()) {
+            if (t.kind == TriviaKind::LineComment || t.kind == TriviaKind::BlockComment ||
+                t.kind == TriviaKind::EndOfLine) {
+                return 0;
+            }
+        }
+
+        auto raw = tok.rawText();
+        if (raw.empty()) {
+            continue;
+        }
+
+        if (!first) {
+            width++;
+        }
+        width += raw.size();
+        first = false;
+    }
+    return width;
+}
+
 bool matchesPragma(std::string_view text, std::string_view pragma) {
     auto trim = [](std::string_view s) {
         while (!s.empty() && (s.front() == ' ' || s.front() == '\t')) {
@@ -405,7 +431,7 @@ public:
             }
         }
 
-        if (!BlockStatementSyntax::isKind(stmt.statement->kind)) {
+        if (shouldBreakConditionalBody(*stmt.statement)) {
             forceStatementBreak(stmt.statement->getFirstToken());
         }
 
@@ -424,7 +450,7 @@ public:
                 clause.visit(*this);
             }
             else {
-                if (!BlockStatementSyntax::isKind(clause.kind)) {
+                if (shouldBreakConditionalBody(clause)) {
                     forceStatementBreak(clause.getFirstToken());
                 }
 
@@ -1030,6 +1056,27 @@ private:
         if (style.OneStatementPerLine && formatEnabled && !hasLeadingNewline(tok)) {
             forceNewline();
         }
+    }
+
+    [[nodiscard]] bool shouldBreakConditionalBody(const SyntaxNode& body) const {
+        return !BlockStatementSyntax::isKind(body.kind) && !shouldCompactConditionalBody(body);
+    }
+
+    [[nodiscard]] bool shouldCompactConditionalBody(const SyntaxNode& body) const {
+        if (!style.CompactConditionals || !style.OneStatementPerLine || !formatEnabled) {
+            return false;
+        }
+
+        auto width = flatWidth(body);
+        if (width == 0) {
+            return false;
+        }
+
+        if (style.ColumnLimit == 0) {
+            return true;
+        }
+
+        return output.size() - lineStart + 1 + width <= style.ColumnLimit;
     }
 
     // Strip trailing spaces from output and emit a newline, setting atLineStart.

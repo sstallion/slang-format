@@ -483,6 +483,13 @@ TEST(ParseConfiguration, ParsesBreakBeforeTask) {
     EXPECT_EQ(style.BreakBeforeTask, false);
 }
 
+TEST(ParseConfiguration, ParsesCompactConditionals) {
+    YAML::Node const node = YAML::Load("CompactConditionals: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.CompactConditionals);
+}
+
 TEST(ParseConfiguration, ParsesContinuationIndentWidth) {
     YAML::Node const node = YAML::Load("ContinuationIndentWidth: 4");
     Style style;
@@ -886,12 +893,13 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterInitial: OnlyMultiline"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeAlways: OnlyMultiline"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeInitial: OnlyMultiline"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeAlways: Never"), std::string::npos);
+    EXPECT_NE(result.find("BreakBeforeInitial: Never"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeEnd: true"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeFunction: false"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeSpecifyBlock: false"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeTask: false"), std::string::npos);
+    EXPECT_NE(result.find("CompactConditionals: true"), std::string::npos);
     EXPECT_NE(result.find("ContinuationIndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("EventSeparator: Preserve"), std::string::npos);
     EXPECT_NE(result.find("IndentCaseItem: false"), std::string::npos);
@@ -940,6 +948,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.BreakBeforeFunction = true;
     style.BreakBeforeSpecifyBlock = true;
     style.BreakBeforeTask = true;
+    style.CompactConditionals = false;
     style.EventSeparator = EventSeparatorStyle::Comma;
     style.InsertBeginEnd.Enabled = true;
     style.InsertParens.Delays = true;
@@ -975,6 +984,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("BreakBeforeInitial: Always"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeSpecifyBlock: true"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeTask: true"), std::string::npos);
+    EXPECT_NE(result.find("CompactConditionals: false"), std::string::npos);
     EXPECT_NE(result.find("EventSeparator: Comma"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("OneStatementPerLine: false"), std::string::npos);
@@ -1022,6 +1032,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.BreakBeforeFunction = false;
     original.BreakBeforeSpecifyBlock = false;
     original.BreakBeforeTask = false;
+    original.CompactConditionals = false;
     original.EventSeparator = EventSeparatorStyle::Or;
     original.OneLineFormatOffRegex = ".*test.*";
     original.OneStatementPerLine = false;

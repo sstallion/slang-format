@@ -195,6 +195,17 @@ Conditional statements with else clauses are also treated as inherently
 multiline, because the formatting pass unconditionally breaks between the if
 body and the else keyword.
 
+### Column-Limit-Aware Compaction
+
+The `CompactConditionals` option introduces column-limit-aware compaction of
+bare conditional bodies during the formatting pass. When enabled, the formatter
+suppresses the statement break before a bare if/else body if the compacted line
+fits within `ColumnLimit`. This is the first formatting feature that consumes
+`ColumnLimit` for layout decisions. The compaction check uses a `flatWidth`
+helper that walks all tokens in the body subtree to estimate the flattened
+width; if any token carries comment or newline trivia, compaction is blocked for
+that branch.
+
 ### Fixture Tests
 
 Command-line features that live in `main.cpp` are not part of the object library

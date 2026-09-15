@@ -207,10 +207,10 @@ struct Style {
     BlockBreakStyle BreakAfterInitial = BlockBreakStyle::OnlyMultiline;
 
     /// Controls insertion of a blank line before always and its body.
-    BlockBreakStyle BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
+    BlockBreakStyle BreakBeforeAlways = BlockBreakStyle::Never;
 
     /// Controls insertion of a blank line before initial and its body.
-    BlockBreakStyle BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
+    BlockBreakStyle BreakBeforeInitial = BlockBreakStyle::Never;
 
     /// If true, enforce a newline after every begin statement.
     bool BreakAfterBegin = true;
@@ -229,6 +229,10 @@ struct Style {
 
     /// The column limit.
     unsigned ColumnLimit = 100; // NOLINT
+
+    /// If true, compacts bare conditional bodies onto the same line when the
+    /// result fits within the column limit.
+    bool CompactConditionals = true;
 
     /// Controls insertion of begin/end around bare statements.
     InsertBeginEndStyle InsertBeginEnd;
