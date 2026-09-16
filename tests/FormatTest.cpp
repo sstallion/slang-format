@@ -1783,6 +1783,263 @@ TEST(ApplyIndentation, FormatOffSkipsReindent) {
     // clang-format on
 }
 
+TEST(ApplyIndentation, HierarchyInstantiationMultilineNamedPorts) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        dff #(
+        .W(8),
+        .RST_VAL(8'hFF)
+        ) u_dff (
+        .clk(clk),
+        .rst_n(rst_n),
+        .d(data_i),
+        .q(dff_q)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          dff #(
+              .W(8),
+              .RST_VAL(8'hFF)
+          ) u_dff (
+              .clk(clk),
+              .rst_n(rst_n),
+              .d(data_i),
+              .q(dff_q)
+          );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, HierarchyInstantiationNoParameters) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        bar u_bar (
+        .clk(clk),
+        .rst_n(rst_n)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bar u_bar (
+              .clk(clk),
+              .rst_n(rst_n)
+          );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, HierarchyInstantiationParameterPortListIndentWidthCustom) {
+    Style style;
+    style.ParameterPortListIndentWidth = 3;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        dff #(
+        .W(8)
+        ) u_dff (
+        .clk(clk)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          dff #(
+             .W(8)
+          ) u_dff (
+             .clk(clk)
+          );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, HierarchyInstantiationPositionalPorts) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        dff #(8, 8'h00) u_dff (
+        clk,
+        rst_n,
+        en,
+        d,
+        q
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          dff #(8, 8'h00) u_dff (
+              clk,
+              rst_n,
+              en,
+              d,
+              q
+          );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, HierarchyInstantiationSingleLine) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        adder #(.W(DW)) u_adder (.*);
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          adder #(.W(DW)) u_adder (.*);
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, HierarchyInstantiationSpaceBeforeParensParameterList) {
+    Style style;
+    style.SpaceBeforeParens.ParameterList = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        dff#(
+        .W(8)
+        ) u_dff (
+        .clk(clk)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          dff #(
+              .W(8)
+          ) u_dff (
+              .clk(clk)
+          );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, HierarchyInstantiationSpaceBeforeParensParameterListFalse) {
+    Style style;
+    style.SpaceBeforeParens.ParameterList = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        dff #(
+        .W(8)
+        ) u_dff (
+        .clk(clk)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          dff#(
+              .W(8)
+          ) u_dff (
+              .clk(clk)
+          );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, HierarchyInstantiationSpaceBeforeParensPortList) {
+    Style style;
+    style.SpaceBeforeParens.PortList = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        bar u_bar(
+        .clk(clk)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bar u_bar (
+              .clk(clk)
+          );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, HierarchyInstantiationSpaceBeforeParensPortListFalse) {
+    Style style;
+    style.SpaceBeforeParens.PortList = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        bar u_bar (
+        .clk(clk)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bar u_bar(
+              .clk(clk)
+          );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, HierarchyInstantiationTopLevel) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        bind tort_top handshake_chk u_chk (
+        .clk(clk),
+        .rst_n(rst_n),
+        .req(req_int),
+        .gnt(gnt_int)
+        );
+    )"), style), dedent(R"(
+        bind tort_top handshake_chk u_chk (
+            .clk(clk),
+            .rst_n(rst_n),
+            .req(req_int),
+            .gnt(gnt_int)
+        );
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, HierarchyInstantiationWildcardPorts) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        adder #(
+        .W(DW)
+        ) u_adder (.*);
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          adder #(
+              .W(DW)
+          ) u_adder (.*);
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyIndentation, IfBodyWithoutBegin) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;

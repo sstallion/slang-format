@@ -923,6 +923,87 @@ public:
         emitToken(assign.semi);
     }
 
+    void handle(const HierarchicalInstanceSyntax& inst) {
+        if (inst.decl != nullptr) {
+            if (formatEnabled && !atLineStart && !output.empty() && output.back() == ')') {
+                output += ' ';
+            }
+            inst.decl->visit(*this);
+        }
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(inst.openParen)) {
+            if (style.SpaceBeforeParens.PortList && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParens.PortList) {
+                stripTrailingSpaces();
+            }
+        }
+        emitToken(inst.openParen);
+
+        depth++;
+        visitSeparatedList(inst.connections);
+
+        portItemNextIndent = true;
+        nextIsPrimary = true;
+        emitEndTokenTrivia(inst.closeParen);
+        portItemNextIndent = false;
+
+        depth--;
+        nextIsPrimary = true;
+        nextLineKind = LineMetadata::Kind::PortListBoundary;
+        emitToken(inst.closeParen);
+    }
+
+    void handle(const HierarchyInstantiationSyntax& inst) {
+        for (auto* attr : inst.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(inst.type);
+        if (inst.parameters != nullptr) {
+            inst.parameters->visit(*this);
+        }
+
+        for (const auto& elem : inst.instances.elems()) {
+            if (elem.isNode()) {
+                elem.node()->visit(*this);
+            }
+            else if (elem.isToken()) {
+                emitToken(elem.token());
+            }
+        }
+
+        emitToken(inst.semi);
+    }
+
+    void handle(const ParameterValueAssignmentSyntax& p) {
+        if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(p.hash)) {
+            if (style.SpaceBeforeParens.ParameterList && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParens.ParameterList) {
+                stripTrailingSpaces();
+            }
+        }
+        emitToken(p.hash);
+        emitToken(p.openParen);
+
+        depth++;
+        visitSeparatedList(p.parameters);
+
+        portItemNextIndent = true;
+        nextIsPrimary = true;
+        emitEndTokenTrivia(p.closeParen);
+        portItemNextIndent = false;
+
+        depth--;
+        nextIsPrimary = true;
+        nextLineKind = LineMetadata::Kind::PortListBoundary;
+        emitToken(p.closeParen);
+    }
+
 private:
     const Style& style;
     std::string output;
@@ -1264,7 +1345,8 @@ private:
     // and raw text.
     void emitIndentRaw() {
         if (portItemNextIndent) {
-            output.append(style.ParameterPortListIndentWidth, ' ');
+            output.append(((depth - 1) * style.IndentWidth) + style.ParameterPortListIndentWidth,
+                          ' ');
         }
         else {
             unsigned spaces = depth * style.IndentWidth;
@@ -1332,7 +1414,8 @@ private:
             }
 
             if (portItemNextIndent) {
-                output.append(style.ParameterPortListIndentWidth, ' ');
+                output.append(
+                    ((depth - 1) * style.IndentWidth) + style.ParameterPortListIndentWidth, ' ');
                 portItemNextIndent = false;
             }
             else if (nextIsPrimary) {
