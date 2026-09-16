@@ -74,6 +74,34 @@ TEST(ParseConfiguration, AcceptsEmptyMap) {
     parseConfiguration(node, style);
 }
 
+TEST(ParseConfiguration, ParsesAlignAfterOpenParenAlign) {
+    YAML::Node const node = YAML::Load("AlignAfterOpenParen: Align");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::Align);
+}
+
+TEST(ParseConfiguration, ParsesAlignAfterOpenParenAlwaysBreak) {
+    YAML::Node const node = YAML::Load("AlignAfterOpenParen: AlwaysBreak");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::AlwaysBreak);
+}
+
+TEST(ParseConfiguration, ParsesAlignAfterOpenParenBlockIndent) {
+    YAML::Node const node = YAML::Load("AlignAfterOpenParen: BlockIndent");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::BlockIndent);
+}
+
+TEST(ParseConfiguration, ParsesAlignAfterOpenParenDontAlign) {
+    YAML::Node const node = YAML::Load("AlignAfterOpenParen: DontAlign");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::DontAlign);
+}
+
 TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsAcrossComments) {
     Style style;
 
@@ -446,6 +474,13 @@ TEST(ParseConfiguration, ParameterPortListIndentWidthDefaultsToContinuationInden
     parseConfiguration(node, style);
     EXPECT_EQ(style.ContinuationIndentWidth, 4U);
     EXPECT_EQ(style.ParameterPortListIndentWidth, 4U);
+}
+
+TEST(ParseConfiguration, ParsesBinPackArguments) {
+    YAML::Node const node = YAML::Load("BinPackArguments: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.BinPackArguments);
 }
 
 TEST(ParseConfiguration, ParsesBreakAfterAlways) {
@@ -919,6 +954,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     auto const result = dumpConfiguration(getDefaultStyle());
     EXPECT_NE(result.find("---"), std::string::npos);
     EXPECT_NE(result.find("..."), std::string::npos);
+    EXPECT_NE(result.find("AlignAfterOpenParen: Align"), std::string::npos);
     EXPECT_NE(result.find("AlignConsecutiveAssignments:"), std::string::npos);
     EXPECT_NE(result.find("AlignConsecutivePortConnections:"), std::string::npos);
     EXPECT_NE(result.find("AlignTrailingComments:"), std::string::npos);
@@ -926,6 +962,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("MaxPadding: 2"), std::string::npos);
+    EXPECT_NE(result.find("BinPackArguments: true"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterInitial: OnlyMultiline"), std::string::npos);
@@ -978,6 +1015,8 @@ TEST(DumpConfiguration, DefaultStyle) {
 
 TEST(DumpConfiguration, NonDefaultValues) {
     Style style;
+    style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
+    style.BinPackArguments = false;
     style.IndentWidth = 4;
     style.BreakAfterAlways = BlockBreakStyle::Always;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
@@ -1015,6 +1054,8 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
 
     auto const result = dumpConfiguration(style);
+    EXPECT_NE(result.find("AlignAfterOpenParen: AlwaysBreak"), std::string::npos);
+    EXPECT_NE(result.find("BinPackArguments: false"), std::string::npos);
     EXPECT_NE(result.find("IndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: Always"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeAlways: Always"), std::string::npos);
@@ -1047,6 +1088,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
 
 TEST(DumpConfiguration, RoundTrip) {
     Style original;
+    original.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
     original.AlignConsecutiveDeclarations.Enabled = true;
     original.AlignConsecutiveDeclarations.AcrossEmptyLines = true;
     original.AlignConsecutivePackedDimensions.AlignColon = true;
@@ -1058,6 +1100,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.AlignConsecutiveTimingControls.AcrossEmptyLines = true;
     original.AlignTrailingComments.Enabled = true;
     original.AlignTrailingComments.AcrossEmptyLines = true;
+    original.BinPackArguments = false;
     original.IndentWidth = 4;
     original.ContinuationIndentWidth = 4;
     original.ParameterPortListIndentWidth = 4;

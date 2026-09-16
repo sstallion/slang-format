@@ -45,6 +45,58 @@ details.
 
 ## Configurable Options
 
+### AlignAfterOpenParen (BracketAlignmentStyle)
+
+Controls alignment and wrapping of arguments when a parenthesized argument list
+exceeds [`ColumnLimit`](#columnlimit-unsigned). When wrapping is triggered, this
+option determines how continuation lines are indented. All constructs with
+argument lists are affected, including function calls, system task calls, method
+calls, elaboration system tasks, and class constructors.
+
+This option has no effect when `ColumnLimit` is `0`.
+
+**Default:** `Align`
+
+| Value        | Behavior                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------- |
+| Align        | Continuation lines align to the column after the opening parenthesis.                                   |
+| AlwaysBreak  | Break after the opening parenthesis; continuation lines use `ContinuationIndentWidth`.                  |
+| BlockIndent  | Like AlwaysBreak, but the closing parenthesis is placed on its own line at the primary indentation.     |
+| DontAlign    | No active wrapping is performed; existing breaks use `ContinuationIndentWidth`.                         |
+
+`AlignAfterOpenParen: Align` (default):
+
+```sv
+$display("alpha", bravo, charlie,
+         delta, echo_val);
+```
+
+`AlignAfterOpenParen: AlwaysBreak`:
+
+```sv
+$display(
+    "alpha", bravo, charlie, delta,
+    echo_val);
+```
+
+`AlignAfterOpenParen: BlockIndent`:
+
+```sv
+$display(
+    "alpha", bravo, charlie, delta,
+    echo_val
+);
+```
+
+`AlignAfterOpenParen: DontAlign`:
+
+```sv
+// Existing source breaks are preserved.
+$display("alpha", bravo, charlie, delta, echo_val);
+```
+
+---
+
 ### AlignConsecutiveAssignments (AlignConsecutiveStyle)
 
 Controls alignment of assignment operators in consecutive assignments. When
@@ -563,6 +615,38 @@ If `true`, port list boundaries do not break alignment groups.
 
 ---
 
+### BinPackArguments (bool)
+
+Controls whether arguments are bin-packed or placed one per line when wrapping
+is triggered by [`AlignAfterOpenParen`](#alignafteropenparent-bracketalignmentstyle).
+When `true`, the formatter packs as many arguments as fit within
+[`ColumnLimit`](#columnlimit-unsigned) on each line. When `false`, each argument
+is placed on its own line.
+
+This option has no effect when `AlignAfterOpenParen` is `DontAlign` or when
+`ColumnLimit` is `0`.
+
+**Default:** `true`
+
+`BinPackArguments: true` (default):
+
+```sv
+$display("alpha", bravo, charlie,
+         delta, echo_val);
+```
+
+`BinPackArguments: false`:
+
+```sv
+$display("alpha",
+         bravo,
+         charlie,
+         delta,
+         echo_val);
+```
+
+---
+
 ### BreakAfterAlways (BlockBreakStyle)
 
 Controls whether slang-format inserts a newline between an `always`,
@@ -925,6 +1009,10 @@ endmodule
 The column limit. A column limit of `0` means that no column limit is applied.
 
 This option functions the same as the clang-format option of the [same name][3].
+It is consumed by
+[`AlignAfterOpenParen`](#alignafteropenparent-bracketalignmentstyle) for argument
+list wrapping and by
+[`CompactConditionals`](#compactconditionals-bool) for conditional compaction.
 
 **Default:** `100`
 

@@ -11,6 +11,435 @@
 
 using namespace slang::format;
 
+TEST(AlignAfterOpenParen, AlignBinPackedFunctionCall) {
+    Style style;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha", bravo, charlie, delta, echo_val);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha", bravo, charlie,
+                     delta, echo_val);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, AlignEmptyArgList) {
+    Style style;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            bar();
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            bar();
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, AlignExistingBreaks) {
+    const Style style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            obj.method(alpha,
+              bravo, charlie);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            obj.method(alpha,
+                       bravo, charlie);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, AlignFitsOnOneLine) {
+    Style style;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            bar(a, b, c);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            bar(a, b, c);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, AlignMethodCall) {
+    Style style;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            obj.method(alpha, bravo, charlie, delta);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            obj.method(alpha, bravo, charlie,
+                       delta);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, AlignNestedCalls) {
+    Style style;
+    style.ColumnLimit = 50; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            $display("result: %d", calculate(alpha, bravo, charlie));
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            $display("result: %d",
+                     calculate(alpha, bravo, charlie));
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, AlignOnePerLine) {
+    Style style;
+    style.BinPackArguments = false;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha", bravo, charlie, delta);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha",
+                     bravo,
+                     charlie,
+                     delta);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, AlignSingleArgument) {
+    Style style;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            bar(x);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            bar(x);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, AlignSystemTask) {
+    Style style;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            $display("format: %d %d", alpha, bravo, charlie);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            $display("format: %d %d", alpha,
+                     bravo, charlie);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, AlwaysBreakBinPacked) {
+    Style style;
+    style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha", bravo, charlie, delta, echo_val);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            $display(
+                "alpha", bravo, charlie, delta,
+                echo_val);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, AlwaysBreakFitsOnOneLine) {
+    Style style;
+    style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            bar(a, b, c);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            bar(a, b, c);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, AlwaysBreakOnePerLine) {
+    Style style;
+    style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
+    style.BinPackArguments = false;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha", bravo, charlie, delta);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            $display(
+                "alpha",
+                bravo,
+                charlie,
+                delta);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, BlockIndentBinPacked) {
+    Style style;
+    style.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha", bravo, charlie, delta, echo_val);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            $display(
+                "alpha", bravo, charlie, delta,
+                echo_val
+            );
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, BlockIndentFitsOnOneLine) {
+    Style style;
+    style.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            bar(a, b, c);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            bar(a, b, c);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, BlockIndentOnePerLine) {
+    Style style;
+    style.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
+    style.BinPackArguments = false;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha", bravo, charlie, delta);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            $display(
+                "alpha",
+                bravo,
+                charlie,
+                delta
+            );
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, DontAlignPreservesSource) {
+    Style style;
+    style.AlignAfterOpenParen = BracketAlignmentStyle::DontAlign;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha", bravo, charlie, delta, echo_val);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha", bravo, charlie, delta, echo_val);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, ElabSystemTask) {
+    Style style;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          $fatal(1, "some very long error message here");
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          $fatal(1,
+                 "some very long error message here");
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, NewClassExpression) {
+    Style style;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            obj = new(alpha, bravo, charlie, delta);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            obj = new(alpha, bravo, charlie,
+                      delta);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AlignAfterOpenParen, NoColumnLimitDisablesWrapping) {
+    Style style;
+    style.ColumnLimit = 0;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha", bravo, charlie, delta, echo_val, foxtrot, golf, hotel, india);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            $display("alpha", bravo, charlie, delta, echo_val, foxtrot, golf, hotel, india);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyEmptyLineLimits, EmptyLinesAtEndOfInput) {
     Style style;
     style.RemoveEmptyLines = true;

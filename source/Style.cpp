@@ -25,6 +25,20 @@ constexpr std::array<std::string_view, 2> ConfigFileNames{
     "_slang-format",
 };
 
+constexpr std::string_view toString(BracketAlignmentStyle style) {
+    switch (style) {
+        case BracketAlignmentStyle::Align:
+            return "Align";
+        case BracketAlignmentStyle::AlwaysBreak:
+            return "AlwaysBreak";
+        case BracketAlignmentStyle::BlockIndent:
+            return "BlockIndent";
+        case BracketAlignmentStyle::DontAlign:
+            return "DontAlign";
+    }
+    return "Align";
+}
+
 constexpr std::string_view toString(BlockBreakStyle style) {
     switch (style) {
         case BlockBreakStyle::Always:
@@ -129,6 +143,22 @@ void parseInsertParens(const YAML::Node& node, InsertParensStyle& config) {
     if (auto v = node["NamedEvents"]) {
         config.NamedEvents = v.as<bool>();
     }
+}
+
+BracketAlignmentStyle parseBracketAlignment(std::string_view s) {
+    if (s == "AlwaysBreak") {
+        return BracketAlignmentStyle::AlwaysBreak;
+    }
+
+    if (s == "BlockIndent") {
+        return BracketAlignmentStyle::BlockIndent;
+    }
+
+    if (s == "DontAlign") {
+        return BracketAlignmentStyle::DontAlign;
+    }
+
+    return BracketAlignmentStyle::Align;
 }
 
 BlockBreakStyle parseBlockBreak(std::string_view s) {
@@ -387,6 +417,8 @@ std::string dumpConfiguration(const Style& style) {
     YAML::Emitter out;
     out << YAML::BeginDoc;
     out << YAML::BeginMap;
+    out << YAML::Key << "AlignAfterOpenParen" << YAML::Value
+        << std::string{toString(style.AlignAfterOpenParen)};
     out << YAML::Key << "AlignConsecutiveAssignments" << YAML::Value;
     emitAlignConsecutive(out, style.AlignConsecutiveAssignments, assignFields);
     out << YAML::Key << "AlignConsecutiveDeclarations" << YAML::Value;
@@ -399,6 +431,7 @@ std::string dumpConfiguration(const Style& style) {
     emitAlignConsecutive(out, style.AlignConsecutiveTimingControls, {});
     out << YAML::Key << "AlignTrailingComments" << YAML::Value;
     emitAlignConsecutive(out, style.AlignTrailingComments, portListFields);
+    out << YAML::Key << "BinPackArguments" << YAML::Value << style.BinPackArguments;
     out << YAML::Key << "BreakAfterAlways" << YAML::Value
         << std::string{toString(style.BreakAfterAlways)};
     out << YAML::Key << "BreakAfterBegin" << YAML::Value << style.BreakAfterBegin;
@@ -461,6 +494,14 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
     }
 
     parseAlignOptions(node, style);
+
+    if (auto v = node["AlignAfterOpenParen"]) {
+        style.AlignAfterOpenParen = parseBracketAlignment(v.as<std::string>());
+    }
+
+    if (auto v = node["BinPackArguments"]) {
+        style.BinPackArguments = v.as<bool>();
+    }
 
     if (auto v = node["ColumnLimit"]) {
         style.ColumnLimit = v.as<unsigned>();

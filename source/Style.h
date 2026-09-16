@@ -44,6 +44,8 @@ struct AlignConsecutiveStyle {
 
 enum class BlockBreakStyle { Never, Always, OnlyMultiline };
 
+enum class BracketAlignmentStyle { Align, AlwaysBreak, BlockIndent, DontAlign };
+
 enum class DimensionBoundsStyle { LSBFirst, MSBFirst, Preserve };
 
 enum class EventSeparatorStyle { Comma, Or, Preserve };
@@ -109,6 +111,10 @@ struct SpaceAfterParensStyle {
 
 /// Defines all formatting style options.
 struct Style {
+    /// Controls alignment of arguments after an opening parenthesis in
+    /// function calls, system task calls, and constructor invocations.
+    BracketAlignmentStyle AlignAfterOpenParen = BracketAlignmentStyle::Align;
+
     /// Controls alignment of assignment operators in consecutive declarations.
     AlignConsecutiveStyle AlignConsecutiveAssignments{.Enabled = true, .MaxPadding = 2};
 
@@ -128,6 +134,10 @@ struct Style {
     /// Controls alignment of signal names and assignment operators in
     /// consecutive timing controls.
     AlignConsecutiveStyle AlignConsecutiveTimingControls;
+
+    /// If true, arguments are bin-packed when they exceed the column limit.
+    /// If false, each argument is placed on its own line.
+    bool BinPackArguments = true;
 
     /// Maximum number of consecutive empty lines to keep.
     unsigned MaxEmptyLinesToKeep = 1;

@@ -206,6 +206,24 @@ helper that walks all tokens in the body subtree to estimate the flattened
 width; if any token carries comment or newline trivia, compaction is blocked for
 that branch.
 
+### Argument List Wrapping
+
+The `AlignAfterOpenParen` option introduces column-limit-aware wrapping of
+parenthesized argument lists during the formatting pass. This is the second
+feature (after `CompactConditionals`) that consumes `ColumnLimit` for layout
+decisions. A shared `visitArgumentList` helper handles all `ArgumentListSyntax`
+nodes, covering function calls, system tasks, method calls, elaboration system
+tasks, and class constructors.
+
+When active wrapping is enabled and arguments exceed the column limit, the
+`Align` mode uses an absolute-column indentation mode (`parenAlignColumn`) that
+overrides normal indentation. This fourth indentation mode (after primary,
+continuation, and port-item) emits spaces to the column immediately after the
+opening parenthesis, producing Verible-style alignment. The `AlwaysBreak` and
+`BlockIndent` modes instead break after the opening parenthesis and use the
+existing continuation indentation. The `BinPackArguments` option controls whether
+wrapped arguments are greedy-filled or placed one per line.
+
 ### Fixture Tests
 
 Command-line features that live in `main.cpp` are not part of the object library

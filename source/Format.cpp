@@ -64,7 +64,7 @@ bool needsSeparator(char last, char next) {
 
 size_t flatWidth(const SyntaxNode& node) {
     size_t width = 0;
-    bool first = true;
+    char lastChar = 0;
     for (auto it = node.tokens_begin(); it != node.tokens_end(); ++it) {
         auto tok = *it;
         for (const auto& t : tok.trivia()) {
@@ -79,11 +79,11 @@ size_t flatWidth(const SyntaxNode& node) {
             continue;
         }
 
-        if (!first) {
+        if (lastChar != 0 && needsSeparator(lastChar, raw.front())) {
             width++;
         }
         width += raw.size();
-        first = false;
+        lastChar = raw.back();
     }
     return width;
 }
@@ -1014,6 +1014,37 @@ public:
         emitToken(p.closeParen);
     }
 
+    void handle(const ElabSystemTaskSyntax& task) {
+        for (auto* attr : task.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(task.name);
+        if (task.arguments != nullptr) {
+            visitArgumentList(*task.arguments);
+        }
+
+        emitToken(task.semi);
+    }
+
+    void handle(const InvocationExpressionSyntax& expr) {
+        expr.left->visit(*this);
+        for (auto* attr : expr.attributes) {
+            attr->visit(*this);
+        }
+
+        if (expr.arguments != nullptr) {
+            visitArgumentList(*expr.arguments);
+        }
+    }
+
+    void handle(const NewClassExpressionSyntax& expr) {
+        expr.scopedNew->visit(*this);
+        if (expr.argList != nullptr) {
+            visitArgumentList(*expr.argList);
+        }
+    }
+
 private:
     const Style& style;
     std::string output;
@@ -1021,7 +1052,8 @@ private:
     LineMetadata currentLineMeta;
     size_t lineStart = 0; ///< Index into output where the current line begins.
     unsigned depth = 0;
-    unsigned lineDepth = 0; ///< Depth when content was last emitted on the current line.
+    unsigned lineDepth = 0;        ///< Depth when content was last emitted on the current line.
+    unsigned parenAlignColumn = 0; ///< Absolute column for paren-aligned argument indentation.
     bool atLineStart = true;
     bool nextIsPrimary = true;
     bool portItemNextIndent = false;
@@ -1355,7 +1387,10 @@ private:
     // Emit computed indentation directly into output; used for comment trivia
     // and raw text.
     void emitIndentRaw() {
-        if (portItemNextIndent) {
+        if (parenAlignColumn > 0) {
+            output.append(parenAlignColumn, ' ');
+        }
+        else if (portItemNextIndent) {
             output.append(((depth - 1) * style.IndentWidth) + style.ParameterPortListIndentWidth,
                           ' ');
         }
@@ -1367,6 +1402,25 @@ private:
             output.append(spaces, ' ');
         }
         atLineStart = false;
+    }
+
+    void emitIndent() {
+        if (parenAlignColumn > 0) {
+            output.append(parenAlignColumn, ' ');
+        }
+        else if (portItemNextIndent) {
+            output.append(((depth - 1) * style.IndentWidth) + style.ParameterPortListIndentWidth,
+                          ' ');
+            portItemNextIndent = false;
+        }
+        else if (nextIsPrimary) {
+            output.append(static_cast<std::size_t>(depth) * style.IndentWidth, ' ');
+        }
+        else {
+            output.append((static_cast<std::size_t>(depth) * style.IndentWidth) +
+                              style.ContinuationIndentWidth,
+                          ' ');
+        }
     }
 
     void emitDeferredSpaces() {
@@ -1431,32 +1485,14 @@ private:
         auto raw = tok.rawText();
         emitSeparator(raw);
 
-        if (formatEnabled && atLineStart && !raw.empty()) {
+        if (atLineStart) {
             if (nextLineKind) {
                 currentLineMeta.kind = *nextLineKind;
                 nextLineKind.reset();
             }
 
-            if (portItemNextIndent) {
-                output.append(
-                    ((depth - 1) * style.IndentWidth) + style.ParameterPortListIndentWidth, ' ');
-                portItemNextIndent = false;
-            }
-            else if (nextIsPrimary) {
-                output.append(static_cast<std::size_t>(depth) * style.IndentWidth, ' ');
-            }
-            else {
-                output.append((static_cast<std::size_t>(depth) * style.IndentWidth) +
-                                  style.ContinuationIndentWidth,
-                              ' ');
-            }
-
-            atLineStart = false;
-        }
-        else if (atLineStart) {
-            if (nextLineKind) {
-                currentLineMeta.kind = *nextLineKind;
-                nextLineKind.reset();
+            if (formatEnabled && !raw.empty()) {
+                emitIndent();
             }
 
             atLineStart = false;
@@ -1541,6 +1577,118 @@ private:
             }
             else if (elem.isToken()) {
                 emitToken(elem.token());
+            }
+        }
+    }
+
+    void visitArgumentListElements(const SeparatedSyntaxList<ArgumentSyntax>& params) {
+        for (const auto& elem : params.elems()) {
+            if (elem.isNode()) {
+                elem.node()->visit(*this);
+            }
+            else if (elem.isToken()) {
+                emitToken(elem.token());
+            }
+        }
+    }
+
+    [[nodiscard]] static size_t argumentListFlatWidth(
+        const SeparatedSyntaxList<ArgumentSyntax>& params) {
+        size_t totalWidth = 0;
+        for (size_t i = 0; i < params.size(); i++) {
+            auto w = flatWidth(*params[i]);
+            if (w == 0) {
+                return 0;
+            }
+
+            totalWidth += w;
+            if (i + 1 < params.size()) {
+                totalWidth += 2;
+            }
+        }
+        return totalWidth;
+    }
+
+    void visitArgumentList(const ArgumentListSyntax& argList) {
+        auto savedAlignColumn = parenAlignColumn;
+        parenAlignColumn = 0;
+
+        auto mode = style.AlignAfterOpenParen;
+        emitToken(argList.openParen);
+
+        const auto& params = argList.parameters;
+        if (params.empty()) {
+            parenAlignColumn = savedAlignColumn;
+            emitToken(argList.closeParen);
+            return;
+        }
+
+        if (mode == BracketAlignmentStyle::DontAlign || !formatEnabled || style.ColumnLimit == 0) {
+            visitArgumentListElements(params);
+            parenAlignColumn = savedAlignColumn;
+            emitToken(argList.closeParen);
+            return;
+        }
+
+        auto totalWidth = argumentListFlatWidth(params);
+        auto currentCol = output.size() - lineStart;
+        const bool fitsOneLine = totalWidth > 0 &&
+                                 (currentCol + totalWidth + 1 <= style.ColumnLimit);
+
+        if (fitsOneLine) {
+            visitArgumentListElements(params);
+        }
+        else {
+            if (mode == BracketAlignmentStyle::Align) {
+                parenAlignColumn = static_cast<unsigned>(output.size() - lineStart);
+            }
+            else {
+                forceNewline();
+            }
+
+            emitWrappedArgs(params);
+        }
+
+        if (mode == BracketAlignmentStyle::BlockIndent && !fitsOneLine) {
+            forceNewline();
+            nextIsPrimary = true;
+            spaceBeforeCloseParenPending = false;
+        }
+
+        parenAlignColumn = savedAlignColumn;
+        emitToken(argList.closeParen);
+    }
+
+    [[nodiscard]] bool shouldBreakBeforeArg(const ArgumentSyntax& arg, bool isLast) const {
+        auto w = flatWidth(arg);
+        if (w == 0) {
+            return true;
+        }
+
+        if (!style.BinPackArguments) {
+            return true;
+        }
+
+        auto currentCol = output.size() - lineStart;
+        const size_t needed = w + (isLast ? 1 : 2);
+        return style.ColumnLimit > 0 && currentCol + needed > style.ColumnLimit;
+    }
+
+    void emitWrappedArgs(const SeparatedSyntaxList<ArgumentSyntax>& params) {
+        for (size_t i = 0; i < params.size(); i++) {
+            const auto* arg = params[i];
+
+            if (i > 0 && shouldBreakBeforeArg(*arg, i + 1 == params.size()) &&
+                !hasLeadingNewline(arg->getFirstToken())) {
+                forceNewline();
+            }
+
+            arg->visit(*this);
+
+            auto elems = params.elems();
+            const auto sepIdx = (i * 2) + 1;
+            if (sepIdx < elems.size() && elems[sepIdx].isToken()) {
+                emitToken(elems[sepIdx].token());
             }
         }
     }
