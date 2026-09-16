@@ -1877,6 +1877,47 @@ TEST(AlignConsecutiveAssignments, BeginEndBreaksGroup) {
     )"));
 }
 
+TEST(AlignConsecutiveAssignments, ForkJoinDoesNotCrossAlign) {
+    Style style;
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 0;
+    style.AlignConsecutiveDeclarations = {};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            fork
+              begin
+                enable_i <= 1'b1;
+                @(posedge clk_i);
+              end
+              begin
+                data_i <= 1'b0;
+                @(posedge dclk_i);
+              end
+            join
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            fork
+              begin
+                enable_i <= 1'b1;
+                @(posedge clk_i);
+              end
+              begin
+                data_i <= 1'b0;
+                @(posedge dclk_i);
+              end
+            join
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(AlignConsecutiveAssignments, ControlFlowDoesNotBreakGroup) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;

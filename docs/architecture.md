@@ -168,6 +168,11 @@ controls, assignments, port connections, and trailing comments. Assignment and
 port connection alignment groups are scoped by AST depth to avoid breaking
 groups at control-flow boundaries such as `if`/`else` and `case`/`endcase`;
 assignments at different depths within a group are aligned independently.
+Within each depth, assignments are further split into sub-runs: two consecutive
+assignments at depth D belong to the same sub-run only if no intervening line
+has a depth strictly less than D. This prevents cross-alignment across
+`begin`/`end` boundaries inside `fork`/`join` blocks while preserving alignment
+across control-flow constructs like `if`/`else` and `case`/`endcase`.
 
 #### Indentation
 

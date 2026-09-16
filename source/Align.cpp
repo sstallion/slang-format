@@ -845,34 +845,88 @@ bool isAlignableKind(const LineInfo& info) {
            info.kind == Kind::Continuation;
 }
 
-void alignGroupEquals(std::string& result, const std::vector<std::string_view>& lines,
-                      const std::vector<LineInfo>& infos, GroupRange range, unsigned maxPadding) {
-    // Collect unique depths present among alignable lines in this group.
-    std::vector<unsigned> depths;
-    for (auto i = range.start; i < range.end; i++) {
-        if (isAlignableKind(infos[i]) && infos[i].equalsPos != npos) {
-            if (std::ranges::find(depths, infos[i].depth) == depths.end()) {
-                depths.push_back(infos[i].depth);
-            }
+/// Returns true if any line in \p range (excluding the first) has a depth strictly less than
+/// \p threshold, ignoring port list boundaries which are structural delimiters already handled by
+/// group formation.
+bool hasDepthDropBelow(const std::vector<LineInfo>& infos, GroupRange range, unsigned threshold) {
+    for (auto i = range.start + 1; i < range.end; i++) {
+        if (infos[i].kind == Kind::PortListBoundary) {
+            continue;
+        }
+        if (infos[i].depth < threshold) {
+            return true;
         }
     }
+    return false;
+}
 
-    // Compute the max and min equals column for each depth independently.
-    std::vector<size_t> maxEqualsCols(depths.size(), 0);
-    std::vector<size_t> minEqualsCols(depths.size(), npos);
-    std::vector<size_t> equalsCounts(depths.size(), 0);
+/// Assigns a sub-run index to each alignable line in the range, per depth. Consecutive assignments
+/// at depth D share a sub-run unless an intervening line has depth < D.
+std::vector<size_t> assignSubRuns(const std::vector<LineInfo>& infos, GroupRange range) {
+    std::vector<size_t> subRun(range.end - range.start, 0);
+    std::vector<size_t> lastIdxAtDepth;
+    std::vector<size_t> curSubRunAtDepth;
+    std::vector<unsigned> depthValues;
+
     for (auto i = range.start; i < range.end; i++) {
         if (!isAlignableKind(infos[i]) || infos[i].equalsPos == npos) {
             continue;
         }
 
-        auto it = std::ranges::find(depths, infos[i].depth);
-        if (it != depths.end()) {
-            auto idx = static_cast<size_t>(it - depths.begin());
-            equalsCounts[idx]++;
-            maxEqualsCols[idx] = std::max(maxEqualsCols[idx], infos[i].equalsPos);
-            minEqualsCols[idx] = std::min(minEqualsCols[idx], infos[i].equalsPos);
+        auto d = infos[i].depth;
+        auto it = std::ranges::find(depthValues, d);
+        size_t dIdx = 0;
+        if (it == depthValues.end()) {
+            dIdx = depthValues.size();
+            depthValues.push_back(d);
+            lastIdxAtDepth.push_back(i);
+            curSubRunAtDepth.push_back(0);
         }
+        else {
+            dIdx = static_cast<size_t>(it - depthValues.begin());
+            if (hasDepthDropBelow(infos, {.start = lastIdxAtDepth[dIdx], .end = i}, d)) {
+                curSubRunAtDepth[dIdx]++;
+            }
+            lastIdxAtDepth[dIdx] = i;
+        }
+        subRun[i - range.start] = curSubRunAtDepth[dIdx];
+    }
+    return subRun;
+}
+
+void alignGroupEquals(std::string& result, const std::vector<std::string_view>& lines,
+                      const std::vector<LineInfo>& infos, GroupRange range, unsigned maxPadding) {
+    auto subRuns = assignSubRuns(infos, range);
+
+    // Collect unique (depth, subRun) pairs and compute alignment metrics.
+    struct AlignBucket {
+        unsigned depth;
+        size_t subRun;
+        size_t maxEqualsCol = 0;
+        size_t minEqualsCol = npos;
+        size_t count = 0;
+    };
+    std::vector<AlignBucket> buckets;
+
+    auto findBucket = [&](unsigned depth, size_t subRun) -> size_t {
+        for (size_t j = 0; j < buckets.size(); j++) {
+            if (buckets[j].depth == depth && buckets[j].subRun == subRun) {
+                return j;
+            }
+        }
+        buckets.push_back({.depth = depth, .subRun = subRun});
+        return buckets.size() - 1;
+    };
+
+    for (auto i = range.start; i < range.end; i++) {
+        if (!isAlignableKind(infos[i]) || infos[i].equalsPos == npos) {
+            continue;
+        }
+
+        auto b = findBucket(infos[i].depth, subRuns[i - range.start]);
+        buckets[b].count++;
+        buckets[b].maxEqualsCol = std::max(buckets[b].maxEqualsCol, infos[i].equalsPos);
+        buckets[b].minEqualsCol = std::min(buckets[b].minEqualsCol, infos[i].equalsPos);
     }
 
     for (auto i = range.start; i < range.end; i++) {
@@ -882,17 +936,16 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
             continue;
         }
 
-        auto it = std::ranges::find(depths, infos[i].depth);
-        auto idx = static_cast<size_t>(it - depths.begin());
-        auto padding = maxEqualsCols[idx] - minEqualsCols[idx];
-        if (equalsCounts[idx] >= 2 && (maxPadding == 0 || padding <= maxPadding)) {
+        auto b = findBucket(infos[i].depth, subRuns[i - range.start]);
+        auto padding = buckets[b].maxEqualsCol - buckets[b].minEqualsCol;
+        if (buckets[b].count >= 2 && (maxPadding == 0 || padding <= maxPadding)) {
             auto line = lines[i];
             auto eqPos = infos[i].equalsPos;
 
             auto preEqualsEnd = trimTrailingSpaces(line, eqPos);
 
             result.append(line.substr(0, preEqualsEnd));
-            result.append(maxEqualsCols[idx] - preEqualsEnd, ' ');
+            result.append(buckets[b].maxEqualsCol - preEqualsEnd, ' ');
             result.append(line.substr(eqPos));
         }
         else {
