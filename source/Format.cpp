@@ -978,6 +978,16 @@ public:
         emitToken(inst.semi);
     }
 
+    void handle(const NamedParamAssignmentSyntax& param) {
+        nextLineKind = LineMetadata::Kind::PortConnection;
+        visitDefault(param);
+    }
+
+    void handle(const NamedPortConnectionSyntax& conn) {
+        nextLineKind = LineMetadata::Kind::PortConnection;
+        visitDefault(conn);
+    }
+
     void handle(const ParameterValueAssignmentSyntax& p) {
         if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(p.hash)) {
             if (style.SpaceBeforeParens.ParameterList && output.back() != ' ') {

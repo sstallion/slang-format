@@ -362,6 +362,97 @@ endmodule
 
 ---
 
+### AlignConsecutivePortConnections (AlignConsecutiveStyle)
+
+Controls alignment of opening parentheses in consecutive named port
+connections and parameter assignments. When enabled, slang-format aligns
+the `(` in adjacent `.name(expr)` lines by padding with trailing spaces
+after the port name. Alignment groups are scoped by AST depth, and port
+list boundaries naturally separate parameter port groups from connection
+port groups. Short-form ports (`.name` without parentheses) and positional
+ports are excluded. `Enabled` is a master switch; the remaining
+sub-options take effect only when `Enabled` is `true`.
+
+**Default:**
+
+```yaml
+AlignConsecutivePortConnections:
+  Enabled: true
+  MaxPadding: 2
+  AcrossComments: false
+  AcrossEmptyLines: false
+  AcrossParameterPortList: false
+```
+
+#### Enabled (bool)
+
+If `false`, disables all alignment regardless of other options.
+
+**Default:** `true`
+
+```sv
+// Enabled: true, MaxPadding: 2
+dff u_chk (
+    .clk  (clk),
+    .rst_n(rst_n),
+    .req  (req_int),
+    .gnt  (gnt_int)
+);
+
+// Enabled: false
+dff u_chk (
+    .clk(clk),
+    .rst_n(rst_n),
+    .req(req_int),
+    .gnt(gnt_int)
+);
+```
+
+#### MaxPadding (unsigned)
+
+Maximum number of spaces any line in a group may be padded to reach the
+alignment column. If the required padding for any line in a group exceeds
+this limit, the entire group is left unaligned. A value of `0` means
+unlimited; all groups are aligned regardless of padding.
+
+**Default:** `2`
+
+```sv
+// MaxPadding: 2 (padding is 2, within limit)
+dff u_chk (
+    .clk  (clk),
+    .rst_n(rst_n)
+);
+
+// MaxPadding: 2 (padding is 5, exceeds limit)
+dff u_dff_named (
+    .clk(clk),
+    .data_in(data_in),
+    .rst_n(rst_n),
+    .data_out(data_out)
+);
+```
+
+#### AcrossComments (bool)
+
+If `true`, comments do not break alignment groups.
+
+**Default:** `false`
+
+#### AcrossEmptyLines (bool)
+
+If `true`, empty lines do not break alignment groups.
+
+**Default:** `false`
+
+#### AcrossParameterPortList (bool)
+
+If `true`, port list boundaries do not break alignment groups.
+
+**Default:** `false`
+
+---
+
 ### AlignConsecutiveTimingControls (AlignConsecutiveStyle)
 
 Controls alignment of signal names and assignment operators in consecutive

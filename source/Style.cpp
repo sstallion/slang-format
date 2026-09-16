@@ -167,6 +167,32 @@ EventSeparatorStyle parseEventSeparator(std::string_view s) {
     return EventSeparatorStyle::Preserve;
 }
 
+void parseAlignOptions(const YAML::Node& node, Style& style) {
+    if (auto n = node["AlignConsecutiveAssignments"]) {
+        parseAlignConsecutive(n, style.AlignConsecutiveAssignments);
+    }
+
+    if (auto n = node["AlignTrailingComments"]) {
+        parseAlignConsecutive(n, style.AlignTrailingComments);
+    }
+
+    if (auto n = node["AlignConsecutiveDeclarations"]) {
+        parseAlignConsecutive(n, style.AlignConsecutiveDeclarations);
+    }
+
+    if (auto n = node["AlignConsecutivePackedDimensions"]) {
+        parseAlignConsecutive(n, style.AlignConsecutivePackedDimensions);
+    }
+
+    if (auto n = node["AlignConsecutivePortConnections"]) {
+        parseAlignConsecutive(n, style.AlignConsecutivePortConnections);
+    }
+
+    if (auto n = node["AlignConsecutiveTimingControls"]) {
+        parseAlignConsecutive(n, style.AlignConsecutiveTimingControls);
+    }
+}
+
 void parseBreakStyle(const YAML::Node& node, Style& style) {
     if (auto v = node["BreakAfterAlways"]) {
         style.BreakAfterAlways = parseBlockBreak(v.as<std::string>());
@@ -363,6 +389,8 @@ std::string dumpConfiguration(const Style& style) {
     emitAlignConsecutive(out, style.AlignConsecutiveDeclarations, portListFields);
     out << YAML::Key << "AlignConsecutivePackedDimensions" << YAML::Value;
     emitAlignConsecutive(out, style.AlignConsecutivePackedDimensions, allFields);
+    out << YAML::Key << "AlignConsecutivePortConnections" << YAML::Value;
+    emitAlignConsecutive(out, style.AlignConsecutivePortConnections, assignFields);
     out << YAML::Key << "AlignConsecutiveTimingControls" << YAML::Value;
     emitAlignConsecutive(out, style.AlignConsecutiveTimingControls, {});
     out << YAML::Key << "AlignTrailingComments" << YAML::Value;
@@ -426,25 +454,7 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
         throw std::runtime_error("configuration must be a YAML mapping");
     }
 
-    if (auto n = node["AlignConsecutiveAssignments"]) {
-        parseAlignConsecutive(n, style.AlignConsecutiveAssignments);
-    }
-
-    if (auto n = node["AlignTrailingComments"]) {
-        parseAlignConsecutive(n, style.AlignTrailingComments);
-    }
-
-    if (auto n = node["AlignConsecutiveDeclarations"]) {
-        parseAlignConsecutive(n, style.AlignConsecutiveDeclarations);
-    }
-
-    if (auto n = node["AlignConsecutivePackedDimensions"]) {
-        parseAlignConsecutive(n, style.AlignConsecutivePackedDimensions);
-    }
-
-    if (auto n = node["AlignConsecutiveTimingControls"]) {
-        parseAlignConsecutive(n, style.AlignConsecutiveTimingControls);
-    }
+    parseAlignOptions(node, style);
 
     if (auto v = node["ColumnLimit"]) {
         style.ColumnLimit = v.as<unsigned>();

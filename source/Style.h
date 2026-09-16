@@ -112,6 +112,10 @@ struct Style {
     /// Controls alignment of assignment operators in consecutive declarations.
     AlignConsecutiveStyle AlignConsecutiveAssignments{.Enabled = true, .MaxPadding = 2};
 
+    /// Controls alignment of opening parentheses in consecutive named port
+    /// connections.
+    AlignConsecutiveStyle AlignConsecutivePortConnections{.Enabled = true, .MaxPadding = 2};
+
     /// Controls alignment of trailing comments in consecutive lines.
     AlignConsecutiveStyle AlignTrailingComments;
 

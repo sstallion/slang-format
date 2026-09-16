@@ -883,6 +883,148 @@ TEST(AlignConsecutivePackedDimensions, PadLeftWithDeclarationAlignment) {
     )"));
 }
 
+TEST(AlignConsecutivePortConnections, Disabled) {
+    Style style;
+    style.AlignConsecutivePortConnections = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        bar u_bar (
+        .clk(clk),
+        .rst_n(rst_n),
+        .req(req_int),
+        .gnt(gnt_int)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bar u_bar (
+              .clk(clk),
+              .rst_n(rst_n),
+              .req(req_int),
+              .gnt(gnt_int)
+          );
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePortConnections, MaxPaddingExceedsLimit) {
+    Style style;
+    style.AlignConsecutivePortConnections = {.Enabled = true, .MaxPadding = 2};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        bar u_bar (
+        .clk(clk),
+        .rst_n(rst_n),
+        .data_out(data_out)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bar u_bar (
+              .clk(clk),
+              .rst_n(rst_n),
+              .data_out(data_out)
+          );
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePortConnections, MaxPaddingUnlimited) {
+    Style style;
+    style.AlignConsecutivePortConnections = {.Enabled = true, .MaxPadding = 0};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        bar u_bar (
+        .clk(clk),
+        .rst_n(rst_n),
+        .data_out(data_out)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bar u_bar (
+              .clk     (clk),
+              .rst_n   (rst_n),
+              .data_out(data_out)
+          );
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePortConnections, MaxPaddingWithinLimit) {
+    Style style;
+    style.AlignConsecutivePortConnections = {.Enabled = true, .MaxPadding = 2};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        bar u_bar (
+        .clk(clk),
+        .rst_n(rst_n),
+        .req(req_int),
+        .gnt(gnt_int)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bar u_bar (
+              .clk  (clk),
+              .rst_n(rst_n),
+              .req  (req_int),
+              .gnt  (gnt_int)
+          );
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePortConnections, PortListBoundaryBreaksGroup) {
+    Style style;
+    style.AlignConsecutivePortConnections = {.Enabled = true, .MaxPadding = 1};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        bar #(
+        .W(8),
+        .DW(16)
+        ) u_bar (
+        .clk(clk),
+        .rst_n(rst_n)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bar #(
+              .W (8),
+              .DW(16)
+          ) u_bar (
+              .clk(clk),
+              .rst_n(rst_n)
+          );
+        endmodule
+    )"));
+}
+
+TEST(AlignConsecutivePortConnections, SingleConnectionNotAligned) {
+    Style style;
+    style.AlignConsecutivePortConnections = {.Enabled = true, .MaxPadding = 2};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        bar u_bar (
+        .clk(clk)
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bar u_bar (
+              .clk(clk)
+          );
+        endmodule
+    )"));
+}
+
 TEST(AlignConsecutiveTimingControls, Consecutive) {
     Style style;
     style.AlignConsecutiveTimingControls.Enabled = true;

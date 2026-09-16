@@ -1829,7 +1829,7 @@ TEST(ApplyIndentation, HierarchyInstantiationNoParameters) {
     )"), style), dedent(R"(
         module foo;
           bar u_bar (
-              .clk(clk),
+              .clk  (clk),
               .rst_n(rst_n)
           );
         endmodule
@@ -2011,10 +2011,10 @@ TEST(ApplyIndentation, HierarchyInstantiationTopLevel) {
         );
     )"), style), dedent(R"(
         bind tort_top handshake_chk u_chk (
-            .clk(clk),
+            .clk  (clk),
             .rst_n(rst_n),
-            .req(req_int),
-            .gnt(gnt_int)
+            .req  (req_int),
+            .gnt  (gnt_int)
         );
     )"));
     // clang-format on

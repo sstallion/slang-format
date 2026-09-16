@@ -360,6 +360,33 @@ LineInfo classifyTimingControl(std::string_view line, size_t indentEnd) {
             .depth = 0};
 }
 
+size_t findPortConnectionParen(std::string_view line) {
+    auto indentEnd = line.find_first_not_of(' ');
+    if (indentEnd == npos || line[indentEnd] != '.') {
+        return npos;
+    }
+
+    auto nameStart = indentEnd + 1;
+    if (nameStart >= line.size() ||
+        (std::isalpha(static_cast<unsigned char>(line[nameStart])) == 0 &&
+         line[nameStart] != '_')) {
+        return npos;
+    }
+
+    auto pos = nameStart;
+    while (pos < line.size() &&
+           (std::isalnum(static_cast<unsigned char>(line[pos])) != 0 || line[pos] == '_')) {
+        pos++;
+    }
+
+    auto parenPos = skipSpaces(line, pos);
+    if (parenPos >= line.size() || line[parenPos] != '(') {
+        return npos;
+    }
+
+    return parenPos;
+}
+
 LineInfo classifyLine(std::string_view line, bool formatOff) {
     if (line.empty() || line.find_first_not_of(' ') == std::string_view::npos) {
         return {.kind = Kind::Empty};
@@ -875,6 +902,43 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
     }
 }
 
+void alignGroupPortConnections(std::string& result, const std::vector<std::string_view>& lines,
+                               const std::vector<LineInfo>& infos, GroupRange range,
+                               unsigned maxPadding) {
+    size_t maxParenCol = 0;
+    size_t minParenCol = npos;
+    size_t connCount = 0;
+    for (auto i = range.start; i < range.end; i++) {
+        if (infos[i].kind == Kind::PortConnection && infos[i].equalsPos != npos) {
+            connCount++;
+            maxParenCol = std::max(maxParenCol, infos[i].equalsPos);
+            minParenCol = std::min(minParenCol, infos[i].equalsPos);
+        }
+    }
+
+    for (auto i = range.start; i < range.end; i++) {
+        if (infos[i].kind == Kind::PortConnection && infos[i].equalsPos != npos) {
+            auto padding = maxParenCol - minParenCol;
+            if (connCount >= 2 && (maxPadding == 0 || padding <= maxPadding)) {
+                auto line = lines[i];
+                auto parenPos = infos[i].equalsPos;
+                auto preParenEnd = trimTrailingSpaces(line, parenPos);
+
+                result.append(line.substr(0, preParenEnd));
+                result.append(maxParenCol - preParenEnd, ' ');
+                result.append(line.substr(parenPos));
+            }
+            else {
+                result.append(lines[i]);
+            }
+        }
+        else {
+            result.append(lines[i]);
+        }
+        result += '\n';
+    }
+}
+
 void alignGroupTrailingComments(std::string& result, const std::vector<std::string_view>& lines,
                                 const std::vector<LineInfo>& infos, GroupRange range) {
     size_t maxCommentCol = 0;
@@ -1058,6 +1122,10 @@ std::vector<LineInfo> classifyLines(const std::vector<std::string_view>& lines,
             if (!formatOff && lineMetadata[i].kind != Kind::Other) {
                 info.kind = lineMetadata[i].kind;
             }
+
+            if (info.kind == Kind::PortConnection) {
+                info.equalsPos = findPortConnectionParen(lines[i]);
+            }
         }
         infos.push_back(info);
     }
@@ -1146,6 +1214,7 @@ std::string applyAlignment(const std::string& output, const Style& style,
                            const std::vector<LineMetadata>& lineMetadata) {
     static constexpr std::array declKinds{Kind::Declaration};
     static constexpr std::array assignKinds{Kind::Assignment, Kind::Declaration};
+    static constexpr std::array portConnectionKinds{Kind::PortConnection};
     static constexpr std::array timingKinds{Kind::TimingControl};
     static constexpr std::array trailingKinds{Kind::Assignment, Kind::Declaration,
                                               Kind::TimingControl};
@@ -1153,6 +1222,8 @@ std::string applyAlignment(const std::string& output, const Style& style,
     static constexpr GroupBreakConfig declConfig{.memberKinds = declKinds};
     static constexpr GroupBreakConfig dimConfig{.memberKinds = declKinds};
     static constexpr GroupBreakConfig assignConfig{.memberKinds = assignKinds, .depthScoped = true};
+    static constexpr GroupBreakConfig portConnectionConfig{.memberKinds = portConnectionKinds,
+                                                           .depthScoped = true};
     static constexpr GroupBreakConfig timingConfig{.memberKinds = timingKinds,
                                                    .indentAlwaysBreaks = true,
                                                    .portListAware = false};
@@ -1175,6 +1246,13 @@ std::string applyAlignment(const std::string& output, const Style& style,
     };
     result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments, assignConfig,
                                    shouldBreakGroup, assignAlignFn, lineMetadata);
+    auto portConnAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
+                                    const std::vector<LineInfo>& inf, GroupRange rng) {
+        alignGroupPortConnections(r, l, inf, rng, style.AlignConsecutivePortConnections.MaxPadding);
+    };
+    result = applyAlignConsecutive(result, style.AlignConsecutivePortConnections,
+                                   portConnectionConfig, shouldBreakGroup, portConnAlignFn,
+                                   lineMetadata);
     result = applyAlignConsecutive(result, style.AlignTrailingComments, trailingConfig,
                                    shouldBreakGroup, alignGroupTrailingComments, lineMetadata);
     return result;

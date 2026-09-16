@@ -256,6 +256,34 @@ TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensionsEnabled) {
     EXPECT_TRUE(style.AlignConsecutivePackedDimensions.Enabled);
 }
 
+TEST(ParseConfiguration, ParsesAlignConsecutivePortConnectionsEnabled) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutivePortConnections:
+          Enabled: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutivePortConnections.Enabled);
+}
+
+TEST(ParseConfiguration, ParsesAlignConsecutivePortConnectionsMaxPadding) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutivePortConnections:
+          MaxPadding: 4
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_EQ(style.AlignConsecutivePortConnections.MaxPadding, 4U);
+}
+
 TEST(ParseConfiguration, ParsesAlignConsecutiveTimingControlsAcrossComments) {
     Style style;
 
@@ -885,6 +913,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("---"), std::string::npos);
     EXPECT_NE(result.find("..."), std::string::npos);
     EXPECT_NE(result.find("AlignConsecutiveAssignments:"), std::string::npos);
+    EXPECT_NE(result.find("AlignConsecutivePortConnections:"), std::string::npos);
     EXPECT_NE(result.find("AlignTrailingComments:"), std::string::npos);
     EXPECT_NE(result.find("AlignConsecutiveDeclarations:"), std::string::npos);
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
@@ -1013,6 +1042,8 @@ TEST(DumpConfiguration, RoundTrip) {
     original.AlignConsecutivePackedDimensions.AlignColon = true;
     original.AlignConsecutivePackedDimensions.PadLeft = true;
     original.AlignConsecutivePackedDimensions.PadRight = true;
+    original.AlignConsecutivePortConnections.Enabled = true;
+    original.AlignConsecutivePortConnections.MaxPadding = 3;
     original.AlignConsecutiveTimingControls.Enabled = true;
     original.AlignConsecutiveTimingControls.AcrossEmptyLines = true;
     original.AlignTrailingComments.Enabled = true;

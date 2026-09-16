@@ -163,11 +163,11 @@ values.
 
 `applyAlignConsecutive` is a function template that drives group formation while
 delegating break, start, and alignment decisions to per-alignment-type callbacks.
-It drives all five alignment passes: packed dimensions, declarations, timing
-controls, assignments, and trailing comments. Assignment alignment groups are
-scoped by AST depth to avoid breaking groups at control-flow boundaries such as
-`if`/`else` and `case`/`endcase`; assignments at different depths within a group
-are aligned independently.
+It drives all six alignment passes: packed dimensions, declarations, timing
+controls, assignments, port connections, and trailing comments. Assignment and
+port connection alignment groups are scoped by AST depth to avoid breaking
+groups at control-flow boundaries such as `if`/`else` and `case`/`endcase`;
+assignments at different depths within a group are aligned independently.
 
 #### Indentation
 

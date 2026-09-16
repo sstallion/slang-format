@@ -21,6 +21,7 @@ struct LineMetadata {
         Declaration,
         Empty,
         Other,
+        PortConnection,
         PortListBoundary,
         TimingControl
     };
