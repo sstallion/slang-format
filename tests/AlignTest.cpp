@@ -2032,8 +2032,8 @@ TEST(AlignTrailingComments, None) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1; // first
-          assign longname = 2; // second
+          assign x = 1;  // first
+          assign longname = 2;  // second
         endmodule
     )"));
 }
@@ -2051,8 +2051,8 @@ TEST(AlignTrailingComments, Consecutive) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1;        // first
-          assign longname = 2; // second
+          assign x = 1;         // first
+          assign longname = 2;  // second
         endmodule
     )"));
 }
@@ -2070,8 +2070,8 @@ TEST(AlignTrailingComments, ConsecutiveBlockComment) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1;        /* first */
-          assign longname = 2; /* second */
+          assign x = 1;         /* first */
+          assign longname = 2;  /* second */
         endmodule
     )"));
 }
@@ -2093,11 +2093,11 @@ TEST(AlignTrailingComments, ConsecutiveEmptyLineBreaksGroup) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1;        // first
-          assign longname = 2; // second
+          assign x = 1;         // first
+          assign longname = 2;  // second
 
-          assign a = 3;  // third
-          assign bc = 4; // fourth
+          assign a = 3;   // third
+          assign bc = 4;  // fourth
         endmodule
     )"));
 }
@@ -2119,11 +2119,11 @@ TEST(AlignTrailingComments, ConsecutiveCommentBreaksGroup) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1;        // first
-          assign longname = 2; // second
+          assign x = 1;         // first
+          assign longname = 2;  // second
           // standalone
-          assign a = 3;  // third
-          assign bc = 4; // fourth
+          assign a = 3;   // third
+          assign bc = 4;  // fourth
         endmodule
     )"));
 }
@@ -2143,10 +2143,10 @@ TEST(AlignTrailingComments, AcrossEmptyLines) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1;        // first
-          assign longname = 2; // second
+          assign x = 1;         // first
+          assign longname = 2;  // second
 
-          assign a = 3;        // third
+          assign a = 3;         // third
         endmodule
     )"));
 }
@@ -2166,10 +2166,10 @@ TEST(AlignTrailingComments, AcrossComments) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1;        // first
-          assign longname = 2; // second
+          assign x = 1;         // first
+          assign longname = 2;  // second
           // standalone
-          assign a = 3;        // third
+          assign a = 3;         // third
         endmodule
     )"));
 }
@@ -2191,10 +2191,10 @@ TEST(AlignTrailingComments, AcrossEmptyLinesAndComments) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1;        // first
+          assign x = 1;         // first
 
           // standalone
-          assign longname = 2; // second
+          assign longname = 2;  // second
         endmodule
     )"));
 }
@@ -2217,11 +2217,11 @@ TEST(AlignTrailingComments, AcrossParameterPortList) {
                        style),
               dedent(R"(
         module foo #(
-          parameter N = 4 // width
+          parameter N = 4  // width
         ) (
-          input a         // port a
+          input a          // port a
         );
-          assign x = 1;   // body
+          assign x = 1;    // body
         endmodule
     )"));
     // clang-format on
@@ -2239,7 +2239,7 @@ TEST(AlignTrailingComments, SingleLineNotAligned) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1; // only one
+          assign x = 1;  // only one
         endmodule
     )"));
 }
@@ -2258,9 +2258,9 @@ TEST(AlignTrailingComments, NoTrailingComment) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1; // first
+          assign x = 1;  // first
           assign longname = 2;
-          assign a = 3; // third
+          assign a = 3;  // third
         endmodule
     )"));
 }
@@ -2278,8 +2278,8 @@ TEST(AlignTrailingComments, MixedLineAndBlockComments) {
                        style),
               dedent(R"(
         module foo;
-          assign x = 1;        // line comment
-          assign longname = 2; /* block comment */
+          assign x = 1;         // line comment
+          assign longname = 2;  /* block comment */
         endmodule
     )"));
 }
@@ -2300,8 +2300,8 @@ TEST(AlignTrailingComments, InteractionWithAlignConsecutiveAssignments) {
                        style),
               dedent(R"(
         module foo;
-          assign x        = 1; // first
-          assign longname = 2; // second
+          assign x        = 1;  // first
+          assign longname = 2;  // second
         endmodule
     )"));
 }

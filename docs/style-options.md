@@ -1898,6 +1898,32 @@ endmodule
 
 ---
 
+### SpacesBeforeTrailingComments (unsigned)
+
+Minimum number of spaces before a trailing end-of-line comment. Both `//` and
+`/* */` comments that follow code on the same line are affected. Standalone
+comment lines are not affected.
+
+**Default:** `2`
+
+`SpacesBeforeTrailingComments: 1`:
+
+```sv
+module foo;
+  assign x = 1; // comment
+endmodule
+```
+
+`SpacesBeforeTrailingComments: 2` (default):
+
+```sv
+module foo;
+  assign x = 1;  // comment
+endmodule
+```
+
+---
+
 ### SpacesInParens (bool)
 
 Normalizes whitespace inside parentheses. If `true`, whitespace following an

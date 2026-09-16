@@ -68,7 +68,7 @@ complete rule set, as implemented in `token-annotator.cc`, includes:
 - [ ] 1 space between module instance name and `(`
 - [ ] 0 space after `@`
 - [ ] 0 space inside based numeric literals (e.g. `16'hFF`)
-- [ ] Minimum 2 spaces before trailing end-of-line comments
+- [x] Minimum 2 spaces before trailing end-of-line comments
 
 slang-format preserves inter-token whitespace verbatim. In `Format.cpp`, the
 `emitTrivia` method passes non-leading `Whitespace` trivia through to the output

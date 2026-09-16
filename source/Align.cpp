@@ -940,7 +940,8 @@ void alignGroupPortConnections(std::string& result, const std::vector<std::strin
 }
 
 void alignGroupTrailingComments(std::string& result, const std::vector<std::string_view>& lines,
-                                const std::vector<LineInfo>& infos, GroupRange range) {
+                                const std::vector<LineInfo>& infos, GroupRange range,
+                                unsigned minSpaces) {
     size_t maxCommentCol = 0;
     size_t commentCount = 0;
     for (auto i = range.start; i < range.end; i++) {
@@ -957,7 +958,7 @@ void alignGroupTrailingComments(std::string& result, const std::vector<std::stri
 
         auto codeEnd = trimTrailingSpaces(lines[i], commentPos);
 
-        maxCommentCol = std::max(maxCommentCol, codeEnd + 1);
+        maxCommentCol = std::max(maxCommentCol, codeEnd + minSpaces);
     }
 
     for (auto i = range.start; i < range.end; i++) {
@@ -981,7 +982,7 @@ void alignGroupTrailingComments(std::string& result, const std::vector<std::stri
             result.append(maxCommentCol - codeEnd, ' ');
         }
         else {
-            result += ' ';
+            result.append(minSpaces, ' ');
         }
         result.append(lines[i].substr(commentPos));
         result += '\n';
@@ -1253,8 +1254,12 @@ std::string applyAlignment(const std::string& output, const Style& style,
     result = applyAlignConsecutive(result, style.AlignConsecutivePortConnections,
                                    portConnectionConfig, shouldBreakGroup, portConnAlignFn,
                                    lineMetadata);
+    auto trailingAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
+                                    const std::vector<LineInfo>& inf, GroupRange rng) {
+        alignGroupTrailingComments(r, l, inf, rng, style.SpacesBeforeTrailingComments);
+    };
     result = applyAlignConsecutive(result, style.AlignTrailingComments, trailingConfig,
-                                   shouldBreakGroup, alignGroupTrailingComments, lineMetadata);
+                                   shouldBreakGroup, trailingAlignFn, lineMetadata);
     return result;
 }
 

@@ -723,7 +723,7 @@ TEST(ApplyIndentation, BreakBeforeAlwaysAlwaysWithTrailingComment) {
     )"), style), dedent(R"(
         module foo;
 
-          always #5 clk = ~clk; // 100 MHz
+          always #5 clk = ~clk;  // 100 MHz
 
           always_comb begin
             x = 1;
@@ -981,7 +981,7 @@ TEST(ApplyIndentation, BreakBeforeFunctionWithTrailingComment) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign x = 1; // comment
+          assign x = 1;  // comment
 
           function void bar;
             x = 1;
@@ -1098,7 +1098,7 @@ TEST(ApplyIndentation, BreakBeforeInitialAlwaysWithTrailingComment) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #20 dclk = ~dclk; //  25 MHz
+          always #20 dclk = ~dclk;  //  25 MHz
 
           initial begin
             x = 1;
@@ -1331,7 +1331,7 @@ TEST(ApplyIndentation, BreakBeforeSpecifyBlockWithTrailingComment) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign x = 1; // comment
+          assign x = 1;  // comment
 
           specify
             $setup(posedge clk, data, 10);
@@ -1457,7 +1457,7 @@ TEST(ApplyIndentation, BreakBeforeTaskWithTrailingComment) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign x = 1; // comment
+          assign x = 1;  // comment
 
           task bar;
             x = 1;
@@ -4995,6 +4995,110 @@ TEST(SpaceAroundOperators, RemovesBefore) {
     )"), style), dedent(R"(
         module foo;
           assign x = a + b;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesBeforeTrailingComments, BlockComment) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1; /* comment */
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;  /* comment */
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesBeforeTrailingComments, Custom) {
+    Style style;
+    style.SpacesBeforeTrailingComments = 4;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1; // comment
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;    // comment
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesBeforeTrailingComments, Default) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1; // comment
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;  // comment
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesBeforeTrailingComments, FormatOff) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        // slang-format off
+        assign x = 1; // comment
+        // slang-format on
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // slang-format off
+        assign x = 1; // comment
+        // slang-format on
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesBeforeTrailingComments, One) {
+    Style style;
+    style.SpacesBeforeTrailingComments = 1;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign x = 1; // comment
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1; // comment
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpacesBeforeTrailingComments, StandaloneUnaffected) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        // standalone comment
+        assign x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // standalone comment
+          assign x = 1;
         endmodule
     )"));
     // clang-format on

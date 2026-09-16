@@ -1267,6 +1267,7 @@ private:
                 currentLineMeta.kind = LineMetadata::Kind::Comment;
             }
             else {
+                padBeforeTrailingComment();
                 currentLineMeta.trailingCommentPos = output.size() - lineStart;
             }
 
@@ -1389,6 +1390,19 @@ private:
         }
         if (afterOpenParen && style.SpacesInParens) {
             output += ' ';
+        }
+    }
+
+    void padBeforeTrailingComment() {
+        if (!formatEnabled) {
+            return;
+        }
+        size_t existingSpaces = 0;
+        for (auto it = output.rbegin(); it != output.rend() && *it == ' '; ++it) {
+            existingSpaces++;
+        }
+        if (existingSpaces < style.SpacesBeforeTrailingComments) {
+            output.append(style.SpacesBeforeTrailingComments - existingSpaces, ' ');
         }
     }
 

@@ -191,6 +191,9 @@ struct Style {
     /// Normalizes whitespace around assignment, binary, and ternary operators.
     bool SpaceAroundOperators = true;
 
+    /// Minimum number of spaces before a trailing comment.
+    unsigned SpacesBeforeTrailingComments = 2;
+
     /// Normalizes whitespace inside curly braces.
     bool SpacesInBraces = false;
 

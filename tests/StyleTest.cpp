@@ -854,6 +854,13 @@ TEST(ParseConfiguration, ParsesSpaceAroundOperators) {
     EXPECT_FALSE(style.SpaceAroundOperators);
 }
 
+TEST(ParseConfiguration, ParsesSpacesBeforeTrailingComments) {
+    YAML::Node const node = YAML::Load("SpacesBeforeTrailingComments: 4");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.SpacesBeforeTrailingComments, 4U);
+}
+
 TEST(ParseConfiguration, ParsesSpacesInBraces) {
     YAML::Node const node = YAML::Load("SpacesInBraces: true");
     Style style;
@@ -950,6 +957,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("SpaceBeforeCaseColon: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeParens:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAroundOperators: true"), std::string::npos);
+    EXPECT_NE(result.find("SpacesBeforeTrailingComments: 2"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBraces: false"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBrackets: false"), std::string::npos);
     EXPECT_NE(result.find("SpacesInParens: false"), std::string::npos);
@@ -1000,6 +1008,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.SpaceBeforeParens.ParameterList = false;
     style.SpaceBeforeParens.PortList = false;
     style.SpaceAroundOperators = false;
+    style.SpacesBeforeTrailingComments = 4;
     style.SpacesInBraces = true;
     style.SpacesInBrackets = true;
     style.SpacesInParens = true;
@@ -1029,6 +1038,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("SpaceBeforeCaseColon: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeParens:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAroundOperators: false"), std::string::npos);
+    EXPECT_NE(result.find("SpacesBeforeTrailingComments: 4"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBraces: true"), std::string::npos);
     EXPECT_NE(result.find("SpacesInBrackets: true"), std::string::npos);
     EXPECT_NE(result.find("SpacesInParens: true"), std::string::npos);
@@ -1081,6 +1091,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.SpaceBeforeParens.ParameterList = false;
     original.SpaceBeforeParens.PortList = false;
     original.SpaceAroundOperators = false;
+    original.SpacesBeforeTrailingComments = 3;
     original.SpacesInBraces = true;
     original.SpacesInBrackets = true;
     original.SpacesInParens = true;
