@@ -770,11 +770,30 @@ TEST(ParseConfiguration, ParsesSpaceAfterAlways) {
     EXPECT_FALSE(style.SpaceAfterAlways);
 }
 
-TEST(ParseConfiguration, ParsesSpaceAfterBrackets) {
-    YAML::Node const node = YAML::Load("SpaceAfterBrackets: false");
+TEST(ParseConfiguration, ParsesSpaceAfterBracketsPackedDimensions) {
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        SpaceAfterBrackets:
+          PackedDimensions: false
+    )"));
+    // clang-format on
+
     Style style;
     parseConfiguration(node, style);
-    EXPECT_FALSE(style.SpaceAfterBrackets);
+    EXPECT_FALSE(style.SpaceAfterBrackets.PackedDimensions);
+}
+
+TEST(ParseConfiguration, ParsesSpaceAfterBracketsUnpackedDimensions) {
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        SpaceAfterBrackets:
+          UnpackedDimensions: true
+    )"));
+    // clang-format on
+
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_TRUE(style.SpaceAfterBrackets.UnpackedDimensions);
 }
 
 TEST(ParseConfiguration, ParsesSpaceAfterCaseColon) {
@@ -826,11 +845,30 @@ TEST(ParseConfiguration, ParsesSpaceAfterSemicolon) {
     EXPECT_TRUE(style.SpaceAfterSemicolon);
 }
 
-TEST(ParseConfiguration, ParsesSpaceBeforeBrackets) {
-    YAML::Node const node = YAML::Load("SpaceBeforeBrackets: false");
+TEST(ParseConfiguration, ParsesSpaceBeforeBracketsPackedDimensions) {
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        SpaceBeforeBrackets:
+          PackedDimensions: false
+    )"));
+    // clang-format on
+
     Style style;
     parseConfiguration(node, style);
-    EXPECT_FALSE(style.SpaceBeforeBrackets);
+    EXPECT_FALSE(style.SpaceBeforeBrackets.PackedDimensions);
+}
+
+TEST(ParseConfiguration, ParsesSpaceBeforeBracketsUnpackedDimensions) {
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        SpaceBeforeBrackets:
+          UnpackedDimensions: true
+    )"));
+    // clang-format on
+
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_TRUE(style.SpaceBeforeBrackets.UnpackedDimensions);
 }
 
 TEST(ParseConfiguration, ParsesSpaceBeforeCaseColon) {
@@ -984,13 +1022,13 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("ParameterPortListIndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("RemoveEmptyLines: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterAlways: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterBrackets: true"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAfterBrackets:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterCaseColon: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterComma: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterParens:"), std::string::npos);
     EXPECT_NE(result.find("EventControls: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforeBrackets: true"), std::string::npos);
+    EXPECT_NE(result.find("SpaceBeforeBrackets:"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeCaseColon: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeParens:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAroundOperators: true"), std::string::npos);
@@ -1035,13 +1073,15 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
     style.RemoveEmptyLines = true;
     style.SpaceAfterAlways = false;
-    style.SpaceAfterBrackets = false;
+    style.SpaceAfterBrackets.PackedDimensions = false;
+    style.SpaceAfterBrackets.UnpackedDimensions = true;
     style.SpaceAfterCaseColon = false;
     style.SpaceAfterComma = false;
     style.SpaceAfterParens.ControlStatements = false;
     style.SpaceAfterParens.EventControls = false;
     style.SpaceAfterSemicolon = false;
-    style.SpaceBeforeBrackets = false;
+    style.SpaceBeforeBrackets.PackedDimensions = false;
+    style.SpaceBeforeBrackets.UnpackedDimensions = true;
     style.SpaceBeforeCaseColon = true;
     style.SpaceBeforeParens.ControlStatements = false;
     style.SpaceBeforeParens.ParameterList = false;
@@ -1070,12 +1110,12 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
     EXPECT_NE(result.find("RemoveEmptyLines: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterAlways: false"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterBrackets: false"), std::string::npos);
+    EXPECT_NE(result.find("SpaceAfterBrackets:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterCaseColon: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterComma: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterParens:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterSemicolon: false"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforeBrackets: false"), std::string::npos);
+    EXPECT_NE(result.find("SpaceBeforeBrackets:"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeCaseColon: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceBeforeParens:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAroundOperators: false"), std::string::npos);
@@ -1122,13 +1162,15 @@ TEST(DumpConfiguration, RoundTrip) {
     original.OneStatementPerLine = false;
     original.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
     original.SpaceAfterAlways = false;
-    original.SpaceAfterBrackets = false;
+    original.SpaceAfterBrackets.PackedDimensions = false;
+    original.SpaceAfterBrackets.UnpackedDimensions = true;
     original.SpaceAfterCaseColon = false;
     original.SpaceAfterComma = true;
     original.SpaceAfterParens.ControlStatements = false;
     original.SpaceAfterParens.EventControls = false;
     original.SpaceAfterSemicolon = true;
-    original.SpaceBeforeBrackets = false;
+    original.SpaceBeforeBrackets.PackedDimensions = false;
+    original.SpaceBeforeBrackets.UnpackedDimensions = true;
     original.SpaceBeforeCaseColon = true;
     original.SpaceBeforeParens.ControlStatements = false;
     original.SpaceBeforeParens.ParameterList = false;

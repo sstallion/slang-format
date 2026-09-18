@@ -178,15 +178,6 @@ private:
     EventSeparatorStyle sepStyle;
 };
 
-bool isPackedDimensionParent(SyntaxKind kind) {
-    return IntegerTypeSyntax::isKind(kind) || ImplicitTypeSyntax::isKind(kind) ||
-           StructUnionTypeSyntax::isKind(kind) || EnumTypeSyntax::isKind(kind);
-}
-
-bool isUnpackedDimensionParent(SyntaxKind kind) {
-    return DeclaratorSyntax::isKind(kind);
-}
-
 /// Rewrites dimension ranges to enforce bound ordering.
 class DimensionBoundsRewriter : public SyntaxRewriter<DimensionBoundsRewriter> {
 public:

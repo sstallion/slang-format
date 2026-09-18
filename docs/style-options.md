@@ -1604,16 +1604,28 @@ endmodule
 
 ---
 
-### SpaceAfterBrackets (bool)
+### SpaceAfterBrackets (SpaceAfterBracketsStyle)
 
-Normalizes whitespace after a closing square bracket in declarations. If `true`,
-a single space is inserted after `]`; multiple spaces are collapsed to a single
-space. If `false`, whitespace after `]` is removed. Newlines are not affected.
-Brackets in expressions are not affected.
+Controls whitespace after a closing square bracket in declarations. Each
+sub-option independently controls its scope. Brackets in expressions are not
+affected.
+
+**Default:**
+
+```yaml
+SpaceAfterBrackets:
+  PackedDimensions: true
+```
+
+#### PackedDimensions (bool)
+
+If `true`, a single space is inserted after `]` in packed dimensions; multiple
+spaces are collapsed to a single space. If `false`, whitespace after `]` is
+removed. Newlines are not affected.
 
 **Default:** `true`
 
-`SpaceAfterBrackets: false`:
+`PackedDimensions: false`:
 
 ```sv
 module foo;
@@ -1621,11 +1633,35 @@ module foo;
 endmodule
 ```
 
-`SpaceAfterBrackets: true` (default):
+`PackedDimensions: true` (default):
 
 ```sv
 module foo;
   logic [7:0] data;
+endmodule
+```
+
+#### UnpackedDimensions (bool)
+
+If `true`, a single space is inserted after `]` in unpacked dimensions; multiple
+spaces are collapsed to a single space. If `false`, whitespace after `]` is
+removed. Newlines are not affected.
+
+**Default:** `false`
+
+`UnpackedDimensions: false` (default):
+
+```sv
+module foo;
+  logic data[0:255];
+endmodule
+```
+
+`UnpackedDimensions: true`:
+
+```sv
+module foo;
+  logic data[0:255] [0:127];
 endmodule
 ```
 
@@ -1797,16 +1833,28 @@ endmodule
 
 ---
 
-### SpaceBeforeBrackets (bool)
+### SpaceBeforeBrackets (SpaceBeforeBracketsStyle)
 
-Normalizes whitespace before an opening square bracket in declarations. If
-`true`, a single space is inserted before `[`; multiple spaces are collapsed to
-a single space. If `false`, whitespace before `[` is removed. Newlines are not
-affected. Brackets in expressions are not affected.
+Controls whitespace before an opening square bracket in declarations. Each
+sub-option independently controls its scope. Brackets in expressions are not
+affected.
+
+**Default:**
+
+```yaml
+SpaceBeforeBrackets:
+  PackedDimensions: true
+```
+
+#### PackedDimensions (bool)
+
+If `true`, a single space is inserted before `[` in packed dimensions; multiple
+spaces are collapsed to a single space. If `false`, whitespace before `[` is
+removed. Newlines are not affected.
 
 **Default:** `true`
 
-`SpaceBeforeBrackets: false`:
+`PackedDimensions: false`:
 
 ```sv
 module foo;
@@ -1814,11 +1862,35 @@ module foo;
 endmodule
 ```
 
-`SpaceBeforeBrackets: true` (default):
+`PackedDimensions: true` (default):
 
 ```sv
 module foo;
   logic [7:0] data;
+endmodule
+```
+
+#### UnpackedDimensions (bool)
+
+If `true`, a single space is inserted before `[` in unpacked dimensions;
+multiple spaces are collapsed to a single space. If `false`, whitespace before
+`[` is removed. Newlines are not affected.
+
+**Default:** `false`
+
+`UnpackedDimensions: false` (default):
+
+```sv
+module foo;
+  logic data[0:255];
+endmodule
+```
+
+`UnpackedDimensions: true`:
+
+```sv
+module foo;
+  logic data [0:255];
 endmodule
 ```
 

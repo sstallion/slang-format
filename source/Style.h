@@ -84,6 +84,28 @@ struct InsertParensStyle {
     bool operator==(const InsertParensStyle&) const = default;
 };
 
+/// Controls whitespace after a closing square bracket in declarations.
+struct SpaceAfterBracketsStyle {
+    /// If true, insert a space after packed dimension brackets.
+    bool PackedDimensions = true;
+
+    /// If true, insert a space after unpacked dimension brackets.
+    bool UnpackedDimensions = false;
+
+    bool operator==(const SpaceAfterBracketsStyle&) const = default;
+};
+
+/// Controls whitespace before an opening square bracket in declarations.
+struct SpaceBeforeBracketsStyle {
+    /// If true, insert a space before packed dimension brackets.
+    bool PackedDimensions = true;
+
+    /// If true, insert a space before unpacked dimension brackets.
+    bool UnpackedDimensions = false;
+
+    bool operator==(const SpaceBeforeBracketsStyle&) const = default;
+};
+
 /// Controls whitespace before an opening parenthesis.
 struct SpaceBeforeParensStyle {
     /// If true, insert a space before parentheses in control statements.
@@ -174,8 +196,8 @@ struct Style {
     /// Normalizes whitespace after an always keyword.
     bool SpaceAfterAlways = true;
 
-    /// Normalizes whitespace after a closing square bracket in declarations.
-    bool SpaceAfterBrackets = true;
+    /// Controls whitespace after a closing square bracket in declarations.
+    SpaceAfterBracketsStyle SpaceAfterBrackets;
 
     /// Normalizes whitespace after a case item colon.
     bool SpaceAfterCaseColon = true;
@@ -189,8 +211,8 @@ struct Style {
     /// Normalizes whitespace around semicolons.
     bool SpaceAfterSemicolon = true;
 
-    /// Normalizes whitespace before an opening square bracket in declarations.
-    bool SpaceBeforeBrackets = true;
+    /// Controls whitespace before an opening square bracket in declarations.
+    SpaceBeforeBracketsStyle SpaceBeforeBrackets;
 
     /// Normalizes whitespace before a case item colon.
     bool SpaceBeforeCaseColon = false;

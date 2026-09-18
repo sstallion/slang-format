@@ -348,13 +348,43 @@ void parseSpaceBeforeParens(const YAML::Node& node, SpaceBeforeParensStyle& conf
     }
 }
 
+void emitSpaceAfterBrackets(YAML::Emitter& out, const SpaceAfterBracketsStyle& config) {
+    out << YAML::BeginMap;
+    out << YAML::Key << "PackedDimensions" << YAML::Value << config.PackedDimensions;
+    out << YAML::Key << "UnpackedDimensions" << YAML::Value << config.UnpackedDimensions;
+    out << YAML::EndMap;
+}
+
+void emitSpaceBeforeBrackets(YAML::Emitter& out, const SpaceBeforeBracketsStyle& config) {
+    out << YAML::BeginMap;
+    out << YAML::Key << "PackedDimensions" << YAML::Value << config.PackedDimensions;
+    out << YAML::Key << "UnpackedDimensions" << YAML::Value << config.UnpackedDimensions;
+    out << YAML::EndMap;
+}
+
+void parseSpaceAfterBrackets(const YAML::Node& node, SpaceAfterBracketsStyle& config) {
+    if (auto v = node["PackedDimensions"]) {
+        config.PackedDimensions = v.as<bool>();
+    }
+
+    if (auto v = node["UnpackedDimensions"]) {
+        config.UnpackedDimensions = v.as<bool>();
+    }
+}
+
+void parseSpaceBeforeBrackets(const YAML::Node& node, SpaceBeforeBracketsStyle& config) {
+    if (auto v = node["PackedDimensions"]) {
+        config.PackedDimensions = v.as<bool>();
+    }
+
+    if (auto v = node["UnpackedDimensions"]) {
+        config.UnpackedDimensions = v.as<bool>();
+    }
+}
+
 void parseSpacingOptions(const YAML::Node& node, Style& style) {
     if (auto v = node["SpaceAfterAlways"]) {
         style.SpaceAfterAlways = v.as<bool>();
-    }
-
-    if (auto v = node["SpaceAfterBrackets"]) {
-        style.SpaceAfterBrackets = v.as<bool>();
     }
 
     if (auto v = node["SpaceAfterCaseColon"]) {
@@ -367,10 +397,6 @@ void parseSpacingOptions(const YAML::Node& node, Style& style) {
 
     if (auto v = node["SpaceAfterSemicolon"]) {
         style.SpaceAfterSemicolon = v.as<bool>();
-    }
-
-    if (auto v = node["SpaceBeforeBrackets"]) {
-        style.SpaceBeforeBrackets = v.as<bool>();
     }
 
     if (auto v = node["SpaceBeforeCaseColon"]) {
@@ -465,13 +491,15 @@ std::string dumpConfiguration(const Style& style) {
         << style.ParameterPortListIndentWidth;
     out << YAML::Key << "RemoveEmptyLines" << YAML::Value << style.RemoveEmptyLines;
     out << YAML::Key << "SpaceAfterAlways" << YAML::Value << style.SpaceAfterAlways;
-    out << YAML::Key << "SpaceAfterBrackets" << YAML::Value << style.SpaceAfterBrackets;
+    out << YAML::Key << "SpaceAfterBrackets" << YAML::Value;
+    emitSpaceAfterBrackets(out, style.SpaceAfterBrackets);
     out << YAML::Key << "SpaceAfterCaseColon" << YAML::Value << style.SpaceAfterCaseColon;
     out << YAML::Key << "SpaceAfterComma" << YAML::Value << style.SpaceAfterComma;
     out << YAML::Key << "SpaceAfterParens" << YAML::Value;
     emitSpaceAfterParens(out, style.SpaceAfterParens);
     out << YAML::Key << "SpaceAfterSemicolon" << YAML::Value << style.SpaceAfterSemicolon;
-    out << YAML::Key << "SpaceBeforeBrackets" << YAML::Value << style.SpaceBeforeBrackets;
+    out << YAML::Key << "SpaceBeforeBrackets" << YAML::Value;
+    emitSpaceBeforeBrackets(out, style.SpaceBeforeBrackets);
     out << YAML::Key << "SpaceBeforeCaseColon" << YAML::Value << style.SpaceBeforeCaseColon;
     out << YAML::Key << "SpaceBeforeParens" << YAML::Value;
     emitSpaceBeforeParens(out, style.SpaceBeforeParens);
@@ -579,8 +607,16 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
         parseInsertParens(n, style.InsertParens);
     }
 
+    if (auto n = node["SpaceAfterBrackets"]) {
+        parseSpaceAfterBrackets(n, style.SpaceAfterBrackets);
+    }
+
     if (auto n = node["SpaceAfterParens"]) {
         parseSpaceAfterParens(n, style.SpaceAfterParens);
+    }
+
+    if (auto n = node["SpaceBeforeBrackets"]) {
+        parseSpaceBeforeBrackets(n, style.SpaceBeforeBrackets);
     }
 
     if (auto n = node["SpaceBeforeParens"]) {

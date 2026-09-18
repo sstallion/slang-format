@@ -349,7 +349,7 @@ TEST(ApplyPackedDimensionBounds, UnpackedDimensionSkipped) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic x [0:7];
+          logic x[0:7];
         endmodule
     )"));
     // clang-format on
@@ -366,7 +366,7 @@ TEST(ApplyUnpackedDimensionBounds, EqualBoundsPreserved) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic x [0:0];
+          logic x[0:0];
         endmodule
     )"));
     // clang-format on
@@ -383,7 +383,7 @@ TEST(ApplyUnpackedDimensionBounds, LSBFirstPreservesCorrectOrder) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic x [0:7];
+          logic x[0:7];
         endmodule
     )"));
     // clang-format on
@@ -400,7 +400,7 @@ TEST(ApplyUnpackedDimensionBounds, LSBFirstSwapsWhenNeeded) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic x [0:7];
+          logic x[0:7];
         endmodule
     )"));
     // clang-format on
@@ -417,7 +417,7 @@ TEST(ApplyUnpackedDimensionBounds, MSBFirstPreservesCorrectOrder) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic x [7:0];
+          logic x[7:0];
         endmodule
     )"));
     // clang-format on
@@ -434,7 +434,7 @@ TEST(ApplyUnpackedDimensionBounds, MSBFirstSwapsWhenNeeded) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic x [7:0];
+          logic x[7:0];
         endmodule
     )"));
     // clang-format on
@@ -451,7 +451,7 @@ TEST(ApplyUnpackedDimensionBounds, MultipleDimensions) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic x [7:0] [3:0];
+          logic x[7:0][3:0];
         endmodule
     )"));
     // clang-format on
@@ -468,7 +468,7 @@ TEST(ApplyUnpackedDimensionBounds, NonLiteralBoundsPreserved) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic x [N-1:0];
+          logic x[N-1:0];
         endmodule
     )"));
     // clang-format on
@@ -502,7 +502,7 @@ TEST(ApplyUnpackedDimensionBounds, PreserveDoesNothing) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          logic x [0:7];
+          logic x[0:7];
         endmodule
     )"));
     // clang-format on
