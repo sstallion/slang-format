@@ -2874,6 +2874,98 @@ TEST(CompactConditionals, PreservesExistingNewlines) {
     // clang-format on
 }
 
+TEST(Directive, DefaultNettypeAtFileScope) {
+    const Style style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        `default_nettype none
+        module foo;
+          assign a = 1;
+        endmodule
+    )"), style), dedent(R"(
+        `default_nettype none
+        module foo;
+          assign a = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(Directive, DirectiveAfterModule) {
+    const Style style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign a = 1;
+        endmodule
+        `default_nettype wire
+    )"), style), dedent(R"(
+        module foo;
+          assign a = 1;
+        endmodule
+        `default_nettype wire
+    )"));
+    // clang-format on
+}
+
+TEST(Directive, IncludeDirective) {
+    const Style style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        `include "file.svh"
+        module foo;
+          assign a = 1;
+        endmodule
+    )"), style), dedent(R"(
+        `include "file.svh"
+        module foo;
+          assign a = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(Directive, MultipleDirectives) {
+    const Style style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        `timescale 1ns / 1ps
+        `default_nettype none
+        module foo;
+          assign a = 1;
+        endmodule
+    )"), style), dedent(R"(
+        `timescale 1ns / 1ps
+        `default_nettype none
+        module foo;
+          assign a = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(Directive, TimescaleAtFileScope) {
+    const Style style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        `timescale 1ns / 1ps
+        module foo;
+          assign a = 1;
+        endmodule
+    )"), style), dedent(R"(
+        `timescale 1ns / 1ps
+        module foo;
+          assign a = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(OneStatementPerLine, AlreadySeparateLines) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;

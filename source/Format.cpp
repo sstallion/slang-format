@@ -1336,7 +1336,49 @@ private:
             return;
         }
 
+        if (t.kind == TriviaKind::Directive) {
+            emitDirectiveTrivia(t);
+            return;
+        }
+
         output += raw;
+    }
+
+    void emitDirectiveTrivia(const Trivia& t) {
+        auto* node = t.syntax();
+        if (node == nullptr) {
+            return;
+        }
+
+        auto it = node->tokens_begin();
+        auto end = node->tokens_end();
+        if (it == end) {
+            return;
+        }
+
+        for (const auto& inner : (*it).trivia()) {
+            emitTrivia(inner);
+        }
+
+        if (atLineStart) {
+            currentLineMeta.kind = LineMetadata::Kind::Comment;
+        }
+
+        output += (*it).rawText();
+        it++;
+
+        for (; it != end; ++it) {
+            auto tok = *it;
+            for (const auto& inner : tok.trivia()) {
+                if (inner.kind == TriviaKind::Whitespace) {
+                    output += inner.getRawText();
+                }
+            }
+            output += tok.rawText();
+        }
+
+        lineDepth = depth;
+        atLineStart = false;
     }
 
     void emitWhitespaceTrivia(const Trivia& t) {
