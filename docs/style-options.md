@@ -1060,6 +1060,33 @@ always_comb
 
 ---
 
+### CompactTimeUnits (bool)
+
+Keeps consecutive `timeunit` and `timeprecision` declarations on the same line.
+When disabled, each declaration is placed on its own line per
+[`OneStatementPerLine`](#onestatementperline-bool).
+
+**Default:** `true`
+
+`CompactTimeUnits: true` (default):
+
+```sv
+module foo;
+  timeunit 1ns; timeprecision 1ps;
+endmodule
+```
+
+`CompactTimeUnits: false`:
+
+```sv
+module foo;
+  timeunit 1ns;
+  timeprecision 1ps;
+endmodule
+```
+
+---
+
 ### EventSeparator (EventSeparatorStyle)
 
 Controls the separator used between signals in event expressions (sensitivity

@@ -473,6 +473,7 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::Key << "BreakBeforeTask" << YAML::Value << style.BreakBeforeTask;
     out << YAML::Key << "ColumnLimit" << YAML::Value << style.ColumnLimit;
     out << YAML::Key << "CompactConditionals" << YAML::Value << style.CompactConditionals;
+    out << YAML::Key << "CompactTimeUnits" << YAML::Value << style.CompactTimeUnits;
     out << YAML::Key << "ContinuationIndentWidth" << YAML::Value << style.ContinuationIndentWidth;
     out << YAML::Key << "EventSeparator" << YAML::Value
         << std::string{toString(style.EventSeparator)};
@@ -537,6 +538,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
 
     if (auto v = node["CompactConditionals"]) {
         style.CompactConditionals = v.as<bool>();
+    }
+
+    if (auto v = node["CompactTimeUnits"]) {
+        style.CompactTimeUnits = v.as<bool>();
     }
 
     if (auto v = node["MaxEmptyLinesToKeep"]) {

@@ -2874,6 +2874,145 @@ TEST(CompactConditionals, PreservesExistingNewlines) {
     // clang-format on
 }
 
+TEST(CompactTimeUnits, Default) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          timeunit 1ns; timeprecision 1ps;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          timeunit 1ns; timeprecision 1ps;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactTimeUnits, Disabled) {
+    Style style;
+    style.CompactTimeUnits = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          timeunit 1ns; timeprecision 1ps;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          timeunit 1ns;
+          timeprecision 1ps;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactTimeUnits, DisabledWithDivider) {
+    Style style;
+    style.CompactTimeUnits = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          timeunit 1ns / 1ps;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          timeunit 1ns/1ps;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactTimeUnits, Package) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package foo;
+          timeunit 1ns; timeprecision 1ps;
+        endpackage
+    )"), style), dedent(R"(
+        package foo;
+          timeunit 1ns; timeprecision 1ps;
+        endpackage
+    )"));
+    // clang-format on
+}
+
+TEST(CompactTimeUnits, SeparateLines) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          timeunit 1ns;
+          timeprecision 1ps;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          timeunit 1ns; timeprecision 1ps;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactTimeUnits, SeparateLinesBlankLine) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          timeunit 1ns;
+
+          timeprecision 1ps;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          timeunit 1ns; timeprecision 1ps;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(CompactTimeUnits, SeparateLinesPackage) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package foo;
+          timeunit 1ns;
+          timeprecision 1ps;
+        endpackage
+    )"), style), dedent(R"(
+        package foo;
+          timeunit 1ns; timeprecision 1ps;
+        endpackage
+    )"));
+    // clang-format on
+}
+
+TEST(CompactTimeUnits, SeparateLinesWithComment) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          timeunit 1ns;
+          // precision follows
+          timeprecision 1ps;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          timeunit 1ns;
+          // precision follows
+          timeprecision 1ps;
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(Directive, DefaultNettypeAtFileScope) {
     const Style style;
 
@@ -3095,7 +3234,8 @@ TEST(OneStatementPerLine, SingleStatementInBlock) {
 }
 
 TEST(OneStatementPerLine, TimeUnitsDeclaration) {
-    Style const style;
+    Style style;
+    style.CompactTimeUnits = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(

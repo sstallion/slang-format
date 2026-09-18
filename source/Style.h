@@ -273,6 +273,9 @@ struct Style {
     /// result fits within the column limit.
     bool CompactConditionals = true;
 
+    /// If true, keeps consecutive timeunit and timeprecision declarations on the same line.
+    bool CompactTimeUnits = true;
+
     /// Controls insertion of begin/end around bare statements.
     InsertBeginEndStyle InsertBeginEnd;
 

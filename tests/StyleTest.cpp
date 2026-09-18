@@ -553,6 +553,13 @@ TEST(ParseConfiguration, ParsesCompactConditionals) {
     EXPECT_FALSE(style.CompactConditionals);
 }
 
+TEST(ParseConfiguration, ParsesCompactTimeUnits) {
+    YAML::Node const node = YAML::Load("CompactTimeUnits: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.CompactTimeUnits);
+}
+
 TEST(ParseConfiguration, ParsesContinuationIndentWidth) {
     YAML::Node const node = YAML::Load("ContinuationIndentWidth: 4");
     Style style;
@@ -1011,6 +1018,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("BreakBeforeSpecifyBlock: false"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeTask: false"), std::string::npos);
     EXPECT_NE(result.find("CompactConditionals: true"), std::string::npos);
+    EXPECT_NE(result.find("CompactTimeUnits: true"), std::string::npos);
     EXPECT_NE(result.find("ContinuationIndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("EventSeparator: Preserve"), std::string::npos);
     EXPECT_NE(result.find("IndentCaseItem: false"), std::string::npos);
@@ -1063,6 +1071,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.BreakBeforeSpecifyBlock = true;
     style.BreakBeforeTask = true;
     style.CompactConditionals = false;
+    style.CompactTimeUnits = false;
     style.EventSeparator = EventSeparatorStyle::Comma;
     style.InsertBeginEnd.Enabled = true;
     style.InsertParens.Delays = true;
@@ -1104,6 +1113,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("BreakBeforeSpecifyBlock: true"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeTask: true"), std::string::npos);
     EXPECT_NE(result.find("CompactConditionals: false"), std::string::npos);
+    EXPECT_NE(result.find("CompactTimeUnits: false"), std::string::npos);
     EXPECT_NE(result.find("EventSeparator: Comma"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("OneStatementPerLine: false"), std::string::npos);
@@ -1157,6 +1167,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.BreakBeforeSpecifyBlock = false;
     original.BreakBeforeTask = false;
     original.CompactConditionals = false;
+    original.CompactTimeUnits = false;
     original.EventSeparator = EventSeparatorStyle::Or;
     original.OneLineFormatOffRegex = ".*test.*";
     original.OneStatementPerLine = false;

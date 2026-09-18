@@ -151,14 +151,23 @@ public:
         module.header->visit(*this);
 
         depth++;
+        const MemberSyntax* prevMember{nullptr};
         for (auto* member : module.members) {
-            if (style.OneStatementPerLine && formatEnabled &&
-                !hasLeadingNewline(member->getFirstToken())) {
-                forceNewline();
+            auto firstToken = member->getFirstToken();
+            bool const compact = shouldCompactTimeUnits(prevMember, member);
+
+            if (style.OneStatementPerLine && formatEnabled && !hasLeadingNewline(firstToken)) {
+                if (!compact) {
+                    forceNewline();
+                }
+            }
+            else if (compact && formatEnabled && !hasLeadingComment(firstToken)) {
+                triviaSkip = firstToken.trivia().size();
             }
 
             nextIsPrimary = true;
             member->visit(*this);
+            prevMember = member;
         }
 
         nextIsPrimary = true;
@@ -1346,6 +1355,16 @@ private:
         return false;
     }
 
+    static bool hasLeadingComment(Token tok) {
+        if (!tok) {
+            return false;
+        }
+
+        return std::ranges::any_of(tok.trivia(), [](const auto& t) {
+            return t.kind == TriviaKind::LineComment || t.kind == TriviaKind::BlockComment;
+        });
+    }
+
     size_t emitLeadingTrailingComment(Token tok) {
         size_t consumed = 0;
         for (const auto& t : tok.trivia()) {
@@ -1443,6 +1462,16 @@ private:
         }
 
         return output.size() - lineStart + 1 + width <= style.ColumnLimit;
+    }
+
+    [[nodiscard]] bool shouldCompactTimeUnits(const MemberSyntax* prev,
+                                              const MemberSyntax* curr) const {
+        if (!style.CompactTimeUnits || prev == nullptr) {
+            return false;
+        }
+
+        return prev->kind == SyntaxKind::TimeUnitsDeclaration &&
+               curr->kind == SyntaxKind::TimeUnitsDeclaration;
     }
 
     // Strip trailing spaces from output and emit a newline, setting atLineStart.
