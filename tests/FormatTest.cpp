@@ -3094,6 +3094,89 @@ TEST(OneStatementPerLine, SingleStatementInBlock) {
     // clang-format on
 }
 
+TEST(OneStatementPerLine, TimeUnitsDeclaration) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          timeunit 1ns; timeprecision 1ps;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          timeunit 1ns;
+          timeprecision 1ps;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(OneStatementPerLine, TimeUnitsDeclarationWithDivider) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          timeunit 1ns / 1ps;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          timeunit 1ns/1ps;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(OneStatementPerLine, TypedefDeclaration) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package foo; typedef int a; typedef int b;
+        endpackage
+    )"), style), dedent(R"(
+        package foo;
+          typedef int a;
+          typedef int b;
+        endpackage
+    )"));
+    // clang-format on
+}
+
+TEST(OneStatementPerLine, PackageImportDeclaration) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          import bar::*; import baz::qux;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          import bar::*;
+          import baz::qux;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(OneStatementPerLine, DPIImportDeclaration) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          import "DPI-C" function void dpi_fn(); import "DPI-C" function void dpi_fn2();
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          import"DPI-C"function void dpi_fn();
+          import"DPI-C"function void dpi_fn2();
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(RemoveEmptyLines, DefaultPreservesAll) {
     Style const style{};
 

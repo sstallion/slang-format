@@ -275,6 +275,21 @@ public:
         emitToken(p.closeParen);
     }
 
+    void handle(const BindDirectiveSyntax& bind) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : bind.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(bind.bind);
+        bind.target->visit(*this);
+        if (bind.targetInstances != nullptr) {
+            bind.targetInstances->visit(*this);
+        }
+
+        bind.instantiation->visit(*this);
+    }
+
     void handle(const BlockStatementSyntax& block) {
         if (block.label != nullptr) {
             block.label->visit(*this);
@@ -551,6 +566,72 @@ public:
         visitCaseItemClause(*item.clause);
     }
 
+    void handle(const DPIExportSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.keyword);
+        emitToken(decl.specString);
+        emitToken(decl.c_identifier);
+        emitToken(decl.equals);
+        emitToken(decl.functionOrTask);
+        emitToken(decl.name);
+        emitToken(decl.semi);
+    }
+
+    void handle(const DPIImportSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.keyword);
+        emitToken(decl.specString);
+        emitToken(decl.property);
+        emitToken(decl.c_identifier);
+        emitToken(decl.equals);
+        decl.method->visit(*this);
+        emitToken(decl.semi);
+    }
+
+    void handle(const DefaultClockingReferenceSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.defaultKeyword);
+        emitToken(decl.clocking);
+        emitToken(decl.name);
+        emitToken(decl.semi);
+    }
+
+    void handle(const DefaultDisableDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.defaultKeyword);
+        emitToken(decl.disableKeyword);
+        emitToken(decl.iffKeyword);
+        decl.expr->visit(*this);
+        emitToken(decl.semi);
+    }
+
+    void handle(const DefParamSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.defparam);
+        visitSeparatedList(decl.assignments);
+        emitToken(decl.semi);
+    }
+
     void handle(const DefaultCaseItemSyntax& item) {
         nextIsPrimary = true;
         emitToken(item.defaultKeyword);
@@ -577,6 +658,23 @@ public:
         }
 
         visitCaseItemClause(*item.clause);
+    }
+
+    void handle(const LetDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.let);
+        emitToken(decl.identifier);
+        if (decl.portList != nullptr) {
+            decl.portList->visit(*this);
+        }
+
+        emitToken(decl.equals);
+        decl.expr->visit(*this);
+        emitToken(decl.semi);
     }
 
     void handle(const LoopStatementSyntax& loop) {
@@ -810,6 +908,32 @@ public:
         visitBody(*tcs.statement);
     }
 
+    void handle(const ForwardTypedefDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.typedefKeyword);
+        if (decl.typeRestriction != nullptr) {
+            decl.typeRestriction->visit(*this);
+        }
+
+        emitToken(decl.name);
+        emitToken(decl.semi);
+    }
+
+    void handle(const GenvarDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.keyword);
+        visitSeparatedList(decl.identifiers);
+        emitToken(decl.semi);
+    }
+
     void handle(const GenerateBlockSyntax& b) { visitScopedBlock(b, b.end, b.members); }
 
     void handle(const GenerateRegionSyntax& r) { visitScopedBlock(r, r.endgenerate, r.members); }
@@ -849,6 +973,17 @@ public:
         emitToken(decl.semi);
     }
 
+    void handle(const NetAliasSyntax& alias) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : alias.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(alias.keyword);
+        visitSeparatedList(alias.nets);
+        emitToken(alias.semi);
+    }
+
     void handle(const NetDeclarationSyntax& decl) {
         nextLineKind = LineMetadata::Kind::Declaration;
         for (auto* attr : decl.attributes) {
@@ -870,6 +1005,22 @@ public:
         emitToken(decl.semi);
     }
 
+    void handle(const NetTypeDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.keyword);
+        decl.type->visit(*this);
+        emitToken(decl.name);
+        if (decl.withFunction != nullptr) {
+            decl.withFunction->visit(*this);
+        }
+
+        emitToken(decl.semi);
+    }
+
     void handle(const PortDeclarationSyntax& decl) {
         nextLineKind = LineMetadata::Kind::Declaration;
         for (auto* attr : decl.attributes) {
@@ -881,6 +1032,41 @@ public:
         emitToken(decl.semi);
     }
 
+    void handle(const PackageExportAllDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.keyword);
+        emitToken(decl.star1);
+        emitToken(decl.doubleColon);
+        emitToken(decl.star2);
+        emitToken(decl.semi);
+    }
+
+    void handle(const PackageExportDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.keyword);
+        visitSeparatedList(decl.items);
+        emitToken(decl.semi);
+    }
+
+    void handle(const PackageImportDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.keyword);
+        visitSeparatedList(decl.items);
+        emitToken(decl.semi);
+    }
+
     void handle(const ParameterDeclarationStatementSyntax& decl) {
         nextLineKind = LineMetadata::Kind::Declaration;
         for (auto* attr : decl.attributes) {
@@ -888,6 +1074,49 @@ public:
         }
 
         decl.parameter->visit(*this);
+        emitToken(decl.semi);
+    }
+
+    void handle(const TimeUnitsDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.keyword);
+        emitToken(decl.time);
+        if (decl.divider != nullptr) {
+            decl.divider->visit(*this);
+        }
+
+        emitToken(decl.semi);
+    }
+
+    void handle(const TypedefDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.typedefKeyword);
+        decl.type->visit(*this);
+        emitToken(decl.name);
+        for (auto* dim : decl.dimensions) {
+            dim->visit(*this);
+        }
+
+        emitToken(decl.semi);
+    }
+
+    void handle(const UserDefinedNetDeclarationSyntax& decl) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.netType);
+        decl.delay->visit(*this);
+        visitDeclarators(decl.declarators);
         emitToken(decl.semi);
     }
 
