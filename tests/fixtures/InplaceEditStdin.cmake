@@ -6,9 +6,9 @@ execute_process(COMMAND ${SLANG_FORMAT} -i -
                 OUTPUT_VARIABLE output)
 
 if(NOT result EQUAL 0)
-  message(FATAL_ERROR "slang-format -i - failed with exit code ${result}")
+  message(FATAL_ERROR "slang-format failed with exit code ${result}")
 endif()
 
 if(NOT output STREQUAL "")
-  message(FATAL_ERROR "slang-format -i - produced unexpected output: ${output}")
+  message(FATAL_ERROR "slang-format produced unexpected output: ${output}")
 endif()

@@ -42,3 +42,10 @@ add_test(NAME Stdin
                  -DFIXTURES_DIR=${FIXTURES_DIR}
                  -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
                  -P ${FIXTURES_DIR}/Stdin.cmake)
+
+add_test(NAME Verible
+         COMMAND ${CMAKE_COMMAND}
+                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
+                 -DFIXTURES_DIR=${FIXTURES_DIR}
+                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
+                 -P ${FIXTURES_DIR}/Verible.cmake)

@@ -7,10 +7,10 @@ execute_process(COMMAND ${SLANG_FORMAT} -
                 OUTPUT_VARIABLE output)
 
 if(NOT result EQUAL 0)
-  message(FATAL_ERROR "slang-format - failed with exit code ${result}")
+  message(FATAL_ERROR "slang-format failed with exit code ${result}")
 endif()
 
 file(READ ${FIXTURES_DIR}/stdin.sv.expected expected)
 if(NOT output STREQUAL expected)
-  message(FATAL_ERROR "stdin output does not match expected")
+  message(FATAL_ERROR "slang-format produced unexpected output: ${output}")
 endif()

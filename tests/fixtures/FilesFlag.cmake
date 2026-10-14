@@ -11,10 +11,10 @@ execute_process(COMMAND ${SLANG_FORMAT} --files ${WORK_DIR}/filelist.txt
                 OUTPUT_VARIABLE output)
 
 if(NOT result EQUAL 0)
-  message(FATAL_ERROR "slang-format --files failed with exit code ${result}")
+  message(FATAL_ERROR "slang-format failed with exit code ${result}")
 endif()
 
 file(READ ${FIXTURES_DIR}/inplace.sv.expected expected)
 if(NOT output STREQUAL expected)
-  message(FATAL_ERROR "--files output does not match expected")
+  message(FATAL_ERROR "slang-format produced unexpected output: ${output}")
 endif()
