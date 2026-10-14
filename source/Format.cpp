@@ -87,11 +87,24 @@ bool needsSpaceBetween(TokenKind prev, TokenKind curr) {
         return true;
     }
     if (prev == TokenKind::CloseParenthesis &&
-        (currIsKeyword || curr == TokenKind::Identifier || curr == TokenKind::OpenBrace)) {
+        (currIsKeyword || curr == TokenKind::Identifier || curr == TokenKind::OpenBrace ||
+         curr == TokenKind::OpenParenthesis)) {
         return true;
     }
 
     if ((prev == TokenKind::Colon || prev == TokenKind::StringLiteral) && currIsKeyword) {
+        return true;
+    }
+
+    if (prev == TokenKind::EqualsArrow || curr == TokenKind::EqualsArrow) {
+        return true;
+    }
+
+    if (curr == TokenKind::DoubleHash) {
+        return true;
+    }
+
+    if (prev == TokenKind::CloseBracket && curr == TokenKind::DoubleHash) {
         return true;
     }
 
@@ -350,6 +363,14 @@ public:
         expr.right->visit(*this);
     }
 
+    void handle(const MultipleConcatenationExpressionSyntax& expr) {
+        emitToken(expr.openBrace);
+        expr.expression->visit(*this);
+        suppressSeparator = formatEnabled;
+        expr.concatenation->visit(*this);
+        emitToken(expr.closeBrace);
+    }
+
     void handle(const DistWeightSyntax& dw) {
         beforeOperator = formatEnabled;
         emitToken(dw.op);
@@ -362,6 +383,16 @@ public:
         beforeOperator = formatEnabled;
         emitToken(ic.arrow);
         ic.constraints->visit(*this);
+    }
+
+    void handle(const UdpEdgeFieldSyntax& ue) {
+        emitToken(ue.openParen);
+        suppressSeparator = formatEnabled;
+        output += ue.first.rawText();
+        output += ue.second.rawText();
+        lastTokenKind = ue.second.kind;
+        suppressSeparator = formatEnabled;
+        emitToken(ue.closeParen);
     }
 
     void handle(const UdpEntrySyntax& ue) {
@@ -2434,6 +2465,7 @@ private:
             spaceBeforeCloseBracePending = false;
             spaceBeforeCloseBracketPending = false;
             spaceBeforeCloseParenPending = false;
+            suppressSeparator = false;
 
             if (atLineStart) {
                 if (shouldSuppressBlankLine()) {
@@ -2447,6 +2479,7 @@ private:
             }
             else {
                 emptyLineCount = 0;
+                stripTrailingSpaces();
                 output += '\n';
                 finalizeLine();
                 lineStart = output.size();
@@ -2726,7 +2759,7 @@ private:
     }
 
     void emitToken(Token tok) {
-        if (!tok || tok.isMissing()) {
+        if (!tok || tok.isMissing() || tok.kind == TokenKind::Placeholder) {
             return;
         }
 
