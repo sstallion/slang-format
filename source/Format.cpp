@@ -70,19 +70,28 @@ bool needsSpaceBetween(TokenKind prev, TokenKind curr) {
     }
 
     bool const prevIsKeyword = LexerFacts::isKeyword(prev);
+    bool const currIsKeyword = LexerFacts::isKeyword(curr);
 
-    if (prevIsKeyword && curr == TokenKind::OpenBrace) {
-        return true;
-    }
-    if (prevIsKeyword && curr == TokenKind::StringLiteral) {
+    if (prevIsKeyword && prev != TokenKind::NewKeyword &&
+        (curr == TokenKind::OpenBrace || curr == TokenKind::OpenParenthesis ||
+         curr == TokenKind::Hash || curr == TokenKind::StringLiteral)) {
         return true;
     }
 
-    if (prev == TokenKind::CloseBrace &&
-        (LexerFacts::isKeyword(curr) || curr == TokenKind::Identifier)) {
+    if (prev == TokenKind::Identifier && (curr == TokenKind::OpenBrace || curr == TokenKind::At)) {
         return true;
     }
-    if (prev == TokenKind::StringLiteral && LexerFacts::isKeyword(curr)) {
+
+    if ((prev == TokenKind::CloseBrace || prev == TokenKind::Star) &&
+        (currIsKeyword || curr == TokenKind::Identifier)) {
+        return true;
+    }
+    if (prev == TokenKind::CloseParenthesis &&
+        (currIsKeyword || curr == TokenKind::Identifier || curr == TokenKind::OpenBrace)) {
+        return true;
+    }
+
+    if ((prev == TokenKind::Colon || prev == TokenKind::StringLiteral) && currIsKeyword) {
         return true;
     }
 
@@ -174,6 +183,16 @@ public:
     // Called by the base-class visitDefault for every token child of an unhandled node.
     void visitToken(Token tok) { emitToken(tok); }
 
+    void handle(const CompilationUnitSyntax& cu) {
+        for (auto* member : cu.members) {
+            nextIsPrimary = true;
+            member->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitToken(cu.endOfFile);
+    }
+
     void handle(const ModuleDeclarationSyntax& module) {
         nextIsPrimary = true;
         module.header->visit(*this);
@@ -232,6 +251,15 @@ public:
         emitToken(p.closeParen);
     }
 
+    void handle(const AssignmentPatternItemSyntax& item) {
+        item.key->visit(*this);
+        emitToken(item.colon);
+        if (formatEnabled && !output.empty() && output.back() != ' ') {
+            output += ' ';
+        }
+        item.expr->visit(*this);
+    }
+
     void handle(const AttributeInstanceSyntax& a) {
         emitToken(a.openParen);
         emitToken(a.openStar);
@@ -255,6 +283,7 @@ public:
             else if (!style.SpaceBeforeParens.PortList) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
         emitToken(p.openParen);
 
@@ -272,6 +301,29 @@ public:
         emitToken(p.closeParen);
     }
 
+    void handle(const BinaryBinsSelectExprSyntax& expr) {
+        expr.left->visit(*this);
+        beforeOperator = formatEnabled;
+        emitToken(expr.op);
+        expr.right->visit(*this);
+    }
+
+    void handle(const BinsSelectionSyntax& bs) {
+        for (auto* attr : bs.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(bs.keyword);
+        emitToken(bs.name);
+        beforeOperator = formatEnabled;
+        emitToken(bs.equals);
+        bs.expr->visit(*this);
+        if (bs.iff != nullptr) {
+            bs.iff->visit(*this);
+        }
+        emitToken(bs.semi);
+    }
+
     void handle(const BinaryExpressionSyntax& expr) {
         expr.left->visit(*this);
         beforeOperator = formatEnabled;
@@ -284,6 +336,115 @@ public:
         expr.right->visit(*this);
     }
 
+    void handle(const BinaryPropertyExprSyntax& expr) {
+        expr.left->visit(*this);
+        beforeOperator = formatEnabled;
+        emitToken(expr.op);
+        expr.right->visit(*this);
+    }
+
+    void handle(const BinarySequenceExprSyntax& expr) {
+        expr.left->visit(*this);
+        beforeOperator = formatEnabled;
+        emitToken(expr.op);
+        expr.right->visit(*this);
+    }
+
+    void handle(const DistWeightSyntax& dw) {
+        beforeOperator = formatEnabled;
+        emitToken(dw.op);
+        emitToken(dw.extraOp);
+        dw.expr->visit(*this);
+    }
+
+    void handle(const ImplicationConstraintSyntax& ic) {
+        ic.left->visit(*this);
+        beforeOperator = formatEnabled;
+        emitToken(ic.arrow);
+        ic.constraints->visit(*this);
+    }
+
+    void handle(const UdpEntrySyntax& ue) {
+        for (auto* field : ue.inputs) {
+            field->visit(*this);
+            if (formatEnabled) {
+                output += ' ';
+            }
+        }
+
+        if (formatEnabled) {
+            stripTrailingSpaces();
+            output += ' ';
+        }
+        emitToken(ue.colon1);
+        if (formatEnabled) {
+            output += ' ';
+        }
+
+        if (ue.current != nullptr) {
+            ue.current->visit(*this);
+        }
+
+        if (ue.colon2) {
+            if (formatEnabled) {
+                stripTrailingSpaces();
+                output += ' ';
+            }
+            emitToken(ue.colon2);
+            if (formatEnabled) {
+                output += ' ';
+            }
+        }
+
+        if (ue.next != nullptr) {
+            ue.next->visit(*this);
+        }
+
+        emitToken(ue.semi);
+    }
+
+    void handle(const ValueRangeExpressionSyntax& vr) {
+        emitToken(vr.openBracket);
+        vr.left->visit(*this);
+
+        if (formatEnabled) {
+            stripTrailingSpaces();
+            output += ' ';
+        }
+        emitToken(vr.op);
+        if (formatEnabled) {
+            output += ' ';
+        }
+
+        vr.right->visit(*this);
+        emitToken(vr.closeBracket);
+    }
+
+    void handle(const PathDeclarationSyntax& pd) {
+        for (auto* attr : pd.attributes) {
+            attr->visit(*this);
+        }
+
+        pd.desc->visit(*this);
+        beforeOperator = formatEnabled;
+        emitToken(pd.equals);
+        emitToken(pd.openParen);
+        visitSeparatedList(pd.delays);
+        emitToken(pd.closeParen);
+        emitToken(pd.semi);
+    }
+
+    void handle(const PathDescriptionSyntax& pd) {
+        emitToken(pd.openParen);
+        emitToken(pd.edgeIdentifier);
+        visitSeparatedList(pd.inputs);
+        emitToken(pd.polarityOperator);
+        beforeOperator = formatEnabled;
+        emitToken(pd.pathOperator);
+        pd.suffix->visit(*this);
+        emitToken(pd.closeParen);
+    }
+
     void handle(const NonAnsiPortListSyntax& p) {
         if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(p.openParen)) {
             if (style.SpaceBeforeParens.PortList && output.back() != ' ') {
@@ -292,6 +453,7 @@ public:
             else if (!style.SpaceBeforeParens.PortList) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
         emitToken(p.openParen);
 
@@ -317,6 +479,7 @@ public:
             else if (!style.SpaceBeforeParens.ParameterList) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
         emitToken(p.hash);
         emitToken(p.openParen);
@@ -343,6 +506,7 @@ public:
             else if (!style.SpaceBeforeParens.PortList) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
         emitToken(p.openParen);
         emitToken(p.dot);
@@ -446,6 +610,7 @@ public:
             else if (!style.SpaceAfterAlways) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
 
         auto brkStyle = BlockBreakStyle::Never;
@@ -506,6 +671,8 @@ public:
             else if (!style.SpaceBeforeParens.ControlStatements) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
+            suppressSeparator = true;
         }
 
         emitToken(stmt.openParen);
@@ -520,6 +687,7 @@ public:
             else if (!style.SpaceAfterParens.ControlStatements) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
 
         if (shouldBreakConditionalBody(*stmt.statement)) {
@@ -570,6 +738,7 @@ public:
             else if (!style.SpaceBeforeParens.ControlStatements) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
 
         emitToken(caseStmt.openParen);
@@ -585,6 +754,7 @@ public:
                 else if (!style.SpaceAfterParens.ControlStatements) {
                     stripTrailingSpaces();
                 }
+                suppressSeparator = true;
             }
         }
 
@@ -747,6 +917,7 @@ public:
             decl.portList->visit(*this);
         }
 
+        beforeOperator = formatEnabled;
         emitToken(decl.equals);
         decl.expr->visit(*this);
         emitToken(decl.semi);
@@ -771,6 +942,7 @@ public:
             else if (!style.SpaceBeforeParens.ControlStatements) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
 
         emitToken(loop.openParen);
@@ -785,6 +957,7 @@ public:
             else if (!style.SpaceAfterParens.ControlStatements) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
 
         if (!BlockStatementSyntax::isKind(loop.statement->kind)) {
@@ -813,6 +986,7 @@ public:
             else if (!style.SpaceBeforeParens.ControlStatements) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
 
         emitToken(loop.openParen);
@@ -850,6 +1024,7 @@ public:
             else if (!style.SpaceAfterParens.ControlStatements) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
 
         if (!BlockStatementSyntax::isKind(loop.statement->kind)) {
@@ -896,6 +1071,7 @@ public:
             else if (!style.SpaceBeforeParens.ControlStatements) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
 
         loop.loopList->visit(*this);
@@ -908,6 +1084,7 @@ public:
             else if (!style.SpaceAfterParens.ControlStatements) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
 
         if (!BlockStatementSyntax::isKind(loop.statement->kind)) {
@@ -950,6 +1127,7 @@ public:
             else if (!style.SpaceBeforeParens.ControlStatements) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
 
         emitToken(loop.openParen);
@@ -978,6 +1156,7 @@ public:
             else if (!style.SpaceAfterParens.EventControls) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
 
         visitBody(*tcs.statement);
@@ -1009,6 +1188,70 @@ public:
         emitToken(decl.semi);
     }
 
+    void handle(const CaseGenerateSyntax& cg) {
+        for (auto* attr : cg.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(cg.keyword);
+
+        if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(cg.openParen)) {
+            if (style.SpaceBeforeParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+            suppressSeparator = true;
+        }
+
+        emitToken(cg.openParen);
+        cg.condition->visit(*this);
+        emitToken(cg.closeParen);
+
+        depth++;
+        for (auto* item : cg.items) {
+            nextIsPrimary = true;
+            item->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(cg.endCase);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(cg.endCase);
+    }
+
+    void handle(const IfGenerateSyntax& ig) {
+        for (auto* attr : ig.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(ig.keyword);
+
+        if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(ig.openParen)) {
+            if (style.SpaceBeforeParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+            suppressSeparator = true;
+        }
+
+        emitToken(ig.openParen);
+        ig.condition->visit(*this);
+        emitToken(ig.closeParen);
+        ig.block->visit(*this);
+
+        if (ig.elseClause != nullptr) {
+            nextIsPrimary = true;
+            emitToken(ig.elseClause->elseKeyword);
+            ig.elseClause->clause->visit(*this);
+        }
+    }
+
     void handle(const GenerateBlockSyntax& b) {
         for (auto* attr : b.attributes) {
             attr->visit(*this);
@@ -1029,6 +1272,37 @@ public:
         }
         emitToken(r.keyword);
         visitMembers(r.members, r.endgenerate, nullptr);
+    }
+
+    void handle(const LoopGenerateSyntax& lg) {
+        for (auto* attr : lg.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(lg.keyword);
+
+        if (formatEnabled && !atLineStart && !output.empty() && !hasLeadingNewline(lg.openParen)) {
+            if (style.SpaceBeforeParens.ControlStatements && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeParens.ControlStatements) {
+                stripTrailingSpaces();
+            }
+            suppressSeparator = true;
+        }
+
+        emitToken(lg.openParen);
+        emitToken(lg.genvar);
+        emitToken(lg.identifier);
+        beforeOperator = formatEnabled;
+        emitToken(lg.equals);
+        lg.initialExpr->visit(*this);
+        emitToken(lg.semi1);
+        lg.stopExpr->visit(*this);
+        emitToken(lg.semi2);
+        lg.iterationExpr->visit(*this);
+        emitToken(lg.closeParen);
+        lg.block->visit(*this);
     }
 
     void handle(const FunctionDeclarationSyntax& f) {
@@ -1058,6 +1332,19 @@ public:
         }
         emitToken(s.specify);
         visitMembers(s.items, s.endspecify, nullptr);
+    }
+
+    void handle(const SpecparamDeclaratorSyntax& sp) {
+        emitToken(sp.name);
+        beforeOperator = formatEnabled;
+        emitToken(sp.equals);
+        emitToken(sp.openParen);
+        sp.value1->visit(*this);
+        emitToken(sp.comma);
+        if (sp.value2 != nullptr) {
+            sp.value2->visit(*this);
+        }
+        emitToken(sp.closeParen);
     }
 
     void handle(const CheckerDeclarationSyntax& c) {
@@ -1191,6 +1478,46 @@ public:
         emitToken(b.closeBrace);
     }
 
+    void handle(const CoverCrossSyntax& c) {
+        for (auto* attr : c.attributes) {
+            attr->visit(*this);
+        }
+
+        if (c.label != nullptr) {
+            c.label->visit(*this);
+        }
+
+        emitToken(c.cross);
+        for (const auto& elem : c.items.elems()) {
+            if (elem.isNode()) {
+                elem.node()->visit(*this);
+            }
+            else if (elem.isToken()) {
+                emitToken(elem.token());
+            }
+        }
+
+        if (c.iff != nullptr) {
+            c.iff->visit(*this);
+        }
+
+        emitToken(c.openBrace);
+
+        depth++;
+        for (auto* member : c.members) {
+            nextIsPrimary = true;
+            member->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(c.closeBrace);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(c.closeBrace);
+        emitToken(c.emptySemi);
+    }
+
     void handle(const CovergroupDeclarationSyntax& c) {
         for (auto* attr : c.attributes) {
             attr->visit(*this);
@@ -1209,6 +1536,60 @@ public:
 
         emitToken(c.semi);
         visitMembers(c.members, c.endgroup, c.endBlockName);
+    }
+
+    void handle(const CoverpointSyntax& c) {
+        for (auto* attr : c.attributes) {
+            attr->visit(*this);
+        }
+
+        c.type->visit(*this);
+        if (c.label != nullptr) {
+            emitToken(c.label->name);
+            emitToken(c.label->colon);
+        }
+
+        emitToken(c.coverpoint);
+        c.expr->visit(*this);
+        if (c.iff != nullptr) {
+            c.iff->visit(*this);
+        }
+
+        emitToken(c.openBrace);
+
+        depth++;
+        for (auto* member : c.members) {
+            nextIsPrimary = true;
+            member->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(c.closeBrace);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(c.closeBrace);
+        emitToken(c.emptySemi);
+    }
+
+    void handle(const CoverageBinsSyntax& cb) {
+        for (auto* attr : cb.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(cb.wildcard);
+        emitToken(cb.keyword);
+        emitToken(cb.name);
+        if (cb.size != nullptr) {
+            cb.size->visit(*this);
+        }
+        beforeOperator = formatEnabled;
+        emitToken(cb.equals);
+        cb.initializer->visit(*this);
+        if (cb.iff != nullptr) {
+            cb.iff->visit(*this);
+        }
+        emitToken(cb.semi);
     }
 
     void handle(const UdpDeclarationSyntax& u) {
@@ -1285,7 +1666,15 @@ public:
         }
 
         emitToken(alias.keyword);
-        visitSeparatedList(alias.nets);
+        for (const auto& elem : alias.nets.elems()) {
+            if (elem.isNode()) {
+                elem.node()->visit(*this);
+            }
+            else if (elem.isToken()) {
+                beforeOperator = formatEnabled;
+                emitToken(elem.token());
+            }
+        }
         emitToken(alias.semi);
     }
 
@@ -1380,6 +1769,154 @@ public:
 
         decl.parameter->visit(*this);
         emitToken(decl.semi);
+    }
+
+    void handle(const PropertyDeclarationSyntax& decl) {
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.keyword);
+        emitToken(decl.name);
+        if (decl.portList != nullptr) {
+            decl.portList->visit(*this);
+        }
+
+        emitToken(decl.semi);
+
+        depth++;
+        for (auto* var : decl.variables) {
+            nextIsPrimary = true;
+            var->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        decl.propertySpec->visit(*this);
+        emitToken(decl.optionalSemi);
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(decl.end);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(decl.end);
+        if (decl.endBlockName != nullptr) {
+            decl.endBlockName->visit(*this);
+        }
+    }
+
+    void handle(const RandCaseStatementSyntax& stmt) {
+        if (stmt.label != nullptr) {
+            stmt.label->visit(*this);
+        }
+
+        for (auto* attr : stmt.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(stmt.randCase);
+
+        depth++;
+        for (auto* item : stmt.items) {
+            nextIsPrimary = true;
+            item->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(stmt.endCase);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(stmt.endCase);
+    }
+
+    void handle(const RandCaseItemSyntax& item) {
+        item.expr->visit(*this);
+
+        if (formatEnabled && !atLineStart && !output.empty()) {
+            if (style.SpaceBeforeCaseColon && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceBeforeCaseColon) {
+                stripTrailingSpaces();
+            }
+        }
+
+        emitToken(item.colon);
+
+        if (formatEnabled && !atLineStart && !output.empty() &&
+            !hasLeadingNewline(item.statement->getFirstToken())) {
+            if (style.SpaceAfterCaseColon && output.back() != ' ') {
+                output += ' ';
+            }
+            else if (!style.SpaceAfterCaseColon) {
+                stripTrailingSpaces();
+            }
+        }
+
+        item.statement->visit(*this);
+    }
+
+    void handle(const RandSequenceStatementSyntax& stmt) {
+        if (stmt.label != nullptr) {
+            stmt.label->visit(*this);
+        }
+
+        for (auto* attr : stmt.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(stmt.randsequence);
+        emitToken(stmt.openParen);
+        emitToken(stmt.firstProduction);
+        emitToken(stmt.closeParen);
+
+        depth++;
+        for (auto* prod : stmt.productions) {
+            nextIsPrimary = true;
+            prod->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(stmt.endsequence);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(stmt.endsequence);
+    }
+
+    void handle(const SequenceDeclarationSyntax& decl) {
+        for (auto* attr : decl.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(decl.keyword);
+        emitToken(decl.name);
+        if (decl.portList != nullptr) {
+            decl.portList->visit(*this);
+        }
+
+        emitToken(decl.semi);
+
+        depth++;
+        for (auto* var : decl.variables) {
+            nextIsPrimary = true;
+            var->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        decl.seqExpr->visit(*this);
+        emitToken(decl.optionalSemi);
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(decl.end);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(decl.end);
+        if (decl.endBlockName != nullptr) {
+            decl.endBlockName->visit(*this);
+        }
     }
 
     void handle(const TimeUnitsDeclarationSyntax& decl) {
@@ -1537,6 +2074,7 @@ public:
             else if (!style.SpaceBeforeParens.PortList) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
         emitToken(inst.openParen);
 
@@ -1576,6 +2114,14 @@ public:
         emitToken(inst.semi);
     }
 
+    void handle(const NamedLabelSyntax& label) {
+        emitToken(label.name);
+        if (formatEnabled && !output.empty() && output.back() != ' ') {
+            output += ' ';
+        }
+        emitToken(label.colon);
+    }
+
     void handle(const NamedBlockClauseSyntax& clause) {
         if (formatEnabled && !output.empty() && output.back() != ' ') {
             output += ' ';
@@ -1605,6 +2151,7 @@ public:
             else if (!style.SpaceBeforeParens.ParameterList) {
                 stripTrailingSpaces();
             }
+            suppressSeparator = true;
         }
         emitToken(p.hash);
         emitToken(p.openParen);
@@ -1671,6 +2218,7 @@ private:
     size_t triviaSkip = 0;
     bool beforeOperator = false;
     bool afterOperator = false;
+    bool suppressSeparator = false;
     unsigned bracketDepth = 0;
     bool inPackedDimension = false;
     bool inUnpackedDimension = false;
@@ -2163,6 +2711,14 @@ private:
             return;
         }
 
+        if (suppressSeparator) {
+            suppressSeparator = false;
+            if (needsSeparator(output.back(), raw.front())) {
+                output += ' ';
+            }
+            return;
+        }
+
         if (needsSeparator(output.back(), raw.front()) ||
             needsSpaceBetween(lastTokenKind, tok.kind)) {
             output += ' ';
@@ -2442,6 +2998,7 @@ private:
                 else if (!style.SpaceAfterParens.EventControls) {
                     stripTrailingSpaces();
                 }
+                suppressSeparator = true;
             }
         }
 

@@ -1480,7 +1480,7 @@ TEST(ApplyIndentation, BreakBeforeInitialAlwaysTimingControl) {
     )"), style), dedent(R"(
         module foo;
 
-          initial#10 x = 1;
+          initial #10 x = 1;
         endmodule
     )"));
     // clang-format on
@@ -1925,7 +1925,7 @@ TEST(ApplyIndentation, CheckerDeclaration) {
         endchecker
     )"), style), dedent(R"(
         checker req_ack(logic clk, req, ack);
-          a1:assert property(p);
+          a1 : assert property (p);
         endchecker
     )"));
     // clang-format on
@@ -1963,6 +1963,28 @@ TEST(ApplyIndentation, ClassDeclarationWithBlockName) {
     // clang-format on
 }
 
+TEST(ApplyIndentation, CompilationUnitTopLevel) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        endmodule
+
+        // comment
+        module bar;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+        endmodule
+
+        // comment
+        module bar;
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyIndentation, ClockingDeclaration) {
     Style const style{};
 
@@ -1977,8 +1999,8 @@ TEST(ApplyIndentation, ClockingDeclaration) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          clocking cb@(posedge clk);
-            default input#1step output#0;
+          clocking cb @(posedge clk);
+            default input #1step output #0;
             input data;
             output valid;
           endclocking
@@ -2018,7 +2040,7 @@ TEST(ApplyIndentation, ConstraintDeclaration) {
         endclass
     )"), style), dedent(R"(
         class foo;
-          constraint c{
+          constraint c {
             x > 0;
             x < 10;
           }
@@ -2903,10 +2925,42 @@ TEST(ApplyIndentation, UdpDeclaration) {
           output out;
           input a, b, sel;
           table
-            0?0:0;
-            1?0:1;
-            ?0 1:0;
-            ?1 1:1;
+            0 ? 0 : 0;
+            1 ? 0 : 1;
+            ? 0 1 : 0;
+            ? 1 1 : 1;
+          endtable
+        endprimitive
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, UdpDeclarationSequential) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        primitive udp_dff(q, clk, d);
+        output q;
+        reg q;
+        input clk, d;
+        table
+        (01)0:?:0;
+        (01)1:?:1;
+        (?0)?:?:-;
+        ?*:?:-;
+        endtable
+        endprimitive
+    )"), style), dedent(R"(
+        primitive udp_dff(q, clk, d);
+          output q;
+          reg q;
+          input clk, d;
+          table
+            (01) 0 : ? : 0;
+            (01) 1 : ? : 1;
+            (?0) ? : ? : -;
+            ? * : ? : -;
           endtable
         endprimitive
     )"));
@@ -4939,7 +4993,7 @@ TEST(SpaceAfterParensEventControls, SkipsAtStar) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always @*x = 1;
+          always @* x = 1;
         endmodule
     )"));
     // clang-format on
@@ -4957,7 +5011,7 @@ TEST(SpaceAfterParensEventControls, SkipsDelay) {
     )"), style), dedent(R"(
         module foo;
           initial
-              #(5)x = 1;
+              #(5) x = 1;
         endmodule
     )"));
     // clang-format on
@@ -6117,6 +6171,26 @@ TEST(SpaceAroundOperators, RemovesBefore) {
     )"), style), dedent(R"(
         module foo;
           assign x = a + b;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SpaceAroundOperators, ValueRange) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            x = y inside {[1:16]};
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            x = y inside {[1 : 16]};
+          end
         endmodule
     )"));
     // clang-format on

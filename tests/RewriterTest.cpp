@@ -1096,7 +1096,7 @@ TEST(ApplyInsertParens, AllDisabledDoesNothing) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always @*x = 1;
+          always @* x = 1;
           always @signal x = 1;
           always #5 clk = ~clk;
         endmodule
@@ -1115,7 +1115,7 @@ TEST(ApplyInsertParens, Delays) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #(5)clk = ~clk;
+          always #(5) clk = ~clk;
         endmodule
     )"));
     // clang-format on
@@ -1132,7 +1132,7 @@ TEST(ApplyInsertParens, DelaysPreservesExisting) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #(5)clk = ~clk;
+          always #(5) clk = ~clk;
         endmodule
     )"));
     // clang-format on

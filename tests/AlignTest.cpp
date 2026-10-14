@@ -1148,8 +1148,8 @@ TEST(AlignConsecutiveTimingControls, ParenthesizedDelay) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always #(CLK_PERIOD / 2)clk_i  = ~clk_i;
-          always #20              dclk_i = ~dclk_i;
+          always #(CLK_PERIOD / 2) clk_i  = ~clk_i;
+          always #20               dclk_i = ~dclk_i;
         endmodule
     )"));
 }
