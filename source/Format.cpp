@@ -19,6 +19,7 @@
 #include <utility>
 #include <vector>
 
+#include <slang/parsing/LexerFacts.h>
 #include <slang/parsing/ParserMetadata.h>
 #include <slang/parsing/Token.h>
 #include <slang/parsing/TokenKind.h>
@@ -61,6 +62,31 @@ bool isEventControl(const TimingControlSyntax& tc) {
 
 bool needsSeparator(char last, char next) {
     return isIdentChar(last) && isIdentChar(next);
+}
+
+bool needsSpaceBetween(TokenKind prev, TokenKind curr) {
+    if (prev == TokenKind::Unknown) {
+        return false;
+    }
+
+    bool const prevIsKeyword = LexerFacts::isKeyword(prev);
+
+    if (prevIsKeyword && curr == TokenKind::OpenBrace) {
+        return true;
+    }
+    if (prevIsKeyword && curr == TokenKind::StringLiteral) {
+        return true;
+    }
+
+    if (prev == TokenKind::CloseBrace &&
+        (LexerFacts::isKeyword(curr) || curr == TokenKind::Identifier)) {
+        return true;
+    }
+    if (prev == TokenKind::StringLiteral && LexerFacts::isKeyword(curr)) {
+        return true;
+    }
+
+    return false;
 }
 
 size_t flatWidth(const SyntaxNode& node) {
@@ -139,7 +165,9 @@ public:
         // The EndOfFile token is not part of the visited subtree when tree.root()
         // returns a member node (e.g. ModuleDeclarationSyntax). Emit its
         // leading trivia, which carries the final newlines from the source.
-        emitToken(tree.getMetadata().eofToken);
+        if (tree.root().kind != SyntaxKind::CompilationUnit) {
+            emitToken(tree.getMetadata().eofToken);
+        }
         return {.output = std::move(output), .lineMetadata = std::move(lineMetadata)};
     }
 
@@ -179,6 +207,44 @@ public:
         if (module.blockName != nullptr) {
             module.blockName->visit(*this);
         }
+    }
+
+    void handle(const ModportItemSyntax& m) {
+        emitToken(m.name);
+        if (formatEnabled && !output.empty()) {
+            stripTrailingSpaces();
+        }
+
+        auto& p = *m.ports;
+        emitToken(p.openParen);
+
+        depth++;
+        visitSeparatedList(p.ports);
+
+        portItemNextIndent = true;
+        nextIsPrimary = true;
+        emitEndTokenTrivia(p.closeParen);
+        portItemNextIndent = false;
+
+        depth--;
+        nextIsPrimary = true;
+        nextLineKind = LineMetadata::Kind::PortListBoundary;
+        emitToken(p.closeParen);
+    }
+
+    void handle(const AttributeInstanceSyntax& a) {
+        emitToken(a.openParen);
+        emitToken(a.openStar);
+        if (formatEnabled && !output.empty() && output.back() != ' ') {
+            output += ' ';
+        }
+        visitSeparatedList(a.specs);
+        if (formatEnabled && !output.empty() && output.back() != ' ') {
+            output += ' ';
+        }
+        emitToken(a.closeStar);
+        emitToken(a.closeParen);
+        nextIsPrimary = true;
     }
 
     void handle(const AnsiPortListSyntax& p) {
@@ -943,9 +1009,27 @@ public:
         emitToken(decl.semi);
     }
 
-    void handle(const GenerateBlockSyntax& b) { visitScopedBlock(b, b.end, b.members); }
+    void handle(const GenerateBlockSyntax& b) {
+        for (auto* attr : b.attributes) {
+            attr->visit(*this);
+        }
+        if (b.label != nullptr) {
+            b.label->visit(*this);
+        }
+        emitToken(b.begin);
+        if (b.beginName != nullptr) {
+            b.beginName->visit(*this);
+        }
+        visitMembers(b.members, b.end, b.endName);
+    }
 
-    void handle(const GenerateRegionSyntax& r) { visitScopedBlock(r, r.endgenerate, r.members); }
+    void handle(const GenerateRegionSyntax& r) {
+        for (auto* attr : r.attributes) {
+            attr->visit(*this);
+        }
+        emitToken(r.keyword);
+        visitMembers(r.members, r.endgenerate, nullptr);
+    }
 
     void handle(const FunctionDeclarationSyntax& f) {
         bool const shouldBreak = (f.kind == SyntaxKind::FunctionDeclaration &&
@@ -956,7 +1040,12 @@ public:
             insertBlankLineBefore(f.getFirstToken());
         }
 
-        visitScopedBlock(f, f.end, f.items);
+        for (auto* attr : f.attributes) {
+            attr->visit(*this);
+        }
+        f.prototype->visit(*this);
+        emitToken(f.semi);
+        visitMembers(f.items, f.end, f.endBlockName);
     }
 
     void handle(const SpecifyBlockSyntax& s) {
@@ -964,7 +1053,214 @@ public:
             insertBlankLineBefore(s.getFirstToken());
         }
 
-        visitScopedBlock(s, s.endspecify, s.items);
+        for (auto* attr : s.attributes) {
+            attr->visit(*this);
+        }
+        emitToken(s.specify);
+        visitMembers(s.items, s.endspecify, nullptr);
+    }
+
+    void handle(const CheckerDeclarationSyntax& c) {
+        for (auto* attr : c.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(c.keyword);
+        emitToken(c.name);
+        if (c.portList != nullptr) {
+            c.portList->visit(*this);
+        }
+
+        emitToken(c.semi);
+        visitMembers(c.members, c.end, c.endBlockName);
+    }
+
+    void handle(const ClassDeclarationSyntax& c) {
+        for (auto* attr : c.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(c.virtualOrInterface);
+        emitToken(c.classKeyword);
+        if (c.finalSpecifier != nullptr) {
+            c.finalSpecifier->visit(*this);
+        }
+
+        emitToken(c.name);
+        if (c.parameters != nullptr) {
+            c.parameters->visit(*this);
+        }
+
+        if (c.extendsClause != nullptr) {
+            c.extendsClause->visit(*this);
+        }
+
+        if (c.implementsClause != nullptr) {
+            c.implementsClause->visit(*this);
+        }
+
+        emitToken(c.semi);
+        visitMembers(c.items, c.endClass, c.endBlockName);
+    }
+
+    void handle(const ClockingDeclarationSyntax& c) {
+        for (auto* attr : c.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(c.globalOrDefault);
+        emitToken(c.clocking);
+        emitToken(c.blockName);
+        emitToken(c.at);
+        c.event->visit(*this);
+        emitToken(c.semi);
+        visitMembers(c.items, c.endClocking, c.endBlockName);
+    }
+
+    void handle(const ConfigDeclarationSyntax& c) {
+        for (auto* attr : c.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(c.config);
+        emitToken(c.name);
+        emitToken(c.semi1);
+
+        depth++;
+        for (auto* param : c.localparams) {
+            nextIsPrimary = true;
+            param->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitToken(c.design);
+        for (auto* cell : c.topCells) {
+            cell->visit(*this);
+        }
+
+        emitToken(c.semi2);
+
+        for (auto* rule : c.rules) {
+            nextIsPrimary = true;
+            rule->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(c.endconfig);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(c.endconfig);
+        if (c.blockName != nullptr) {
+            c.blockName->visit(*this);
+        }
+    }
+
+    void handle(const ConstraintDeclarationSyntax& c) {
+        for (auto* attr : c.attributes) {
+            attr->visit(*this);
+        }
+
+        for (auto tok : c.qualifiers) {
+            emitToken(tok);
+        }
+
+        emitToken(c.keyword);
+        for (auto* spec : c.specifiers) {
+            spec->visit(*this);
+        }
+
+        c.name->visit(*this);
+        c.block->visit(*this);
+    }
+
+    void handle(const ConstraintBlockSyntax& b) {
+        emitToken(b.openBrace);
+
+        depth++;
+        for (auto* item : b.items) {
+            nextIsPrimary = true;
+            item->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(b.closeBrace);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(b.closeBrace);
+    }
+
+    void handle(const CovergroupDeclarationSyntax& c) {
+        for (auto* attr : c.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(c.covergroup);
+        emitToken(c.extends);
+        emitToken(c.name);
+        if (c.portList != nullptr) {
+            c.portList->visit(*this);
+        }
+
+        if (c.event != nullptr) {
+            c.event->visit(*this);
+        }
+
+        emitToken(c.semi);
+        visitMembers(c.members, c.endgroup, c.endBlockName);
+    }
+
+    void handle(const UdpDeclarationSyntax& u) {
+        for (auto* attr : u.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(u.primitive);
+        emitToken(u.name);
+        u.portList->visit(*this);
+
+        depth++;
+        for (size_t i = 0; i < u.body->portDecls.getChildCount(); i++) {
+            if (auto* node = u.body->portDecls.childNode(i)) {
+                nextIsPrimary = true;
+                node->visit(*this);
+            }
+            else if (auto tok = u.body->portDecls.childToken(i)) {
+                emitToken(tok);
+            }
+        }
+
+        if (u.body->initialStmt != nullptr) {
+            nextIsPrimary = true;
+            u.body->initialStmt->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitToken(u.body->table);
+
+        depth++;
+        for (auto* entry : u.body->entries) {
+            nextIsPrimary = true;
+            entry->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(u.body->endtable);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(u.body->endtable);
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(u.endprimitive);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(u.endprimitive);
+        if (u.endBlockName != nullptr) {
+            u.endBlockName->visit(*this);
+        }
     }
 
     void handle(const DataDeclarationSyntax& decl) {
@@ -1101,6 +1397,59 @@ public:
         emitToken(decl.semi);
     }
 
+    void handle(const EnumTypeSyntax& e) {
+        emitToken(e.keyword);
+        if (e.baseType != nullptr) {
+            e.baseType->visit(*this);
+        }
+        emitToken(e.openBrace);
+
+        depth++;
+        for (const auto& elem : e.members.elems()) {
+            if (elem.isNode()) {
+                nextIsPrimary = true;
+                elem.node()->visit(*this);
+            }
+            else if (elem.isToken()) {
+                emitToken(elem.token());
+            }
+        }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(e.closeBrace);
+        depth--;
+        nextIsPrimary = true;
+        emitToken(e.closeBrace);
+
+        for (auto* dim : e.dimensions) {
+            dim->visit(*this);
+        }
+    }
+
+    void handle(const StructUnionTypeSyntax& s) {
+        emitToken(s.keyword);
+        emitToken(s.taggedOrSoft);
+        emitToken(s.packed);
+        emitToken(s.signing);
+        emitToken(s.openBrace);
+
+        depth++;
+        for (auto* member : s.members) {
+            nextIsPrimary = true;
+            member->visit(*this);
+        }
+
+        nextIsPrimary = true;
+        emitEndTokenTrivia(s.closeBrace);
+        depth--;
+        nextIsPrimary = true;
+        emitToken(s.closeBrace);
+
+        for (auto* dim : s.dimensions) {
+            dim->visit(*this);
+        }
+    }
+
     void handle(const TypedefDeclarationSyntax& decl) {
         nextLineKind = LineMetadata::Kind::Declaration;
         for (auto* attr : decl.attributes) {
@@ -1227,6 +1576,17 @@ public:
         emitToken(inst.semi);
     }
 
+    void handle(const NamedBlockClauseSyntax& clause) {
+        if (formatEnabled && !output.empty() && output.back() != ' ') {
+            output += ' ';
+        }
+        emitToken(clause.colon);
+        if (formatEnabled && !output.empty() && output.back() != ' ') {
+            output += ' ';
+        }
+        emitToken(clause.name);
+    }
+
     void handle(const NamedParamAssignmentSyntax& param) {
         nextLineKind = LineMetadata::Kind::PortConnection;
         visitDefault(param);
@@ -1324,6 +1684,7 @@ private:
     bool afterCloseBracket = false;
     bool afterIntegerBase = false;
     TokenKind lastTokenKind = TokenKind::Unknown;
+    bool skipExpandedToken = false;
     bool spaceBeforeCloseBracePending = false;
     bool spaceBeforeCloseBracketPending = false;
     bool spaceBeforeCloseParenPending = false;
@@ -1608,6 +1969,10 @@ private:
             return;
         }
 
+        if (node->kind == SyntaxKind::MacroUsage) {
+            skipExpandedToken = true;
+        }
+
         auto it = node->tokens_begin();
         auto end = node->tokens_end();
         if (it == end) {
@@ -1628,7 +1993,10 @@ private:
         for (; it != end; ++it) {
             auto tok = *it;
             for (const auto& inner : tok.trivia()) {
-                if (inner.kind == TriviaKind::Whitespace) {
+                if (inner.kind == TriviaKind::EndOfLine) {
+                    emitTrivia(inner);
+                }
+                else if (inner.kind == TriviaKind::Whitespace) {
                     output += inner.getRawText();
                 }
             }
@@ -1781,9 +2149,22 @@ private:
         }
     }
 
-    void emitSeparator(std::string_view raw) {
-        if (formatEnabled && !atLineStart && !afterIntegerBase && !raw.empty() && !output.empty() &&
-            needsSeparator(output.back(), raw.front())) {
+    void emitSeparator(Token tok) {
+        if (!formatEnabled || atLineStart || afterIntegerBase) {
+            return;
+        }
+
+        auto raw = tok.rawText();
+        if (raw.empty() || output.empty()) {
+            return;
+        }
+
+        if (output.back() == ' ') {
+            return;
+        }
+
+        if (needsSeparator(output.back(), raw.front()) ||
+            needsSpaceBetween(lastTokenKind, tok.kind)) {
             output += ' ';
         }
     }
@@ -1804,7 +2185,7 @@ private:
         }
 
         auto raw = tok.rawText();
-        emitSeparator(raw);
+        emitSeparator(tok);
 
         if (atLineStart) {
             if (nextLineKind) {
@@ -1839,7 +2220,12 @@ private:
         }
         normalizeBeforeOpen(tok.kind);
 
-        output += raw;
+        if (skipExpandedToken) {
+            skipExpandedToken = false;
+        }
+        else {
+            output += raw;
+        }
         lineDepth = depth;
         nextIsPrimary = false;
         emptyLineCount = 0;
@@ -2175,47 +2561,22 @@ private:
         }
     }
 
-    template<typename NodeT, typename ListT>
-    void visitScopedBlock(const NodeT& node, Token endTok, const ListT& items) {
-        nextIsPrimary = true;
-        bool depthBumped{false};
-        auto isItem = [&items](const SyntaxNode* child) {
-            return std::ranges::any_of(items, [child](const auto* item) { return item == child; });
-        };
-        const auto count = node.getChildCount();
-        for (size_t i = 0; i < count; i++) {
-            if (auto tok = node.childToken(i)) {
-                if (tok.location() == endTok.location()) {
-                    if (!depthBumped) {
-                        depth++;
-                    }
-
-                    nextIsPrimary = true;
-                    emitEndTokenTrivia(tok);
-                    depth--;
-                    depthBumped = false;
-
-                    nextIsPrimary = true;
-                }
-
-                emitToken(tok);
-            }
-            else if (auto* childNode = node.childNode(i)) {
-                if (isItem(childNode)) {
-                    if (!depthBumped) {
-                        depth++;
-                        depthBumped = true;
-                    }
-
-                    nextIsPrimary = true;
-                }
-
-                childNode->visit(*this);
-            }
+    template<typename ListT>
+    void visitMembers(const ListT& members, Token endTok, const NamedBlockClauseSyntax* blockName) {
+        depth++;
+        for (auto* member : members) {
+            nextIsPrimary = true;
+            member->visit(*this);
         }
 
-        if (depthBumped) {
-            depth--;
+        nextIsPrimary = true;
+        emitEndTokenTrivia(endTok);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(endTok);
+        if (blockName != nullptr) {
+            blockName->visit(*this);
         }
     }
 };

@@ -1915,6 +1915,138 @@ TEST(ApplyIndentation, BreakBeforeEndOnly) {
     // clang-format on
 }
 
+TEST(ApplyIndentation, CheckerDeclaration) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        checker req_ack(logic clk, req, ack);
+        a1: assert property(p);
+        endchecker
+    )"), style), dedent(R"(
+        checker req_ack(logic clk, req, ack);
+          a1:assert property(p);
+        endchecker
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, ClassDeclaration) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        int x;
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          int x;
+        endclass
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, ClassDeclarationWithBlockName) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        int x;
+        endclass:foo
+    )"), style), dedent(R"(
+        class foo;
+          int x;
+        endclass : foo
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, ClockingDeclaration) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        clocking cb@(posedge clk);
+        default input#1step output#0;
+        input data;
+        output valid;
+        endclocking
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          clocking cb@(posedge clk);
+            default input#1step output#0;
+            input data;
+            output valid;
+          endclocking
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, ConfigDeclaration) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        config cfg;
+        design work.top;
+        default liblist aLib bLib;
+        endconfig
+    )"), style), dedent(R"(
+        config cfg;
+          design work.top;
+          default liblist aLib bLib;
+        endconfig
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, ConstraintDeclaration) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        constraint c{
+        x > 0;
+        x < 10;
+        }
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          constraint c{
+            x > 0;
+            x < 10;
+          }
+        endclass
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, CovergroupDeclaration) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        covergroup cg;
+        option.per_instance = 1;
+        endgroup
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          covergroup cg;
+            option.per_instance = 1;
+          endgroup
+        endclass
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyIndentation, CaseItemNextLineIndented) {
     Style style;
     style.IndentCaseItem = true;
@@ -2144,6 +2276,48 @@ TEST(ApplyIndentation, EndTokenLineCommentInFunction) {
             // comment
           endfunction
         endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, EnumTypeDeclaration) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package foo;
+        typedef enum bit [1:0]{
+        ST_IDLE,
+        ST_REQ
+        }state_e;
+        endpackage
+    )"), style), dedent(R"(
+        package foo;
+          typedef enum bit [1:0] {
+            ST_IDLE,
+            ST_REQ
+          } state_e;
+        endpackage
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, FunctionDeclarationBody) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package foo;
+        function int add(int a, int b);
+        return a + b;
+        endfunction
+        endpackage
+    )"), style), dedent(R"(
+        package foo;
+          function int add(int a, int b);
+            return a + b;
+          endfunction
+        endpackage
     )"));
     // clang-format on
 }
@@ -2687,6 +2861,58 @@ TEST(ApplyIndentation, PortListIndented) {
     // clang-format on
 }
 
+TEST(ApplyIndentation, StructTypeDeclaration) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package foo;
+        typedef struct packed{
+        logic valid;
+        logic [3:0] strb;
+        }beat_t;
+        endpackage
+    )"), style), dedent(R"(
+        package foo;
+          typedef struct packed {
+            logic valid;
+            logic [3:0] strb;
+          } beat_t;
+        endpackage
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, UdpDeclaration) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        primitive mux(out, a, b, sel);
+        output out;
+        input a, b, sel;
+        table
+        0?0:0;
+        1?0:1;
+        ?0 1:0;
+        ?1 1:1;
+        endtable
+        endprimitive
+    )"), style), dedent(R"(
+        primitive mux(out, a, b, sel);
+          output out;
+          input a, b, sel;
+          table
+            0?0:0;
+            1?0:1;
+            ?0 1:0;
+            ?1 1:1;
+          endtable
+        endprimitive
+    )"));
+    // clang-format on
+}
+
 TEST(CompactConditionals, BasicIf) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -3031,6 +3257,28 @@ TEST(Directive, DefaultNettypeAtFileScope) {
     // clang-format on
 }
 
+TEST(Directive, DefineGuardNotDuplicated) {
+    const Style style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign a = 1;
+        endmodule
+        `ifndef GUARD
+        `define GUARD
+        `endif
+    )"), style), dedent(R"(
+        module foo;
+          assign a = 1;
+        endmodule
+        `ifndef GUARD
+        `define GUARD
+        `endif
+    )"));
+    // clang-format on
+}
+
 TEST(Directive, DirectiveAfterModule) {
     const Style style;
 
@@ -3049,6 +3297,26 @@ TEST(Directive, DirectiveAfterModule) {
     // clang-format on
 }
 
+TEST(Directive, IfdefPreservesLineBreaks) {
+    const Style style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        `ifdef FOO
+        module foo;
+          assign a = 1;
+        endmodule
+        `endif
+    )"), style), dedent(R"(
+        `ifdef FOO
+        module foo;
+          assign a = 1;
+        endmodule
+        `endif
+    )"));
+    // clang-format on
+}
+
 TEST(Directive, IncludeDirective) {
     const Style style;
 
@@ -3062,6 +3330,24 @@ TEST(Directive, IncludeDirective) {
         `include "file.svh"
         module foo;
           assign a = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(Directive, MacroUsageNoExpandedToken) {
+    const Style style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        `define STRINGIFY(x) `"x`"
+        module foo;
+          initial $display(`STRINGIFY(bar));
+        endmodule
+    )"), style), dedent(R"(
+        `define STRINGIFY(x) `"x`"
+        module foo;
+          initial $display(`STRINGIFY(bar));
         endmodule
     )"));
     // clang-format on
@@ -3310,8 +3596,8 @@ TEST(OneStatementPerLine, DPIImportDeclaration) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          import"DPI-C"function void dpi_fn();
-          import"DPI-C"function void dpi_fn2();
+          import "DPI-C" function void dpi_fn();
+          import "DPI-C" function void dpi_fn2();
         endmodule
     )"));
     // clang-format on
@@ -3912,7 +4198,7 @@ TEST(SpaceAfterComma, Collapses) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign{a, b, c} = d;
+          assign {a, b, c} = d;
         endmodule
     )"));
     // clang-format on
@@ -3929,7 +4215,7 @@ TEST(SpaceAfterComma, Disabled) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign{a,b,c} = d;
+          assign {a,b,c} = d;
         endmodule
     )"));
     // clang-format on
@@ -3967,7 +4253,7 @@ TEST(SpaceAfterComma, Inserts) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign{a, b, c} = d;
+          assign {a, b, c} = d;
         endmodule
     )"));
     // clang-format on
@@ -3984,7 +4270,7 @@ TEST(SpaceAfterComma, NormalizesWhenDisabled) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign{a,b,c} = d;
+          assign {a,b,c} = d;
         endmodule
     )"));
 
@@ -3994,7 +4280,7 @@ TEST(SpaceAfterComma, NormalizesWhenDisabled) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign{a,b,c} = d;
+          assign {a,b,c} = d;
         endmodule
     )"));
     // clang-format on
@@ -4011,7 +4297,7 @@ TEST(SpaceAfterComma, NormalizesAround) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign{a, b, c} = d;
+          assign {a, b, c} = d;
         endmodule
     )"));
     // clang-format on
@@ -4050,7 +4336,7 @@ TEST(SpaceAfterComma, RemovesBefore) {
         endmodule
     )"), style), dedent(R"(
         module foo;
-          assign{a, b, c} = d;
+          assign {a, b, c} = d;
         endmodule
     )"));
     // clang-format on
@@ -5567,6 +5853,24 @@ TEST(SpaceBeforeParensPortList, Inserts) {
     // clang-format on
 }
 
+TEST(SpaceBeforeParensPortList, ModportNoSpace) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        interface foo;
+          modport mst (input clk, output data);
+          modport slv (input data, output ack);
+        endinterface
+    )"), style), dedent(R"(
+        interface foo;
+          modport mst(input clk, output data);
+          modport slv(input data, output ack);
+        endinterface
+    )"));
+    // clang-format on
+}
+
 TEST(SpaceBeforeParensPortList, NormalizesWhenDisabled) {
     Style style;
     style.SpaceBeforeParens.PortList = false;
@@ -6473,6 +6777,64 @@ TEST(SpacesInParens, RemovesBefore) {
             if ( a ) begin
             end
           end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(WhitespaceNormalization, AttributeInstance) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          (*keep = "true", dont_touch*)
+          logic [7:0] attr_sig;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          (* keep = "true", dont_touch *)
+          logic [7:0] attr_sig;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(WhitespaceNormalization, KeywordBeforeBrace) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          typedef struct packed{
+            logic valid;
+          }beat_t;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          typedef struct packed {
+            logic valid;
+          } beat_t;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(WhitespaceNormalization, NamedBlockClause) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          function int add(int a, int b);
+            return a + b;
+          endfunction:add
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          function int add(int a, int b);
+            return a + b;
+          endfunction : add
         endmodule
     )"));
     // clang-format on
