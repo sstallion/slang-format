@@ -2560,7 +2560,8 @@ private:
             return;
         }
 
-        for (const auto& inner : (*it).trivia()) {
+        auto first = *it;
+        for (const auto& inner : first.trivia()) {
             emitTrivia(inner);
         }
 
@@ -2568,7 +2569,7 @@ private:
             currentLineMeta.kind = LineMetadata::Kind::Comment;
         }
 
-        output += (*it).rawText();
+        output += first.rawText();
         it++;
 
         for (; it != end; ++it) {
