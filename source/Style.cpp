@@ -116,6 +116,10 @@ void parseAlignConsecutive(const YAML::Node& node, AlignConsecutiveStyle& config
         config.MaxPadding = v.as<unsigned>();
     }
 
+    if (auto v = node["MinPadding"]) {
+        config.MinPadding = v.as<unsigned>();
+    }
+
     if (auto v = node["PadLeft"]) {
         config.PadLeft = v.as<bool>();
     }
@@ -298,6 +302,7 @@ struct AlignConsecutiveFields {
     bool alignColon = false;
     bool inferFromSource = false;
     bool maxPadding = false;
+    bool minPadding = false;
     bool padLeftRight = false;
 };
 
@@ -319,6 +324,9 @@ void emitAlignConsecutive(YAML::Emitter& out, const AlignConsecutiveStyle& confi
     }
     if (fields.maxPadding) {
         out << YAML::Key << "MaxPadding" << YAML::Value << config.MaxPadding;
+    }
+    if (fields.minPadding) {
+        out << YAML::Key << "MinPadding" << YAML::Value << config.MinPadding;
     }
     if (fields.padLeftRight) {
         out << YAML::Key << "PadLeft" << YAML::Value << config.PadLeft;
@@ -482,7 +490,8 @@ Style getDefaultStyle() {
 std::string dumpConfiguration(const Style& style) {
     constexpr AlignConsecutiveFields assignFields{.acrossParameterPortList = true,
                                                   .inferFromSource = true,
-                                                  .maxPadding = true};
+                                                  .maxPadding = true,
+                                                  .minPadding = true};
     constexpr AlignConsecutiveFields declFields{.acrossParameterPortList = true,
                                                 .inferFromSource = true};
     constexpr AlignConsecutiveFields portListFields{.acrossParameterPortList = true};

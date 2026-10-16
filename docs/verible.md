@@ -8,73 +8,16 @@ formatting behavior and slang-format's output. The golden reference file is
 
 ## Status
 
-654 of 655 tests pass. The single remaining failure is the Verible fixture test,
-which has 13 differing hunks across 3 root cause categories:
+660 of 661 tests pass. The single remaining failure is the Verible fixture test,
+which has 7 differing hunks across 2 root cause categories:
 
-| Category                                | Hunks | Lines                              |
-| --------------------------------------- | ----- | ---------------------------------- |
-| InferFromSource rejects alignment       | 6     | 123, 262, 391, 396, 524, 706-723   |
-| Verible multi-space range inconsistency | 4     | 243, 290, 320, 324                 |
-| Missing keyword padding and dim PadLeft | 3     | 301-303                            |
+| Category                                | Hunks | Lines    |
+| --------------------------------------- | ----- | -------- |
+| Verible multi-space range inconsistency | 4     | 243, 290, 320, 324 |
+| Missing keyword padding and dim PadLeft | 3     | 301-303  |
 
 Each category is described below with root cause analysis and the refactoring
 required to resolve it.
-
-## Deviation: InferFromSource Rejects Alignment
-
-### Affected Lines
-
-| Line(s) | Context              | Actual           | Expected            | Displacement |
-| ------- | -------------------- | ---------------- | ------------------- | ------------ |
-| 123     | Class constructor    | `this.id = ...`  | `this.id   = ...`   | 2            |
-| 262     | Clocking block       | `cb.req <= ...`  | `cb.req  <= ...`    | 1            |
-| 391     | Case statement body  | `rdy_o = ...`    | `rdy_o   = ...`     | 2            |
-| 396     | Case statement body  | `rdy_o = ...`    | `rdy_o   = ...`     | 2            |
-| 524     | Port connection list | `.b(data_i)`     | `.b  (data_i)`      | 2            |
-| 706-709 | Bind port list       | `.clk(clk)`      | `.clk  (clk)`       | 2            |
-| 723     | Instance port list   | `.clk(clk)`      | `.clk  (clk)`       | 2            |
-
-### Root Cause
-
-The `InferFromSource` alignment policy examines `groupMaxExcess` - the maximum
-difference between source and output inter-token spacing across a group. When
-the source has no excess spacing (the author wrote exactly one space between
-tokens), InferFromSource concludes the author did not intend alignment and
-returns `FlushLeft`.
-
-Verible does not have an InferFromSource concept; it unconditionally aligns
-assignments and port connections within groups when the displacement is small.
-
-### Why Not Fixed
-
-Disabling InferFromSource for assignments and port connections
-(`AlignConsecutiveAssignments`, `AlignConsecutivePortConnections`) or adding a
-`minGuarantee` for these passes causes regressions in existing tests:
-
-- `PortListBoundaryBreaksGroup` fails because MaxPadding=1 with displacement=2
-  should reject alignment.
-- `Rule1SmallPaddingAligns` fails because InferFromSource with no source excess
-  should reject alignment.
-
-The `minGuarantee` mechanism works for declarations (where bare-type groups have
-no keywords and benefit from unconditional small-displacement alignment) but
-cannot be extended to assignments and port connections without breaking the
-MaxPadding contract those tests verify.
-
-### Possible Resolution
-
-Introduce per-pass alignment defaults that separate declaration behavior
-(always-align for small displacements) from assignment and port connection
-behavior (InferFromSource decides). This would require either:
-
-1. A separate `AlwaysAlignSmallDisplacements` field on `AlignConsecutiveStyle`
-   that bypasses InferFromSource for displacements at or below a threshold, or
-2. Changing the default `AlignConsecutiveAssignments` and
-   `AlignConsecutivePortConnections` to `InferFromSource: false`, which matches
-   Verible but changes slang-format's default behavior for all users.
-
-Option 2 is the simpler change but has broader impact. Option 1 is more
-surgical.
 
 ## Deviation: Verible Multi-Space Range Inconsistency
 

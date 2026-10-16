@@ -118,6 +118,7 @@ AlignConsecutiveAssignments:
   Enabled: true
   InferFromSource: true
   MaxPadding: 2
+  MinPadding: 2
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
@@ -173,7 +174,7 @@ endmodule
 If `true`, the formatter examines original source spacing to infer whether the
 author intended alignment. Groups where the source is flush-left are left
 unaligned; groups where the source shows significant excess spacing are aligned.
-Groups where the alignment displacement falls within `MaxPadding` are always
+Groups where the alignment displacement falls within `MinPadding` are always
 aligned regardless of this setting.
 
 **Default:** `true`
@@ -222,6 +223,29 @@ module foo;
   assign x = 1;
   assign longname = 2;
 endmodule
+```
+
+#### MinPadding (unsigned)
+
+Minimum padding guarantee: groups with displacement at or below this threshold
+are always aligned when `InferFromSource` is `true`, bypassing the
+source-spacing inference. A value of `0` disables the guarantee. This option
+has no effect when `InferFromSource` is `false`.
+
+**Default:** `2`
+
+```sv
+// MinPadding: 2 (displacement is 2, within guarantee)
+always_comb begin
+  state_d = state_q;
+  rdy_o   = 1'b0;
+end
+
+// MinPadding: 0 (no guarantee, InferFromSource decides)
+always_comb begin
+  state_d = state_q;
+  rdy_o = 1'b0;
+end
 ```
 
 #### AcrossComments (bool)
@@ -479,6 +503,7 @@ AlignConsecutivePortConnections:
   Enabled: true
   InferFromSource: true
   MaxPadding: 2
+  MinPadding: 2
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
@@ -538,6 +563,12 @@ dff u_dff_named (
     .data_out(data_out)
 );
 ```
+
+#### MinPadding (unsigned)
+
+See `AlignConsecutiveAssignments.MinPadding`.
+
+**Default:** `2`
 
 #### AcrossComments (bool)
 

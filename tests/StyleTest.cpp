@@ -172,6 +172,20 @@ TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsMaxPadding) {
     EXPECT_EQ(style.AlignConsecutiveAssignments.MaxPadding, 4U);
 }
 
+TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsMinPadding) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveAssignments:
+          MinPadding: 3
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_EQ(style.AlignConsecutiveAssignments.MinPadding, 3U);
+}
+
 TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarationsAcrossComments) {
     Style style;
 
@@ -1063,6 +1077,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("MaxPadding: 2"), std::string::npos);
+    EXPECT_NE(result.find("MinPadding: 2"), std::string::npos);
     EXPECT_NE(result.find("AllowShortConstraintBlocksOnASingleLine: true"), std::string::npos);
     EXPECT_NE(result.find("AllowShortCoverpointsOnASingleLine: true"), std::string::npos);
     EXPECT_NE(result.find("BinPackArguments: true"), std::string::npos);
@@ -1216,6 +1231,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.AlignConsecutivePackedDimensions.PadRight = true;
     original.AlignConsecutivePortConnections.Enabled = true;
     original.AlignConsecutivePortConnections.MaxPadding = 3;
+    original.AlignConsecutivePortConnections.MinPadding = 1;
     original.AlignConsecutiveTimingControls.Enabled = true;
     original.AlignConsecutiveTimingControls.AcrossEmptyLines = true;
     original.AlignTrailingComments.Enabled = true;

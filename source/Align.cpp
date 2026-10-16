@@ -563,6 +563,7 @@ struct InferContext {
     bool enabled = false;
     bool minGuarantee = false;
     unsigned maxPadding = 0;
+    unsigned minPadding = 0;
     unsigned maxDisplacement = 0;
     unsigned groupMaxExcess = 0;
 };
@@ -572,6 +573,10 @@ AlignPolicy inferAlignPolicy(unsigned displacement, const InferContext& ctx) {
 
     if (ctx.enabled) {
         if (ctx.minGuarantee && displacement > 0 && displacement <= minGuaranteeThreshold) {
+            return AlignPolicy::Align;
+        }
+
+        if (ctx.minPadding > 0 && displacement > 0 && displacement <= ctx.minPadding) {
             return AlignPolicy::Align;
         }
 
@@ -1097,8 +1102,22 @@ bool hasDepthDropBelow(const std::vector<LineInfo>& infos, GroupRange range, uns
     return false;
 }
 
+bool hasFlatGap(const std::vector<LineInfo>& infos, GroupRange range, unsigned depth) {
+    bool hasGap = false;
+    for (auto i = range.start + 1; i < range.end; i++) {
+        if (infos[i].kind == Kind::Other && infos[i].depth == depth) {
+            hasGap = true;
+        }
+        else if (infos[i].depth > depth) {
+            return false;
+        }
+    }
+    return hasGap;
+}
+
 /// Assigns a sub-run index to each alignable line in the range, per depth. Consecutive assignments
-/// at depth D share a sub-run unless an intervening line has depth < D.
+/// at depth D share a sub-run unless an intervening line has depth < D or a flat gap of
+/// non-alignable lines separates them at depth D.
 std::vector<size_t> assignSubRuns(const std::vector<LineInfo>& infos, GroupRange range) {
     std::vector<size_t> subRun(range.end - range.start, 0);
     std::vector<size_t> lastIdxAtDepth;
@@ -1121,7 +1140,8 @@ std::vector<size_t> assignSubRuns(const std::vector<LineInfo>& infos, GroupRange
         }
         else {
             dIdx = static_cast<size_t>(it - depthValues.begin());
-            if (hasDepthDropBelow(infos, {.start = lastIdxAtDepth[dIdx], .end = i}, d)) {
+            auto gap = GroupRange{.start = lastIdxAtDepth[dIdx], .end = i};
+            if (hasDepthDropBelow(infos, gap, d) || hasFlatGap(infos, gap, d)) {
                 curSubRunAtDepth[dIdx]++;
             }
             lastIdxAtDepth[dIdx] = i;
@@ -1535,6 +1555,7 @@ std::string applyAlignConsecutive(const std::string& output,
         return InferContext{.enabled = alignStyle.InferFromSource,
                             .minGuarantee = minGuarantee,
                             .maxPadding = alignStyle.MaxPadding,
+                            .minPadding = alignStyle.MinPadding,
                             .maxDisplacement = alignStyle.MaxPadding * continuationIndentWidth,
                             .groupMaxExcess = computeGroupMaxExcess(lineMetadata, metaByLine, start,
                                                                     end)};

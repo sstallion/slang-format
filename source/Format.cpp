@@ -1434,7 +1434,12 @@ public:
             suppressSeparator = true;
         }
 
-        visitBody(*tcs.statement);
+        if (tcs.statement->kind == SyntaxKind::EmptyStatement) {
+            tcs.statement->visit(*this);
+        }
+        else {
+            visitBody(*tcs.statement);
+        }
     }
 
     void handle(const ForwardTypedefDeclarationSyntax& decl) {

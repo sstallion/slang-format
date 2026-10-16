@@ -37,6 +37,10 @@ struct AlignConsecutiveStyle {
     /// Maximum number of spaces any line may be padded; 0 means unlimited.
     unsigned MaxPadding = 0;
 
+    /// Minimum padding guarantee: groups with displacement at or below this
+    /// threshold are always aligned when InferFromSource is true; 0 disables.
+    unsigned MinPadding = 0;
+
     /// If true, left-pad content within brackets (right-justify).
     bool PadLeft = false;
 
@@ -144,15 +148,13 @@ struct Style {
     BracketAlignmentStyle AlignAfterOpenParen = BracketAlignmentStyle::Align;
 
     /// Controls alignment of assignment operators in consecutive declarations.
-    AlignConsecutiveStyle AlignConsecutiveAssignments{.Enabled = true,
-                                                      .InferFromSource = true,
-                                                      .MaxPadding = 2};
+    AlignConsecutiveStyle AlignConsecutiveAssignments{
+        .Enabled = true, .InferFromSource = true, .MaxPadding = 2, .MinPadding = 2};
 
     /// Controls alignment of opening parentheses in consecutive named port
     /// connections.
-    AlignConsecutiveStyle AlignConsecutivePortConnections{.Enabled = true,
-                                                          .InferFromSource = true,
-                                                          .MaxPadding = 2};
+    AlignConsecutiveStyle AlignConsecutivePortConnections{
+        .Enabled = true, .InferFromSource = true, .MaxPadding = 2, .MinPadding = 2};
 
     /// Controls alignment of trailing comments in consecutive lines.
     AlignConsecutiveStyle AlignTrailingComments;

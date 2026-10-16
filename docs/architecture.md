@@ -181,10 +181,10 @@ the source whitespace count and the formatted output spacing. The alignment
 engine uses this data to infer whether the source was already aligned: if the
 maximum excess spacing (source minus output) across a group is small, alignment
 is suppressed to preserve the author's flush-left intent; if the excess is
-large, the engine aligns to reproduce the author's aligned layout. Groups where
-the alignment displacement falls within `MaxPadding` are always aligned
-regardless of inference, preserving the existing unconditional behavior for
-small groups.
+large, the engine aligns to reproduce the author's aligned layout. The
+`MinPadding` option provides a floor guarantee: groups with alignment
+displacement at or below `MinPadding` are always aligned regardless of
+inference, ensuring small groups receive consistent treatment.
 
 #### Indentation
 

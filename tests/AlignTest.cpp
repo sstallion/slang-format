@@ -2175,6 +2175,121 @@ TEST(InferFromSource, DisabledAlwaysAligns) {
         endmodule
     )"));
 }
+
+TEST(InferFromSource, MinPaddingBypassesInference) {
+    Style style;
+    style.AlignConsecutiveAssignments = {.Enabled = true,
+                                         .InferFromSource = true,
+                                         .MaxPadding = 2,
+                                         .MinPadding = 2};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign state_d = state_q;
+          assign rdy_o = 1'b0;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign state_d = state_q;
+          assign rdy_o   = 1'b0;
+        endmodule
+    )"));
+}
+
+TEST(InferFromSource, MinPaddingExceedsThreshold) {
+    Style style;
+    style.AlignConsecutiveAssignments = {.Enabled = true,
+                                         .InferFromSource = true,
+                                         .MaxPadding = 4,
+                                         .MinPadding = 1};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign a = 1;
+          assign bbb = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign a = 1;
+          assign bbb = 2;
+        endmodule
+    )"));
+}
+
+TEST(InferFromSource, MinPaddingPortConnections) {
+    Style style;
+    style.AlignConsecutivePortConnections = {.Enabled = true,
+                                              .InferFromSource = true,
+                                              .MaxPadding = 2,
+                                              .MinPadding = 2};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          bar u_bar (
+              .a(x),
+              .bbb(y)
+          );
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          bar u_bar (
+              .a  (x),
+              .bbb(y)
+          );
+        endmodule
+    )"));
+}
+
+TEST(InferFromSource, MinPaddingZeroPreservesInference) {
+    Style style;
+    style.AlignConsecutiveAssignments = {.Enabled = true,
+                                         .InferFromSource = true,
+                                         .MaxPadding = 2};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign state_d = state_q;
+          assign rdy_o = 1'b0;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign state_d = state_q;
+          assign rdy_o = 1'b0;
+        endmodule
+    )"));
+}
+
+TEST(InferFromSource, MinPaddingInterveningStatementsBreakSubRun) {
+    Style style;
+    style.AlignConsecutiveAssignments = {.Enabled = true,
+                                         .InferFromSource = true,
+                                         .MaxPadding = 2,
+                                         .MinPadding = 2};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+          task automatic drive(input logic [7:0] a);
+            @(cb);
+            cb.req <= 1'b1;
+            cb.addr <= a;
+            wait (gnt == 1'b1);
+            @(cb);
+            cb.req <= 1'b0;
+          endtask
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          task automatic drive(input logic [7:0] a);
+            @(cb);
+            cb.req  <= 1'b1;
+            cb.addr <= a;
+            wait (gnt == 1'b1);
+            @(cb);
+            cb.req <= 1'b0;
+          endtask
+        endmodule
+    )"));
+}
 // clang-format on
 
 TEST(AlignTrailingComments, None) {
