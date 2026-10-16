@@ -42,7 +42,7 @@ package tort_pkg;
   // enum ranges: OP_A0..OP_A3 then OP_B2..OP_B3
   typedef enum bit [3 : 0] {
     OP_A[4] = 4'd0,
-    OP_B[2: 3]
+    OP_B[2:3]
   } op_e;
 
   typedef struct packed {
@@ -178,7 +178,7 @@ package tort_oop_pkg;
         ignore_bins ig = {OP_A0};
       }
       cp_len: coverpoint len {bins sm = {[1 : 4]}; bins md = {[5 : 12]}; bins lg = {[13 : 16]};}
-      x_op_len : cross cp_op, cp_len{ignore_bins skip = binsof (cp_len.lg) && binsof (cp_op.b_ops);}
+      x_op_len : cross cp_op, cp_len {ignore_bins skip = binsof (cp_len.lg) && binsof (cp_op.b_ops);}
     endgroup : cg_op
 
     function new(string name = "packet");
@@ -249,7 +249,8 @@ interface bus_if #(
     input gnt, rdata;
   endclocking : cb
 
-  modport mst(clocking cb,
+  modport mst(
+      clocking cb,
       output req, addr, wdata, we,
       input gnt, rdata,
       import task drive(input logic [AW-1:0] a)
@@ -525,8 +526,9 @@ module tort_top #(
   );
 
   //-- subprograms ----------------------------------------------------------
-  function automatic logic [DW-1:0] mask_bytes(
-      input logic [DW-1:0] value, input logic [STRB_W-1:0] strb, input bit invert = 1'b0);
+  function automatic logic [DW-1:0] mask_bytes(input logic [DW-1:0] value,
+    input logic [STRB_W-1:0] strb,
+    input bit invert = 1'b0);
     logic [DW-1:0] result = '0;
     foreach (strb[i]) begin
       if (strb[i]) result[i*8+:8] = value[i*8+:8];
@@ -552,9 +554,7 @@ module tort_top #(
 
   property p_data_hold;
     logic [DW-1 : 0] v;
-    @(posedge clk) disable iff (!rst_n) (vld_i,
-    v = data_i
-    ) |=> (payload_q == v);
+    @(posedge clk) disable iff (!rst_n) (vld_i, v = data_i) |=> (payload_q == v);
   endproperty : p_data_hold
 
   a_no_err :
@@ -566,9 +566,7 @@ module tort_top #(
   assume property (@(posedge clk) $stable(rst_n) or $rose(rst_n));
   c_burst :
   cover property (@(posedge clk) s_req_burst(3));
-  restrict property (@(posedge clk) !$isunknown(
-      addr_i
-  ));
+  restrict property (@(posedge clk) !$isunknown(addr_i));
 
   always_comb begin
     a_not_both :
@@ -646,12 +644,17 @@ module tort_top #(
       6: $display("weight 6");
     endcase
 
-    randsequence (main) main : first second third; first    : {
-      $display("first");
-    }; second : rand join (0.5) alpha beta; third : case (counter % 2) 0: alpha; default: beta;
-    endcase; alpha  : {
-      $display("alpha");
-    }; beta   : repeat (2) alpha; endsequence
+    randsequence (main)
+      main : first second third;
+      first : {$display("first");};
+      second : rand join (0.5) alpha beta;
+      third : case (counter % 2)
+        0 : alpha;
+        default : beta;
+      endcase;
+      alpha : {$display("alpha");};
+      beta : repeat (2) alpha;
+    endsequence
 
     if (!pkt.randomize() with {
           len == 4;
@@ -830,7 +833,7 @@ config cfg_tort;
   design work.tort_wrap;
   default liblist work;
   instance tort_wrap.u_dut liblist work;
-         cell dff use work.dff;
+  cell dff use work.dff;
 endconfig
 
 `undef MAX

@@ -13,6 +13,7 @@ using namespace slang::format;
 TEST(AlignConsecutiveDeclarations, None) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -31,7 +32,8 @@ TEST(AlignConsecutiveDeclarations, None) {
 
 TEST(AlignConsecutiveDeclarations, Consecutive) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -50,7 +52,8 @@ TEST(AlignConsecutiveDeclarations, Consecutive) {
 
 TEST(AlignConsecutiveDeclarations, ConsecutiveEmptyLineBreaksGroup) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -73,7 +76,8 @@ TEST(AlignConsecutiveDeclarations, ConsecutiveEmptyLineBreaksGroup) {
 
 TEST(AlignConsecutiveDeclarations, ConsecutiveCommentBreaksGroup) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -96,7 +100,8 @@ TEST(AlignConsecutiveDeclarations, ConsecutiveCommentBreaksGroup) {
 
 TEST(AlignConsecutiveDeclarations, ConsecutiveNonDeclarationBreaksGroup) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -119,7 +124,8 @@ TEST(AlignConsecutiveDeclarations, ConsecutiveNonDeclarationBreaksGroup) {
 
 TEST(AlignConsecutiveDeclarations, ContinuationLines) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -139,6 +145,7 @@ TEST(AlignConsecutiveDeclarations, ContinuationLines) {
 TEST(AlignConsecutiveDeclarations, AcrossEmptyLines) {
     Style style;
     style.AlignConsecutiveDeclarations = {.Enabled = true, .AcrossEmptyLines = true};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -160,6 +167,7 @@ TEST(AlignConsecutiveDeclarations, AcrossEmptyLines) {
 TEST(AlignConsecutiveDeclarations, AcrossComments) {
     Style style;
     style.AlignConsecutiveDeclarations = {.Enabled = true, .AcrossComments = true};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -181,6 +189,7 @@ TEST(AlignConsecutiveDeclarations, AcrossComments) {
 TEST(AlignConsecutiveDeclarations, AcrossEmptyLinesAndComments) {
     Style style;
     style.AlignConsecutiveDeclarations = {.Enabled = true, .AcrossComments = true, .AcrossEmptyLines = true};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -204,6 +213,7 @@ TEST(AlignConsecutiveDeclarations, AcrossEmptyLinesAndComments) {
 TEST(AlignConsecutiveDeclarations, AcrossParameterPortList) {
     Style style;
     style.AlignConsecutiveDeclarations = {.Enabled = true, .AcrossParameterPortList = true};
+    style.AlignConsecutivePackedDimensions = {};
     style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -233,7 +243,8 @@ TEST(AlignConsecutiveDeclarations, AcrossParameterPortList) {
 
 TEST(AlignConsecutiveDeclarations, PackedDimensions) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -252,7 +263,8 @@ TEST(AlignConsecutiveDeclarations, PackedDimensions) {
 
 TEST(AlignConsecutiveDeclarations, DirectionKeywords) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {};
     style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -274,7 +286,8 @@ TEST(AlignConsecutiveDeclarations, DirectionKeywords) {
 
 TEST(AlignConsecutiveDeclarations, ParameterDeclarations) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {};
     style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -308,7 +321,8 @@ TEST(AlignConsecutiveDeclarations, SingleDeclarationNotAligned) {
 
 TEST(AlignConsecutiveDeclarations, FormatOffRegionSkipped) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -333,7 +347,8 @@ TEST(AlignConsecutiveDeclarations, FormatOffRegionSkipped) {
 
 TEST(AlignConsecutiveDeclarations, IndentLevelBreaksGroup) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {};
     style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -386,7 +401,7 @@ TEST(AlignConsecutivePackedDimensions, None) {
 TEST(AlignConsecutivePackedDimensions, Consecutive) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions.Enabled = true;
+    style.AlignConsecutivePackedDimensions = {.Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -404,7 +419,7 @@ TEST(AlignConsecutivePackedDimensions, Consecutive) {
 TEST(AlignConsecutivePackedDimensions, SkipsBareTypes) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions.Enabled = true;
+    style.AlignConsecutivePackedDimensions = {.Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -424,7 +439,7 @@ TEST(AlignConsecutivePackedDimensions, SkipsBareTypes) {
 TEST(AlignConsecutivePackedDimensions, GroupBrokenByEmptyLine) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions.Enabled = true;
+    style.AlignConsecutivePackedDimensions = {.Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -446,7 +461,7 @@ TEST(AlignConsecutivePackedDimensions, GroupBrokenByEmptyLine) {
 TEST(AlignConsecutivePackedDimensions, GroupBrokenByComment) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions.Enabled = true;
+    style.AlignConsecutivePackedDimensions = {.Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -558,7 +573,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossParameterPortList) {
 TEST(AlignConsecutivePackedDimensions, DirectionKeywords) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions.Enabled = true;
+    style.AlignConsecutivePackedDimensions = {.Enabled = true};
     style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -578,8 +593,8 @@ TEST(AlignConsecutivePackedDimensions, DirectionKeywords) {
 
 TEST(AlignConsecutivePackedDimensions, WithAlignConsecutiveDeclarations) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
-    style.AlignConsecutivePackedDimensions.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {.Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -599,7 +614,7 @@ TEST(AlignConsecutivePackedDimensions, WithAlignConsecutiveDeclarations) {
 TEST(AlignConsecutivePackedDimensions, FormatOff) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions.Enabled = true;
+    style.AlignConsecutivePackedDimensions = {.Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -625,7 +640,7 @@ TEST(AlignConsecutivePackedDimensions, FormatOff) {
 TEST(AlignConsecutivePackedDimensions, SingleDeclaration) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions.Enabled = true;
+    style.AlignConsecutivePackedDimensions = {.Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -737,7 +752,7 @@ TEST(AlignConsecutivePackedDimensions, AlignColonPadRight) {
 TEST(AlignConsecutivePackedDimensions, BareTypeNarrowerThanDimensions) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions.Enabled = true;
+    style.AlignConsecutivePackedDimensions = {.Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -757,7 +772,7 @@ TEST(AlignConsecutivePackedDimensions, BareTypeNarrowerThanDimensions) {
 TEST(AlignConsecutivePackedDimensions, BareTypeWiderThanDimensions) {
     Style style;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignConsecutivePackedDimensions.Enabled = true;
+    style.AlignConsecutivePackedDimensions = {.Enabled = true};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -867,7 +882,7 @@ TEST(AlignConsecutivePackedDimensions, ContentAlignDisabledWhenNotEnabled) {
 
 TEST(AlignConsecutivePackedDimensions, PadLeftWithDeclarationAlignment) {
     Style style;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
     style.AlignConsecutivePackedDimensions = {.Enabled = true, .PadLeft = true};
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -886,6 +901,7 @@ TEST(AlignConsecutivePackedDimensions, PadLeftWithDeclarationAlignment) {
 TEST(AlignConsecutivePortConnections, Disabled) {
     Style style;
     style.AlignConsecutivePortConnections = {};
+    style.BinPackPortConnections = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -911,6 +927,7 @@ TEST(AlignConsecutivePortConnections, Disabled) {
 TEST(AlignConsecutivePortConnections, MaxPaddingExceedsLimit) {
     Style style;
     style.AlignConsecutivePortConnections = {.Enabled = true, .MaxPadding = 2};
+    style.BinPackPortConnections = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -934,6 +951,7 @@ TEST(AlignConsecutivePortConnections, MaxPaddingExceedsLimit) {
 TEST(AlignConsecutivePortConnections, MaxPaddingUnlimited) {
     Style style;
     style.AlignConsecutivePortConnections = {.Enabled = true, .MaxPadding = 0};
+    style.BinPackPortConnections = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -957,6 +975,7 @@ TEST(AlignConsecutivePortConnections, MaxPaddingUnlimited) {
 TEST(AlignConsecutivePortConnections, MaxPaddingWithinLimit) {
     Style style;
     style.AlignConsecutivePortConnections = {.Enabled = true, .MaxPadding = 2};
+    style.BinPackPortConnections = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -982,6 +1001,7 @@ TEST(AlignConsecutivePortConnections, MaxPaddingWithinLimit) {
 TEST(AlignConsecutivePortConnections, PortListBoundaryBreaksGroup) {
     Style style;
     style.AlignConsecutivePortConnections = {.Enabled = true, .MaxPadding = 1};
+    style.BinPackPortConnections = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1175,6 +1195,7 @@ TEST(AlignConsecutiveAssignments, None) {
     Style style;
     style.AlignConsecutiveAssignments = {};
     style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1193,9 +1214,9 @@ TEST(AlignConsecutiveAssignments, None) {
 
 TEST(AlignConsecutiveAssignments, Consecutive) {
     Style style;
-    style.AlignConsecutiveAssignments.Enabled = true;
-    style.AlignConsecutiveAssignments.MaxPadding = 0;
+    style.AlignConsecutiveAssignments = {.Enabled = true};
     style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1215,6 +1236,7 @@ TEST(AlignConsecutiveAssignments, Consecutive) {
 TEST(AlignConsecutiveAssignments, ConsecutiveEmptyLineBreaksGroup) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
 
@@ -1240,6 +1262,7 @@ TEST(AlignConsecutiveAssignments, ConsecutiveEmptyLineBreaksGroup) {
 TEST(AlignConsecutiveAssignments, ConsecutiveCommentBreaksGroup) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
 
@@ -1265,6 +1288,7 @@ TEST(AlignConsecutiveAssignments, ConsecutiveCommentBreaksGroup) {
 TEST(AlignConsecutiveAssignments, ConsecutiveNonDeclarationBreaksGroup) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
 
@@ -1290,6 +1314,7 @@ TEST(AlignConsecutiveAssignments, ConsecutiveNonDeclarationBreaksGroup) {
 TEST(AlignConsecutiveAssignments, ContinuationLines) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.ContinuationIndentWidth = 2;
@@ -1312,6 +1337,7 @@ TEST(AlignConsecutiveAssignments, ContinuationLines) {
 TEST(AlignConsecutiveAssignments, ContinuationLinesVariableLength) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.ContinuationIndentWidth = 2;
@@ -1335,6 +1361,7 @@ TEST(AlignConsecutiveAssignments, ContinuationLinesWithDeclarationAlignment) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveDeclarations.InferFromSource = false;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1397,8 +1424,9 @@ TEST(AlignConsecutiveAssignments, AcrossComments) {
 
 TEST(AlignConsecutiveAssignments, AcrossEmptyLinesAndComments) {
     Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .AcrossComments = true, .AcrossEmptyLines = true, .MaxPadding = 0};
+    style.AlignConsecutiveAssignments = {.Enabled = true, .AcrossComments = true, .AcrossEmptyLines = true};
     style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1421,8 +1449,9 @@ TEST(AlignConsecutiveAssignments, AcrossEmptyLinesAndComments) {
 
 TEST(AlignConsecutiveAssignments, AcrossParameterPortList) {
     Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .AcrossParameterPortList = true, .MaxPadding = 0};
+    style.AlignConsecutiveAssignments = {.Enabled = true, .AcrossParameterPortList = true};
     style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
     style.ParameterPortListIndentWidth = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1452,9 +1481,9 @@ TEST(AlignConsecutiveAssignments, AcrossParameterPortList) {
 
 TEST(AlignConsecutiveAssignments, DeclarationWithoutInitializer) {
     Style style;
-    style.AlignConsecutiveAssignments.Enabled = true;
-    style.AlignConsecutiveAssignments.MaxPadding = 0;
+    style.AlignConsecutiveAssignments = {.Enabled = true};
     style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1474,6 +1503,7 @@ TEST(AlignConsecutiveAssignments, DeclarationWithoutInitializer) {
 TEST(AlignConsecutiveAssignments, StandaloneAssignmentAligned) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
 
@@ -1511,6 +1541,7 @@ TEST(AlignConsecutiveAssignments, DepthChangeBreaksGroup) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveAssignments.AcrossEmptyLines = true;
     style.AlignConsecutiveAssignments.AcrossComments = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -1568,8 +1599,9 @@ TEST(AlignConsecutiveAssignments, FormatOffRegionSkipped) {
 
 TEST(AlignConsecutiveAssignments, InteractionWithAlignConsecutiveDeclarations) {
     Style style;
-    style.AlignConsecutiveAssignments.Enabled = true;
-    style.AlignConsecutiveDeclarations.Enabled = true;
+    style.AlignConsecutiveAssignments = {.Enabled = true};
+    style.AlignConsecutiveDeclarations = {.Enabled = true};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1591,6 +1623,7 @@ TEST(AlignConsecutiveAssignments, InteractionWithAlignConsecutiveDeclarations) {
 TEST(AlignConsecutiveAssignments, BlockingAssignments) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -1617,6 +1650,7 @@ TEST(AlignConsecutiveAssignments, BlockingAssignments) {
 TEST(AlignConsecutiveAssignments, NonblockingAssignments) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -1643,6 +1677,7 @@ TEST(AlignConsecutiveAssignments, NonblockingAssignments) {
 TEST(AlignConsecutiveAssignments, CaseStatementDoesNotBreakGroup) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -1677,6 +1712,7 @@ TEST(AlignConsecutiveAssignments, CaseStatementDoesNotBreakGroup) {
 TEST(AlignConsecutiveAssignments, CompoundAssignments) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -1703,6 +1739,7 @@ TEST(AlignConsecutiveAssignments, CompoundAssignments) {
 TEST(AlignConsecutiveAssignments, ShiftAssignments) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -1729,6 +1766,7 @@ TEST(AlignConsecutiveAssignments, ShiftAssignments) {
 TEST(AlignConsecutiveAssignments, HierarchicalLHS) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -1755,6 +1793,7 @@ TEST(AlignConsecutiveAssignments, HierarchicalLHS) {
 TEST(AlignConsecutiveAssignments, BitSelectLHS) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -1781,6 +1820,7 @@ TEST(AlignConsecutiveAssignments, BitSelectLHS) {
 TEST(AlignConsecutiveAssignments, IfStatementDoesNotBreakGroup) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -1819,6 +1859,7 @@ TEST(AlignConsecutiveAssignments, IfStatementDoesNotBreakGroup) {
 TEST(AlignConsecutiveAssignments, MixedDeclarationsAndAssignments) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
 
@@ -1844,6 +1885,7 @@ TEST(AlignConsecutiveAssignments, BeginEndBreaksGroup) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveAssignments.AcrossEmptyLines = true;
     style.AlignConsecutiveAssignments.AcrossComments = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
     style.AlignConsecutiveDeclarations = {};
@@ -1880,6 +1922,7 @@ TEST(AlignConsecutiveAssignments, BeginEndBreaksGroup) {
 TEST(AlignConsecutiveAssignments, ForkJoinDoesNotCrossAlign) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
 
@@ -1921,6 +1964,7 @@ TEST(AlignConsecutiveAssignments, ForkJoinDoesNotCrossAlign) {
 TEST(AlignConsecutiveAssignments, ControlFlowDoesNotBreakGroup) {
     Style style;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -1976,6 +2020,8 @@ TEST(AlignConsecutiveAssignments, SingleAssignmentNotAligned) {
 TEST(AlignConsecutiveAssignments, MaxPaddingWithinLimit) {
     Style style;
     style.AlignConsecutiveAssignments = {.Enabled = true, .MaxPadding = 2};
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
@@ -2056,6 +2102,76 @@ TEST(AlignConsecutiveAssignments, MaxPaddingMixedDepths) {
               longname = 2;
             end
           end
+        endmodule
+    )"));
+}
+// clang-format on
+
+// clang-format off
+TEST(InferFromSource, Rule1SmallPaddingAligns) {
+    Style style;
+    style.AlignConsecutiveAssignments = {.Enabled = true, .InferFromSource = true, .MaxPadding = 4};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign a = 1;
+          assign bb = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign a = 1;
+          assign bb = 2;
+        endmodule
+    )"));
+}
+
+TEST(InferFromSource, Rule2FlushLeftSource) {
+    Style style;
+    style.AlignConsecutiveAssignments = {.Enabled = true, .InferFromSource = true, .MaxPadding = 2};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1;
+          assign longname = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x = 1;
+          assign longname = 2;
+        endmodule
+    )"));
+}
+
+TEST(InferFromSource, Rule3LargeExcessAligns) {
+    Style style;
+    style.AlignConsecutiveAssignments = {.Enabled = true, .InferFromSource = true, .MaxPadding = 2};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x          = 1;
+          assign longname = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x        = 1;
+          assign longname = 2;
+        endmodule
+    )"));
+}
+
+TEST(InferFromSource, DisabledAlwaysAligns) {
+    Style style;
+    style.AlignConsecutiveAssignments = {.Enabled = true, .InferFromSource = false, .MaxPadding = 0};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          assign x = 1;
+          assign longname = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign x        = 1;
+          assign longname = 2;
         endmodule
     )"));
 }
@@ -2242,6 +2358,8 @@ TEST(AlignTrailingComments, AcrossEmptyLinesAndComments) {
 
 TEST(AlignTrailingComments, AcrossParameterPortList) {
     Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
     style.AlignTrailingComments = {.Enabled = true, .AcrossParameterPortList = true};
     style.ParameterPortListIndentWidth = 2;
 
@@ -2329,6 +2447,7 @@ TEST(AlignTrailingComments, InteractionWithAlignConsecutiveAssignments) {
     Style style;
     style.AlignTrailingComments.Enabled = true;
     style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = false;
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
 

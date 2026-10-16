@@ -163,16 +163,28 @@ values.
 
 `applyAlignConsecutive` is a function template that drives group formation while
 delegating break, start, and alignment decisions to per-alignment-type callbacks.
-It drives all six alignment passes: packed dimensions, declarations, timing
-controls, assignments, port connections, and trailing comments. Assignment and
-port connection alignment groups are scoped by AST depth to avoid breaking
-groups at control-flow boundaries such as `if`/`else` and `case`/`endcase`;
-assignments at different depths within a group are aligned independently.
-Within each depth, assignments are further split into sub-runs: two consecutive
-assignments at depth D belong to the same sub-run only if no intervening line
-has a depth strictly less than D. This prevents cross-alignment across
-`begin`/`end` boundaries inside `fork`/`join` blocks while preserving alignment
-across control-flow constructs like `if`/`else` and `case`/`endcase`.
+It drives all seven alignment passes: packed dimensions, declarations, timing
+controls, assignments, dist items, port connections, and trailing comments.
+Assignment, dist item, and port connection alignment groups are scoped by AST
+depth to avoid breaking groups at control-flow boundaries such as `if`/`else`
+and `case`/`endcase`; assignments at different depths within a group are aligned
+independently. Within each depth, assignments are further split into sub-runs:
+two consecutive assignments at depth D belong to the same sub-run only if no
+intervening line has a depth strictly less than D. This prevents
+cross-alignment across `begin`/`end` boundaries inside `fork`/`join` blocks
+while preserving alignment across control-flow constructs like `if`/`else` and
+`case`/`endcase`.
+
+When `InferFromSource` is enabled for an alignment style, the formatter captures
+per-token spacing data during the tree walk. Each inter-token gap records both
+the source whitespace count and the formatted output spacing. The alignment
+engine uses this data to infer whether the source was already aligned: if the
+maximum excess spacing (source minus output) across a group is small, alignment
+is suppressed to preserve the author's flush-left intent; if the excess is
+large, the engine aligns to reproduce the author's aligned layout. Groups where
+the alignment displacement falls within `MaxPadding` are always aligned
+regardless of inference, preserving the existing unconditional behavior for
+small groups.
 
 #### Indentation
 

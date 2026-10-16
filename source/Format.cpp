@@ -74,7 +74,8 @@ bool needsSpaceBetween(TokenKind prev, TokenKind curr) {
 
     if (prevIsKeyword && prev != TokenKind::NewKeyword &&
         (curr == TokenKind::OpenBrace || curr == TokenKind::OpenParenthesis ||
-         curr == TokenKind::Hash || curr == TokenKind::StringLiteral)) {
+         curr == TokenKind::Hash || curr == TokenKind::IntegerBase ||
+         curr == TokenKind::UnbasedUnsizedLiteral || curr == TokenKind::StringLiteral)) {
         return true;
     }
 
@@ -87,8 +88,9 @@ bool needsSpaceBetween(TokenKind prev, TokenKind curr) {
         return true;
     }
     if (prev == TokenKind::CloseParenthesis &&
-        (currIsKeyword || curr == TokenKind::Identifier || curr == TokenKind::OpenBrace ||
-         curr == TokenKind::OpenParenthesis)) {
+        (currIsKeyword || curr == TokenKind::Identifier || curr == TokenKind::SystemIdentifier ||
+         curr == TokenKind::OpenBrace || curr == TokenKind::OpenParenthesis ||
+         curr == TokenKind::OpenBracket || curr == TokenKind::Exclamation)) {
         return true;
     }
 
@@ -114,6 +116,7 @@ bool needsSpaceBetween(TokenKind prev, TokenKind curr) {
 size_t flatWidth(const SyntaxNode& node) {
     size_t width = 0;
     char lastChar = 0;
+    auto prevKind = TokenKind::Unknown;
     for (auto it = node.tokens_begin(); it != node.tokens_end(); ++it) {
         auto tok = *it;
         for (const auto& t : tok.trivia()) {
@@ -128,13 +131,60 @@ size_t flatWidth(const SyntaxNode& node) {
             continue;
         }
 
-        if (lastChar != 0 && needsSeparator(lastChar, raw.front())) {
+        if ((lastChar != 0 && needsSeparator(lastChar, raw.front())) ||
+            needsSpaceBetween(prevKind, tok.kind)) {
             width++;
         }
         width += raw.size();
         lastChar = raw.back();
+        prevKind = tok.kind;
     }
     return width;
+}
+
+size_t flatWidthForced(const SyntaxNode& node) {
+    size_t width = 0;
+    char lastChar = 0;
+    auto prevKind = TokenKind::Unknown;
+    for (auto it = node.tokens_begin(); it != node.tokens_end(); ++it) {
+        auto tok = *it;
+        for (const auto& t : tok.trivia()) {
+            if (t.kind == TriviaKind::LineComment || t.kind == TriviaKind::BlockComment) {
+                return 0;
+            }
+        }
+
+        auto raw = tok.rawText();
+        if (raw.empty()) {
+            continue;
+        }
+
+        if ((lastChar != 0 && needsSeparator(lastChar, raw.front())) ||
+            needsSpaceBetween(prevKind, tok.kind)) {
+            width++;
+        }
+        width += raw.size();
+        lastChar = raw.back();
+        prevKind = tok.kind;
+    }
+    return width;
+}
+
+bool hasExpandingBlock(const SyntaxNode& node) {
+    for (size_t i = 0; i < node.getChildCount(); i++) {
+        const auto* child = node.childNode(i);
+        if (child == nullptr) {
+            continue;
+        }
+        if (child->kind == SyntaxKind::DistConstraintList ||
+            child->kind == SyntaxKind::ConstraintBlock) {
+            return true;
+        }
+        if (hasExpandingBlock(*child)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool matchesPragma(std::string_view text, std::string_view pragma) {
@@ -363,6 +413,23 @@ public:
         expr.right->visit(*this);
     }
 
+    void handle(const DelayedSequenceElementSyntax& elem) {
+        emitToken(elem.doubleHash);
+        if (elem.delayVal != nullptr) {
+            elem.delayVal->visit(*this);
+        }
+        emitToken(elem.openBracket);
+        emitToken(elem.op);
+        if (elem.range != nullptr) {
+            elem.range->visit(*this);
+        }
+        emitToken(elem.closeBracket);
+        if (formatEnabled && !output.empty() && output.back() != ' ' && !atLineStart) {
+            output += ' ';
+        }
+        elem.expr->visit(*this);
+    }
+
     void handle(const MultipleConcatenationExpressionSyntax& expr) {
         emitToken(expr.openBrace);
         expr.expression->visit(*this);
@@ -371,10 +438,47 @@ public:
         emitToken(expr.closeBrace);
     }
 
+    void handle(const DistConstraintListSyntax& dc) {
+        emitToken(dc.dist);
+        emitToken(dc.openBrace);
+
+        depth++;
+        for (const auto& elem : dc.items.elems()) {
+            if (elem.isNode()) {
+                if (formatEnabled && !atLineStart &&
+                    !hasLeadingNewline(elem.node()->getFirstToken())) {
+                    forceNewline();
+                }
+                nextLineKind = LineMetadata::Kind::DistItem;
+                nextIsPrimary = true;
+                elem.node()->visit(*this);
+            }
+            else if (elem.isToken()) {
+                emitToken(elem.token());
+            }
+        }
+
+        depth--;
+        if (formatEnabled && !hasLeadingNewline(dc.closeBrace)) {
+            spaceBeforeCloseBracePending = false;
+            forceNewline();
+        }
+        emitEndTokenTrivia(dc.closeBrace);
+        nextIsPrimary = true;
+        emitToken(dc.closeBrace);
+    }
+
     void handle(const DistWeightSyntax& dw) {
-        beforeOperator = formatEnabled;
+        if (formatEnabled) {
+            stripTrailingSpaces();
+            auto srcSpaces = leadingWhitespaceLength(dw.op);
+            output.append(std::max(srcSpaces, size_t{1}), ' ');
+        }
         emitToken(dw.op);
         emitToken(dw.extraOp);
+        if (formatEnabled) {
+            output += ' ';
+        }
         dw.expr->visit(*this);
     }
 
@@ -438,14 +542,32 @@ public:
         emitToken(vr.openBracket);
         vr.left->visit(*this);
 
-        if (formatEnabled) {
+        size_t leftSpaces = 0;
+        size_t rightSpaces = 0;
+        switch (style.RangeSpacing) {
+            case RangeSpacingStyle::Always:
+                leftSpaces = 1;
+                rightSpaces = 1;
+                break;
+            case RangeSpacingStyle::Never:
+                break;
+            case RangeSpacingStyle::Preserve:
+                leftSpaces = std::min(leadingWhitespaceLength(vr.op), size_t{1});
+                rightSpaces = std::min(leadingWhitespaceLength(vr.right->getFirstToken()),
+                                       size_t{1});
+                break;
+        }
+
+        if (formatEnabled && leftSpaces != 0) {
             stripTrailingSpaces();
-            output += ' ';
+            output.append(leftSpaces, ' ');
         }
+        skipSpacingCapture = true;
         emitToken(vr.op);
-        if (formatEnabled) {
-            output += ' ';
+        if (formatEnabled && rightSpaces != 0 && !atLineStart) {
+            output.append(rightSpaces, ' ');
         }
+        skipSpacingCapture = true;
 
         vr.right->visit(*this);
         emitToken(vr.closeBracket);
@@ -489,14 +611,27 @@ public:
         emitToken(p.openParen);
 
         depth++;
-        visitSeparatedList(p.ports);
+        bool const wrapPorts = !style.BinPackPortConnections && formatEnabled && p.ports.size() > 1;
+        if (wrapPorts) {
+            visitWrappedSeparatedList(p.ports);
+        }
+        else {
+            visitSeparatedList(p.ports);
+        }
+
+        depth--;
+        if (wrapPorts) {
+            spaceBeforeCloseParenPending = false;
+            if (!hasLeadingNewline(p.closeParen)) {
+                forceNewline();
+            }
+        }
 
         portItemNextIndent = true;
         nextIsPrimary = true;
         emitEndTokenTrivia(p.closeParen);
         portItemNextIndent = false;
 
-        depth--;
         nextIsPrimary = true;
         nextLineKind = LineMetadata::Kind::PortListBoundary;
         emitToken(p.closeParen);
@@ -749,6 +884,73 @@ public:
         }
     }
 
+    void handle(const ConcurrentAssertionStatementSyntax& stmt) {
+        if (stmt.label != nullptr) {
+            stmt.label->visit(*this);
+
+            if (style.BreakAfterAssertionLabel && formatEnabled) {
+                forceNewline();
+                nextIsPrimary = true;
+            }
+        }
+
+        for (auto* attr : stmt.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(stmt.keyword);
+        emitToken(stmt.propertyOrSequence);
+        emitToken(stmt.openParen);
+        stmt.propertySpec->visit(*this);
+        emitToken(stmt.closeParen);
+
+        if (stmt.action->statement != nullptr) {
+            stmt.action->statement->visit(*this);
+        }
+
+        if (stmt.action->elseClause != nullptr) {
+            nextIsPrimary = true;
+            emitToken(stmt.action->elseClause->elseKeyword);
+            stmt.action->elseClause->clause->visit(*this);
+        }
+    }
+
+    void handle(const ImmediateAssertionStatementSyntax& stmt) {
+        auto hasElse = stmt.action->elseClause != nullptr;
+
+        if (stmt.label != nullptr) {
+            stmt.label->visit(*this);
+
+            if (style.BreakAfterAssertionLabel && formatEnabled && hasElse) {
+                forceNewline();
+                nextIsPrimary = true;
+            }
+        }
+
+        for (auto* attr : stmt.attributes) {
+            attr->visit(*this);
+        }
+
+        emitToken(stmt.keyword);
+        if (stmt.delay != nullptr) {
+            stmt.delay->visit(*this);
+            if (formatEnabled && !output.empty() && output.back() != ' ') {
+                output += ' ';
+            }
+        }
+        stmt.expr->visit(*this);
+
+        if (stmt.action->statement != nullptr) {
+            stmt.action->statement->visit(*this);
+        }
+
+        if (hasElse) {
+            nextIsPrimary = true;
+            emitToken(stmt.action->elseClause->elseKeyword);
+            stmt.action->elseClause->clause->visit(*this);
+        }
+    }
+
     void handle(const CaseStatementSyntax& caseStmt) {
         if (caseStmt.label != nullptr) {
             caseStmt.label->visit(*this);
@@ -868,7 +1070,45 @@ public:
         emitToken(decl.property);
         emitToken(decl.c_identifier);
         emitToken(decl.equals);
-        decl.method->visit(*this);
+
+        auto const& proto = decl.method->as<FunctionPrototypeSyntax>();
+        emitToken(proto.keyword);
+        for (auto* spec : proto.specifiers) {
+            spec->visit(*this);
+        }
+        emitToken(proto.lifetime);
+        proto.returnType->visit(*this);
+        proto.name->visit(*this);
+
+        if (formatEnabled && proto.portList != nullptr && proto.portList->ports.size() >= 2) {
+            emitToken(proto.portList->openParen);
+
+            depth++;
+            for (const auto& elem : proto.portList->ports.elems()) {
+                if (elem.isNode()) {
+                    if (!atLineStart && !hasLeadingNewline(elem.node()->getFirstToken())) {
+                        forceNewline();
+                    }
+                    nextIsPrimary = true;
+                    elem.node()->visit(*this);
+                }
+                else if (elem.isToken()) {
+                    emitToken(elem.token());
+                }
+            }
+
+            depth--;
+            if (!atLineStart && !hasLeadingNewline(proto.portList->closeParen)) {
+                spaceBeforeCloseParenPending = false;
+                forceNewline();
+            }
+            nextIsPrimary = true;
+            emitToken(proto.portList->closeParen);
+        }
+        else if (proto.portList != nullptr) {
+            proto.portList->visit(*this);
+        }
+
         emitToken(decl.semi);
     }
 
@@ -923,8 +1163,12 @@ public:
 
         emitToken(item.colon);
 
-        if (formatEnabled && !atLineStart && !output.empty() &&
-            !hasLeadingNewline(item.clause->getFirstToken())) {
+        if (item.clause->kind == SyntaxKind::GenerateBlock && formatEnabled) {
+            forceNewline();
+            nextIsPrimary = true;
+        }
+        else if (formatEnabled && !atLineStart && !output.empty() &&
+                 !hasLeadingNewline(item.clause->getFirstToken())) {
             if (style.SpaceAfterCaseColon && output.back() != ' ') {
                 output += ' ';
             }
@@ -991,7 +1235,7 @@ public:
             suppressSeparator = true;
         }
 
-        if (!BlockStatementSyntax::isKind(loop.statement->kind)) {
+        if (shouldBreakConditionalBody(*loop.statement)) {
             forceStatementBreak(loop.statement->getFirstToken());
         }
 
@@ -1076,7 +1320,7 @@ public:
 
         emitToken(loop.foreverKeyword);
 
-        if (!BlockStatementSyntax::isKind(loop.statement->kind)) {
+        if (shouldBreakConditionalBody(*loop.statement)) {
             forceStatementBreak(loop.statement->getFirstToken());
         }
 
@@ -1118,7 +1362,7 @@ public:
             suppressSeparator = true;
         }
 
-        if (!BlockStatementSyntax::isKind(loop.statement->kind)) {
+        if (shouldBreakConditionalBody(*loop.statement)) {
             forceStatementBreak(loop.statement->getFirstToken());
         }
 
@@ -1353,6 +1597,45 @@ public:
         visitMembers(f.items, f.end, f.endBlockName);
     }
 
+    void handle(const FunctionPortListSyntax& pl) {
+        if (!formatEnabled || pl.ports.empty()) {
+            visitDefault(pl);
+            return;
+        }
+
+        emitToken(pl.openParen);
+
+        if (!style.BinPackParameters) {
+            depth++;
+            visitWrappedSeparatedList(pl.ports);
+            depth--;
+            spaceBeforeCloseParenPending = false;
+            if (!hasLeadingNewline(pl.closeParen)) {
+                forceNewline();
+            }
+            nextIsPrimary = true;
+            emitToken(pl.closeParen);
+            return;
+        }
+
+        auto const limit = style.ColumnLimit;
+        auto const savedOutput = output.size();
+
+        visitSeparatedList(pl.ports);
+
+        auto const endCol = output.size() - lineStart;
+        if (limit == 0 || endCol + 2 <= limit) {
+            emitToken(pl.closeParen);
+            return;
+        }
+
+        output.resize(savedOutput);
+        atLineStart = (savedOutput == lineStart);
+        forceNewline();
+        emitBinPackedWrapped(pl.ports, limit);
+        emitToken(pl.closeParen);
+    }
+
     void handle(const SpecifyBlockSyntax& s) {
         if (style.BreakBeforeSpecifyBlock) {
             insertBlankLineBefore(s.getFirstToken());
@@ -1493,10 +1776,37 @@ public:
     }
 
     void handle(const ConstraintBlockSyntax& b) {
+        auto const itemCount = b.items.size();
+
+        if (formatEnabled && style.AllowShortConstraintBlocksOnASingleLine && itemCount == 1 &&
+            !hasExpandingBlock(*b.items[0])) {
+            auto const w = flatWidthForced(*b.items[0]);
+            if (w > 0) {
+                auto const currentCol = output.size() - lineStart;
+                auto const needed = currentCol + 1 + w + 1;
+                if (style.ColumnLimit == 0 || needed <= style.ColumnLimit) {
+                    emitToken(b.openBrace);
+                    triviaSkip = b.items[0]->getFirstToken().trivia().size();
+                    b.items[0]->visit(*this);
+                    triviaSkip = b.closeBrace.trivia().size();
+                    emitToken(b.closeBrace);
+                    return;
+                }
+            }
+        }
+
+        bool const nested = isInsideControlCondition(b);
+        unsigned const extraDepth = nested && style.IndentWidth > 0
+                                        ? style.ContinuationIndentWidth / style.IndentWidth
+                                        : 0;
+
         emitToken(b.openBrace);
 
-        depth++;
+        depth += 1 + extraDepth;
         for (auto* item : b.items) {
+            if (formatEnabled && !atLineStart && !hasLeadingNewline(item->getFirstToken())) {
+                forceNewline();
+            }
             nextIsPrimary = true;
             item->visit(*this);
         }
@@ -1504,9 +1814,21 @@ public:
         nextIsPrimary = true;
         emitEndTokenTrivia(b.closeBrace);
 
-        depth--;
+        depth -= 1 + extraDepth;
+        if (nested) {
+            depth += extraDepth;
+        }
+
+        if (formatEnabled && !atLineStart && !hasLeadingNewline(b.closeBrace)) {
+            spaceBeforeCloseBracePending = false;
+            forceNewline();
+        }
+
         nextIsPrimary = true;
         emitToken(b.closeBrace);
+        if (nested) {
+            depth -= extraDepth;
+        }
     }
 
     void handle(const CoverCrossSyntax& c) {
@@ -1532,10 +1854,28 @@ public:
             c.iff->visit(*this);
         }
 
+        if (c.members.empty()) {
+            emitToken(c.emptySemi);
+            return;
+        }
+
+        if (formatEnabled && style.AllowShortCoverpointsOnASingleLine &&
+            membersFitOnSingleLine(c.members)) {
+            emitToken(c.openBrace);
+            emitMembersInline(c.members);
+            triviaSkip = c.closeBrace.trivia().size();
+            emitToken(c.closeBrace);
+            emitToken(c.emptySemi);
+            return;
+        }
+
         emitToken(c.openBrace);
 
         depth++;
         for (auto* member : c.members) {
+            if (formatEnabled && !atLineStart && !hasLeadingNewline(member->getFirstToken())) {
+                forceNewline();
+            }
             nextIsPrimary = true;
             member->visit(*this);
         }
@@ -1544,6 +1884,12 @@ public:
         emitEndTokenTrivia(c.closeBrace);
 
         depth--;
+
+        if (formatEnabled && !atLineStart && !hasLeadingNewline(c.closeBrace)) {
+            spaceBeforeCloseBracePending = false;
+            forceNewline();
+        }
+
         nextIsPrimary = true;
         emitToken(c.closeBrace);
         emitToken(c.emptySemi);
@@ -1586,10 +1932,28 @@ public:
             c.iff->visit(*this);
         }
 
+        if (c.members.empty()) {
+            emitToken(c.emptySemi);
+            return;
+        }
+
+        if (formatEnabled && style.AllowShortCoverpointsOnASingleLine &&
+            membersFitOnSingleLine(c.members)) {
+            emitToken(c.openBrace);
+            emitMembersInline(c.members);
+            triviaSkip = c.closeBrace.trivia().size();
+            emitToken(c.closeBrace);
+            emitToken(c.emptySemi);
+            return;
+        }
+
         emitToken(c.openBrace);
 
         depth++;
         for (auto* member : c.members) {
+            if (formatEnabled && !atLineStart && !hasLeadingNewline(member->getFirstToken())) {
+                forceNewline();
+            }
             nextIsPrimary = true;
             member->visit(*this);
         }
@@ -1598,6 +1962,12 @@ public:
         emitEndTokenTrivia(c.closeBrace);
 
         depth--;
+
+        if (formatEnabled && !atLineStart && !hasLeadingNewline(c.closeBrace)) {
+            spaceBeforeCloseBracePending = false;
+            forceNewline();
+        }
+
         nextIsPrimary = true;
         emitToken(c.closeBrace);
         emitToken(c.emptySemi);
@@ -1644,8 +2014,10 @@ public:
         }
 
         if (u.body->initialStmt != nullptr) {
+            depth--;
             nextIsPrimary = true;
             u.body->initialStmt->visit(*this);
+            depth++;
         }
 
         nextIsPrimary = true;
@@ -1673,6 +2045,16 @@ public:
         if (u.endBlockName != nullptr) {
             u.endBlockName->visit(*this);
         }
+    }
+
+    void handle(const UdpInitialStmtSyntax& u) {
+        emitToken(u.initial);
+        emitToken(u.name);
+        beforeOperator = formatEnabled;
+        emitToken(u.equals);
+        afterOperator = formatEnabled;
+        u.value->visit(*this);
+        emitToken(u.semi);
     }
 
     void handle(const DataDeclarationSyntax& decl) {
@@ -1916,6 +2298,109 @@ public:
         emitToken(stmt.endsequence);
     }
 
+    void handle(const ProductionSyntax& prod) {
+        if (prod.dataType != nullptr) {
+            prod.dataType->visit(*this);
+        }
+
+        emitToken(prod.name);
+
+        if (prod.portList != nullptr) {
+            prod.portList->visit(*this);
+        }
+
+        if (formatEnabled && !atLineStart && !output.empty()) {
+            stripTrailingSpaces();
+            output += ' ';
+        }
+
+        emitToken(prod.colon);
+
+        if (formatEnabled && !atLineStart && !output.empty() && output.back() != ' ') {
+            output += ' ';
+        }
+
+        for (const auto& elem : prod.rules.elems()) {
+            if (elem.isNode()) {
+                elem.node()->visit(*this);
+            }
+            else if (elem.isToken()) {
+                emitToken(elem.token());
+            }
+        }
+
+        emitToken(prod.semi);
+    }
+
+    void handle(const RsCaseSyntax& c) {
+        emitToken(c.keyword);
+        emitToken(c.openParen);
+        c.expr->visit(*this);
+        emitToken(c.closeParen);
+
+        depth++;
+        for (auto* item : c.items) {
+            if (formatEnabled && !hasLeadingNewline(item->getFirstToken())) {
+                forceNewline();
+            }
+            nextIsPrimary = true;
+            item->visit(*this);
+        }
+
+        if (formatEnabled && !hasLeadingNewline(c.endcase)) {
+            forceNewline();
+        }
+        nextIsPrimary = true;
+        emitEndTokenTrivia(c.endcase);
+
+        depth--;
+        nextIsPrimary = true;
+        emitToken(c.endcase);
+    }
+
+    void handle(const StandardRsCaseItemSyntax& item) {
+        for (const auto& elem : item.expressions.elems()) {
+            if (elem.isNode()) {
+                elem.node()->visit(*this);
+            }
+            else if (elem.isToken()) {
+                emitToken(elem.token());
+            }
+        }
+
+        if (formatEnabled && !atLineStart && !output.empty()) {
+            stripTrailingSpaces();
+            output += ' ';
+        }
+
+        emitToken(item.colon);
+
+        if (formatEnabled && !atLineStart && !output.empty() && output.back() != ' ') {
+            output += ' ';
+        }
+
+        item.item->visit(*this);
+        emitToken(item.semi);
+    }
+
+    void handle(const DefaultRsCaseItemSyntax& item) {
+        emitToken(item.defaultKeyword);
+
+        if (formatEnabled && !atLineStart && !output.empty()) {
+            stripTrailingSpaces();
+            output += ' ';
+        }
+
+        emitToken(item.colon);
+
+        if (formatEnabled && !atLineStart && !output.empty() && output.back() != ' ') {
+            output += ' ';
+        }
+
+        item.item->visit(*this);
+        emitToken(item.semi);
+    }
+
     void handle(const SequenceDeclarationSyntax& decl) {
         for (auto* attr : decl.attributes) {
             attr->visit(*this);
@@ -1950,6 +2435,34 @@ public:
         }
     }
 
+    void handle(const SequenceRepetitionSyntax& rep) {
+        if (formatEnabled && !output.empty() && output.back() != ' ' && !atLineStart) {
+            output += ' ';
+        }
+
+        emitToken(rep.openBracket);
+        emitToken(rep.op);
+        if (rep.selector != nullptr) {
+            if (formatEnabled && !output.empty() && output.back() != ' ') {
+                output += ' ';
+            }
+
+            if (RangeSelectSyntax::isKind(rep.selector->kind)) {
+                auto const& range = rep.selector->as<RangeSelectSyntax>();
+                range.left->visit(*this);
+                emitToken(range.range);
+                if (formatEnabled && !output.empty() && output.back() != ' ') {
+                    output += ' ';
+                }
+                range.right->visit(*this);
+            }
+            else {
+                rep.selector->visit(*this);
+            }
+        }
+        emitToken(rep.closeBracket);
+    }
+
     void handle(const TimeUnitsDeclarationSyntax& decl) {
         nextLineKind = LineMetadata::Kind::Declaration;
         for (auto* attr : decl.attributes) {
@@ -1975,6 +2488,10 @@ public:
         depth++;
         for (const auto& elem : e.members.elems()) {
             if (elem.isNode()) {
+                if (formatEnabled && !atLineStart &&
+                    !hasLeadingNewline(elem.node()->getFirstToken())) {
+                    forceNewline();
+                }
                 nextIsPrimary = true;
                 elem.node()->visit(*this);
             }
@@ -1983,15 +2500,29 @@ public:
             }
         }
 
-        nextIsPrimary = true;
-        emitEndTokenTrivia(e.closeBrace);
         depth--;
+        if (formatEnabled && !hasLeadingNewline(e.closeBrace)) {
+            spaceBeforeCloseBracePending = false;
+            forceNewline();
+        }
+        emitEndTokenTrivia(e.closeBrace);
         nextIsPrimary = true;
         emitToken(e.closeBrace);
 
         for (auto* dim : e.dimensions) {
             dim->visit(*this);
         }
+    }
+
+    void handle(const StructUnionMemberSyntax& member) {
+        nextLineKind = LineMetadata::Kind::Declaration;
+        for (auto* attr : member.attributes) {
+            attr->visit(*this);
+        }
+        emitToken(member.randomQualifier);
+        member.type->visit(*this);
+        visitDeclarators(member.declarators);
+        emitToken(member.semi);
     }
 
     void handle(const StructUnionTypeSyntax& s) {
@@ -2019,11 +2550,11 @@ public:
     }
 
     void handle(const TypedefDeclarationSyntax& decl) {
-        nextLineKind = LineMetadata::Kind::Declaration;
         for (auto* attr : decl.attributes) {
             attr->visit(*this);
         }
 
+        nextIsPrimary = true;
         emitToken(decl.typedefKeyword);
         decl.type->visit(*this);
         emitToken(decl.name);
@@ -2060,6 +2591,39 @@ public:
         }
         visitDefault(dim);
         std::tie(inPackedDimension, inUnpackedDimension) = saved;
+    }
+
+    void handle(const RangeSelectSyntax& sel) {
+        sel.left->visit(*this);
+
+        size_t leftSpaces = 0;
+        size_t rightSpaces = 0;
+        switch (style.RangeSpacing) {
+            case RangeSpacingStyle::Always:
+                leftSpaces = 1;
+                rightSpaces = 1;
+                break;
+            case RangeSpacingStyle::Never:
+                break;
+            case RangeSpacingStyle::Preserve:
+                leftSpaces = std::min(leadingWhitespaceLength(sel.range), size_t{1});
+                rightSpaces = std::min(leadingWhitespaceLength(sel.right->getFirstToken()),
+                                       size_t{1});
+                break;
+        }
+
+        if (formatEnabled && leftSpaces != 0) {
+            stripTrailingSpaces();
+            output.append(leftSpaces, ' ');
+        }
+        skipSpacingCapture = true;
+        emitToken(sel.range);
+        if (formatEnabled && rightSpaces != 0 && !atLineStart) {
+            output.append(rightSpaces, ' ');
+        }
+        skipSpacingCapture = true;
+
+        sel.right->visit(*this);
     }
 
     void handle(const ContinuousAssignSyntax& assign) {
@@ -2110,14 +2674,28 @@ public:
         emitToken(inst.openParen);
 
         depth++;
-        visitSeparatedList(inst.connections);
+        bool const wrapConnections = !style.BinPackPortConnections && formatEnabled &&
+                                     inst.connections.size() > 1;
+        if (wrapConnections) {
+            visitWrappedSeparatedList(inst.connections);
+        }
+        else {
+            visitSeparatedList(inst.connections);
+        }
+
+        depth--;
+        if (wrapConnections) {
+            spaceBeforeCloseParenPending = false;
+            if (!hasLeadingNewline(inst.closeParen)) {
+                forceNewline();
+            }
+        }
 
         portItemNextIndent = true;
         nextIsPrimary = true;
         emitEndTokenTrivia(inst.closeParen);
         portItemNextIndent = false;
 
-        depth--;
         nextIsPrimary = true;
         nextLineKind = LineMetadata::Kind::PortListBoundary;
         emitToken(inst.closeParen);
@@ -2129,7 +2707,27 @@ public:
         }
 
         emitToken(inst.type);
-        if (inst.parameters != nullptr) {
+
+        if (formatEnabled && inst.parameters != nullptr) {
+            bool hasNamedParams = false;
+            for (const auto* p : inst.parameters->parameters) {
+                if (p->kind == SyntaxKind::NamedParamAssignment) {
+                    hasNamedParams = true;
+                    break;
+                }
+            }
+            bool portsExpand = false;
+            for (const auto* i : inst.instances) {
+                if (i->connections.size() > 1) {
+                    portsExpand = true;
+                    break;
+                }
+            }
+            expandNamedParams = hasNamedParams && portsExpand;
+            inst.parameters->visit(*this);
+            expandNamedParams = false;
+        }
+        else if (inst.parameters != nullptr) {
             inst.parameters->visit(*this);
         }
 
@@ -2188,7 +2786,12 @@ public:
         emitToken(p.openParen);
 
         depth++;
-        visitSeparatedList(p.parameters);
+        if (expandNamedParams) {
+            visitWrappedSeparatedList(p.parameters);
+        }
+        else {
+            visitSeparatedList(p.parameters);
+        }
 
         portItemNextIndent = true;
         nextIsPrimary = true;
@@ -2196,6 +2799,13 @@ public:
         portItemNextIndent = false;
 
         depth--;
+        if (expandNamedParams) {
+            spaceBeforeCloseParenPending = false;
+            if (!hasLeadingNewline(p.closeParen)) {
+                forceNewline();
+            }
+        }
+
         nextIsPrimary = true;
         nextLineKind = LineMetadata::Kind::PortListBoundary;
         emitToken(p.closeParen);
@@ -2237,7 +2847,8 @@ private:
     std::string output;
     std::vector<LineMetadata> lineMetadata;
     LineMetadata currentLineMeta;
-    size_t lineStart = 0; ///< Index into output where the current line begins.
+    size_t outputLineNumber = 0; ///< Current output line number (number of newlines written).
+    size_t lineStart = 0;        ///< Index into output where the current line begins.
     unsigned depth = 0;
     unsigned lineDepth = 0;        ///< Depth when content was last emitted on the current line.
     unsigned parenAlignColumn = 0; ///< Absolute column for paren-aligned argument indentation.
@@ -2264,11 +2875,69 @@ private:
     bool afterIntegerBase = false;
     TokenKind lastTokenKind = TokenKind::Unknown;
     bool skipExpandedToken = false;
+    bool skipSpacingCapture = false;
     bool spaceBeforeCloseBracePending = false;
     bool spaceBeforeCloseBracketPending = false;
     bool spaceBeforeCloseParenPending = false;
+    bool expandNamedParams = false;
     std::optional<std::regex> offRegex;
     std::optional<LineMetadata::Kind> nextLineKind;
+
+    template<typename MemberList>
+    bool membersFitOnSingleLine(const MemberList& members) {
+        size_t totalWidth = 0;
+        for (auto* member : members) {
+            auto const w = flatWidthForced(*member);
+            if (w == 0) {
+                return false;
+            }
+            totalWidth += (totalWidth > 0 ? 1 : 0) + w;
+        }
+
+        auto const currentCol = output.size() - lineStart;
+        auto const needed = currentCol + 1 + totalWidth + 1;
+        return style.ColumnLimit == 0 || needed <= style.ColumnLimit;
+    }
+
+    template<typename MemberList>
+    void emitMembersInline(const MemberList& members) {
+        for (auto* member : members) {
+            triviaSkip = member->getFirstToken().trivia().size();
+            nextIsPrimary = true;
+            member->visit(*this);
+        }
+    }
+
+    void emitBinPackedWrapped(const SeparatedSyntaxList<FunctionPortBaseSyntax>& ports,
+                              size_t limit) {
+        for (const auto& elem : ports.elems()) {
+            if (elem.isNode()) {
+                auto const colBefore = output.size() - lineStart;
+                auto const w = flatWidth(*elem.node());
+                if (colBefore > 0 && limit > 0 && colBefore + w + 2 > limit) {
+                    forceNewline();
+                }
+                triviaSkip = elem.node()->getFirstToken().trivia().size();
+                elem.node()->visit(*this);
+            }
+            else if (elem.isToken()) {
+                emitToken(elem.token());
+            }
+        }
+    }
+
+    static bool isInsideControlCondition(const SyntaxNode& node) {
+        for (auto* p = node.parent; p != nullptr; p = p->parent) {
+            if (p->kind == SyntaxKind::ConditionalPredicate) {
+                return true;
+            }
+            if (p->kind == SyntaxKind::ConditionalStatement ||
+                p->kind == SyntaxKind::DoWhileStatement || p->kind == SyntaxKind::WaitStatement) {
+                return false;
+            }
+        }
+        return false;
+    }
 
     static bool hasLeadingNewline(Token tok) {
         if (!tok) {
@@ -2277,6 +2946,29 @@ private:
 
         return std::ranges::any_of(tok.trivia(),
                                    [](const auto& t) { return t.kind == TriviaKind::EndOfLine; });
+    }
+
+    static bool hasLeadingWhitespace(Token tok) {
+        if (!tok) {
+            return false;
+        }
+
+        return std::ranges::any_of(tok.trivia(),
+                                   [](const auto& t) { return t.kind == TriviaKind::Whitespace; });
+    }
+
+    static size_t leadingWhitespaceLength(Token tok) {
+        if (!tok) {
+            return 0;
+        }
+
+        size_t len = 0;
+        for (const auto& t : tok.trivia()) {
+            if (t.kind == TriviaKind::Whitespace) {
+                len += t.getRawText().length();
+            }
+        }
+        return len;
     }
 
     static bool hasLeadingTrailingComment(Token tok) {
@@ -2373,6 +3065,7 @@ private:
 
     void finalizeLine() {
         currentLineMeta.depth = lineDepth;
+        currentLineMeta.lineNumber = outputLineNumber++;
         lineMetadata.push_back(std::move(currentLineMeta));
         currentLineMeta = {};
     }
@@ -2388,7 +3081,7 @@ private:
     }
 
     [[nodiscard]] bool shouldCompactConditionalBody(const SyntaxNode& body) const {
-        if (!style.CompactConditionals || !style.OneStatementPerLine || !formatEnabled) {
+        if (!style.CompactControlStatements || !style.OneStatementPerLine || !formatEnabled) {
             return false;
         }
 
@@ -2544,6 +3237,24 @@ private:
         output += raw;
     }
 
+    void emitRawText(std::string_view raw) {
+        output += raw;
+        for (auto ch : raw) {
+            if (ch == '\n') {
+                outputLineNumber++;
+            }
+        }
+    }
+
+    static bool isBlockOpen(TokenKind kind) {
+        return kind == TokenKind::BeginKeyword || kind == TokenKind::ForkKeyword;
+    }
+
+    static bool isBlockClose(TokenKind kind) {
+        return kind == TokenKind::EndKeyword || kind == TokenKind::JoinKeyword ||
+               kind == TokenKind::JoinAnyKeyword || kind == TokenKind::JoinNoneKeyword;
+    }
+
     void emitDirectiveTrivia(const Trivia& t) {
         auto* node = t.syntax();
         if (node == nullptr) {
@@ -2569,7 +3280,9 @@ private:
             currentLineMeta.kind = LineMetadata::Kind::Comment;
         }
 
-        output += first.rawText();
+        emitRawText(first.rawText());
+        lineDepth = depth;
+        atLineStart = false;
         it++;
 
         for (; it != end; ++it) {
@@ -2579,10 +3292,26 @@ private:
                     emitTrivia(inner);
                 }
                 else if (inner.kind == TriviaKind::Whitespace) {
-                    output += inner.getRawText();
+                    if (!formatEnabled || !atLineStart || depth == 0) {
+                        output += inner.getRawText();
+                    }
                 }
             }
-            output += tok.rawText();
+
+            if (isBlockClose(tok.kind) && depth > 0) {
+                depth--;
+            }
+
+            if (formatEnabled && atLineStart && depth > 0) {
+                emitIndent();
+            }
+            emitRawText(tok.rawText());
+            lineDepth = depth;
+            atLineStart = false;
+
+            if (isBlockOpen(tok.kind)) {
+                depth++;
+            }
         }
 
         lineDepth = depth;
@@ -2759,6 +3488,16 @@ private:
         }
     }
 
+    void captureTokenSpacing(Token tok) {
+        auto srcSpaces = static_cast<unsigned>(leadingWhitespaceLength(tok));
+        unsigned outSpaces = 0;
+        for (auto it = output.rbegin(); it != output.rend() && *it == ' '; ++it) {
+            outSpaces++;
+        }
+        currentLineMeta.tokenSpacings.push_back(
+            {.sourceSpaces = srcSpaces, .outputSpaces = outSpaces});
+    }
+
     void emitToken(Token tok) {
         if (!tok || tok.isMissing() || tok.kind == TokenKind::Placeholder) {
             return;
@@ -2777,6 +3516,7 @@ private:
         auto raw = tok.rawText();
         emitSeparator(tok);
 
+        bool const wasLineStart = atLineStart;
         if (atLineStart) {
             if (nextLineKind) {
                 currentLineMeta.kind = *nextLineKind;
@@ -2809,6 +3549,11 @@ private:
             }
         }
         normalizeBeforeOpen(tok.kind);
+
+        if (!wasLineStart && formatEnabled && !skipSpacingCapture) {
+            captureTokenSpacing(tok);
+        }
+        skipSpacingCapture = false;
 
         if (skipExpandedToken) {
             skipExpandedToken = false;
@@ -2853,6 +3598,24 @@ private:
     void visitSeparatedList(const SeparatedSyntaxList<T>& list) {
         for (auto& elem : list.elems()) {
             if (elem.isNode()) {
+                portItemNextIndent = true;
+                nextIsPrimary = true;
+                elem.node()->visit(*this);
+                portItemNextIndent = false;
+            }
+            else if (elem.isToken()) {
+                emitToken(elem.token());
+            }
+        }
+    }
+
+    template<typename T>
+    void visitWrappedSeparatedList(const SeparatedSyntaxList<T>& list) {
+        for (auto& elem : list.elems()) {
+            if (elem.isNode()) {
+                if (!atLineStart && !hasLeadingNewline(elem.node()->getFirstToken())) {
+                    forceNewline();
+                }
                 portItemNextIndent = true;
                 nextIsPrimary = true;
                 elem.node()->visit(*this);
@@ -2969,7 +3732,8 @@ private:
         }
 
         auto currentCol = output.size() - lineStart;
-        const size_t needed = w + (isLast ? 1 : 2);
+        const size_t separator = style.SpaceAfterComma ? 1 : 0;
+        const size_t needed = separator + w + (isLast ? 1 : 2);
         return style.ColumnLimit > 0 && currentCol + needed > style.ColumnLimit;
     }
 

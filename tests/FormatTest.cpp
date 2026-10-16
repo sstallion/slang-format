@@ -33,6 +33,28 @@ TEST(AlignAfterOpenParen, AlignBinPackedFunctionCall) {
     // clang-format on
 }
 
+TEST(AlignAfterOpenParen, AlignBinPackedLastArgOverflow) {
+    Style style;
+    style.ColumnLimit = 40; // NOLINT
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+          initial begin
+            $display(alpha_beta, gamma_delta_val);
+          end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            $display(alpha_beta,
+                     gamma_delta_val);
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(AlignAfterOpenParen, AlignEmptyArgList) {
     Style style;
     style.ColumnLimit = 40; // NOLINT
@@ -440,6 +462,213 @@ TEST(AlignAfterOpenParen, NoColumnLimitDisablesWrapping) {
     // clang-format on
 }
 
+TEST(AllowShortConstraintBlocksOnASingleLine, JoinsSingleItem) {
+    Style style;
+    style.AllowShortConstraintBlocksOnASingleLine = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        constraint c {
+        kind inside {[0:7]};
+        }
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          constraint c {kind inside {[0:7]};}
+        endclass
+    )"));
+    // clang-format on
+}
+
+TEST(AllowShortConstraintBlocksOnASingleLine, ExpandsMultiItem) {
+    Style style;
+    style.AllowShortConstraintBlocksOnASingleLine = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        constraint c {len inside {[1:16]}; data.size() == len;}
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          constraint c {
+            len inside {[1:16]};
+            data.size() == len;
+          }
+        endclass
+    )"));
+    // clang-format on
+}
+
+TEST(AllowShortConstraintBlocksOnASingleLine, DisabledExpandsSingleItem) {
+    Style style;
+    style.AllowShortConstraintBlocksOnASingleLine = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        constraint c {kind inside {[0:7]};}
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          constraint c {
+            kind inside {[0:7]};
+          }
+        endclass
+    )"));
+    // clang-format on
+}
+
+TEST(AllowShortConstraintBlocksOnASingleLine, NestedWithBlockIndent) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin
+        if (!pkt.randomize() with {
+        len == 4;
+        op inside {OP_A0, OP_A1};
+        }) begin
+        $error("failed");
+        end
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if (!pkt.randomize() with {
+                  len == 4;
+                  op inside {OP_A0, OP_A1};
+                }) begin
+              $error("failed");
+            end
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AllowShortConstraintBlocksOnASingleLine, RandomizeWithSingleItem) {
+    Style const style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin
+        void'(std::randomize(counter) with {
+        counter inside {[1:10]};
+        });
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            void'(std::randomize(counter) with {counter inside {[1:10]};});
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(AllowShortCoverpointsOnASingleLine, JoinsWhenFits) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class packet;
+        covergroup cg;
+        cp_len: coverpoint len {
+        bins sm = {[1:4]};
+        bins md = {[5:12]};
+        bins lg = {[13:16]};
+        }
+        endgroup
+        endclass
+    )"), style), dedent(R"(
+        class packet;
+          covergroup cg;
+            cp_len: coverpoint len {bins sm = {[1:4]}; bins md = {[5:12]}; bins lg = {[13:16]};}
+          endgroup
+        endclass
+    )"));
+    // clang-format on
+}
+
+TEST(AllowShortCoverpointsOnASingleLine, ExpandsWhenExceedsColumnLimit) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class packet;
+        covergroup cg;
+        cp_op: coverpoint op {
+        bins a_ops[] = {OP_A0, OP_A1, OP_A2, OP_A3};
+        bins b_ops = {OP_B2, OP_B3};
+        ignore_bins ig = {OP_A0};
+        }
+        endgroup
+        endclass
+    )"), style), dedent(R"(
+        class packet;
+          covergroup cg;
+            cp_op: coverpoint op {
+              bins a_ops[] = {OP_A0, OP_A1, OP_A2, OP_A3};
+              bins b_ops = {OP_B2, OP_B3};
+              ignore_bins ig = {OP_A0};
+            }
+          endgroup
+        endclass
+    )"));
+    // clang-format on
+}
+
+TEST(AllowShortCoverpointsOnASingleLine, DisabledExpandsSingleBin) {
+    Style style;
+    style.AllowShortCoverpointsOnASingleLine = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class packet;
+        covergroup cg;
+        cp_addr: coverpoint addr {option.auto_bin_max = 8;}
+        endgroup
+        endclass
+    )"), style), dedent(R"(
+        class packet;
+          covergroup cg;
+            cp_addr: coverpoint addr {
+              option.auto_bin_max = 8;
+            }
+          endgroup
+        endclass
+    )"));
+    // clang-format on
+}
+
+TEST(AllowShortCoverpointsOnASingleLine, CrossJoinsSingleItem) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class packet;
+        covergroup cg;
+        x_op_len : cross cp_op, cp_len {
+        ignore_bins skip = binsof (cp_len.lg) && binsof (cp_op.b_ops);
+        }
+        endgroup
+        endclass
+    )"), style), dedent(R"(
+        class packet;
+          covergroup cg;
+            x_op_len : cross cp_op, cp_len {ignore_bins skip = binsof (cp_len.lg) && binsof (cp_op.b_ops);}
+          endgroup
+        endclass
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyEmptyLineLimits, EmptyLinesAtEndOfInput) {
     Style style;
     style.RemoveEmptyLines = true;
@@ -744,7 +973,7 @@ TEST(ApplyIndentation, BreakAfterAlwaysNone) {
 TEST(ApplyIndentation, BreakAfterAlwaysOnlyMultilineConditionalBare) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
-    style.CompactConditionals = false;
+    style.CompactControlStatements = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1190,7 +1419,7 @@ TEST(ApplyIndentation, BreakBeforeAlwaysOnlyMultilineConditionalBare) {
     Style style;
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
-    style.CompactConditionals = false;
+    style.CompactControlStatements = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1925,7 +2154,8 @@ TEST(ApplyIndentation, CheckerDeclaration) {
         endchecker
     )"), style), dedent(R"(
         checker req_ack(logic clk, req, ack);
-          a1 : assert property (p);
+          a1 :
+          assert property (p);
         endchecker
     )"));
     // clang-format on
@@ -1986,7 +2216,9 @@ TEST(ApplyIndentation, CompilationUnitTopLevel) {
 }
 
 TEST(ApplyIndentation, ClockingDeclaration) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2409,7 +2641,8 @@ TEST(ApplyIndentation, FormatOffSkipsReindent) {
 }
 
 TEST(ApplyIndentation, HierarchyInstantiationMultilineNamedPorts) {
-    Style const style{};
+    Style style;
+    style.BinPackPortConnections = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2441,7 +2674,9 @@ TEST(ApplyIndentation, HierarchyInstantiationMultilineNamedPorts) {
 }
 
 TEST(ApplyIndentation, HierarchyInstantiationNoParameters) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutivePortConnections = {};
+    style.BinPackPortConnections = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2454,7 +2689,7 @@ TEST(ApplyIndentation, HierarchyInstantiationNoParameters) {
     )"), style), dedent(R"(
         module foo;
           bar u_bar (
-              .clk  (clk),
+              .clk(clk),
               .rst_n(rst_n)
           );
         endmodule
@@ -2488,7 +2723,8 @@ TEST(ApplyIndentation, HierarchyInstantiationParameterPortListIndentWidthCustom)
 }
 
 TEST(ApplyIndentation, HierarchyInstantiationPositionalPorts) {
-    Style const style{};
+    Style style;
+    style.BinPackPortConnections = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2624,7 +2860,9 @@ TEST(ApplyIndentation, HierarchyInstantiationSpaceBeforeParensPortListFalse) {
 }
 
 TEST(ApplyIndentation, HierarchyInstantiationTopLevel) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutivePortConnections = {};
+    style.BinPackPortConnections = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2636,10 +2874,10 @@ TEST(ApplyIndentation, HierarchyInstantiationTopLevel) {
         );
     )"), style), dedent(R"(
         bind tort_top handshake_chk u_chk (
-            .clk  (clk),
+            .clk(clk),
             .rst_n(rst_n),
-            .req  (req_int),
-            .gnt  (gnt_int)
+            .req(req_int),
+            .gnt(gnt_int)
         );
     )"));
     // clang-format on
@@ -2791,6 +3029,8 @@ TEST(ApplyIndentation, OneLineFormatOffRegexSkipsLine) {
 
 TEST(ApplyIndentation, ParameterPortListIndented) {
     Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
     style.ParameterPortListIndentWidth = 2;
 
     // clang-format off
@@ -2814,6 +3054,8 @@ TEST(ApplyIndentation, ParameterPortListIndented) {
 
 TEST(ApplyIndentation, ParameterPortListIndentWidthCustom) {
     Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
     style.ParameterPortListIndentWidth = 4;
 
     // clang-format off
@@ -2884,7 +3126,9 @@ TEST(ApplyIndentation, PortListIndented) {
 }
 
 TEST(ApplyIndentation, StructTypeDeclaration) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2906,7 +3150,9 @@ TEST(ApplyIndentation, StructTypeDeclaration) {
 }
 
 TEST(ApplyIndentation, UdpDeclaration) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2936,7 +3182,9 @@ TEST(ApplyIndentation, UdpDeclaration) {
 }
 
 TEST(ApplyIndentation, UdpDeclarationSequential) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -2967,7 +3215,7 @@ TEST(ApplyIndentation, UdpDeclarationSequential) {
     // clang-format on
 }
 
-TEST(CompactConditionals, BasicIf) {
+TEST(CompactControlStatements, BasicIf) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
@@ -2984,7 +3232,7 @@ TEST(CompactConditionals, BasicIf) {
     // clang-format on
 }
 
-TEST(CompactConditionals, BlockBodyNotCompacted) {
+TEST(CompactControlStatements, BlockBodyNotCompacted) {
     Style style;
     style.BreakAfterBegin = true;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -3008,10 +3256,10 @@ TEST(CompactConditionals, BlockBodyNotCompacted) {
     // clang-format on
 }
 
-TEST(CompactConditionals, Disabled) {
+TEST(CompactControlStatements, Disabled) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
-    style.CompactConditionals = false;
+    style.CompactControlStatements = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3030,7 +3278,7 @@ TEST(CompactConditionals, Disabled) {
     // clang-format on
 }
 
-TEST(CompactConditionals, ExceedsColumnLimit) {
+TEST(CompactControlStatements, ExceedsColumnLimit) {
     Style style;
     style.BreakAfterAlways = BlockBreakStyle::Always;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
@@ -3051,7 +3299,7 @@ TEST(CompactConditionals, ExceedsColumnLimit) {
     // clang-format on
 }
 
-TEST(CompactConditionals, IfElse) {
+TEST(CompactControlStatements, IfElse) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
@@ -3070,7 +3318,7 @@ TEST(CompactConditionals, IfElse) {
     // clang-format on
 }
 
-TEST(CompactConditionals, IfElseIfElse) {
+TEST(CompactControlStatements, IfElseIfElse) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
@@ -3090,7 +3338,7 @@ TEST(CompactConditionals, IfElseIfElse) {
     // clang-format on
 }
 
-TEST(CompactConditionals, NoColumnLimit) {
+TEST(CompactControlStatements, NoColumnLimit) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
     style.ColumnLimit = 0;
@@ -3108,7 +3356,7 @@ TEST(CompactConditionals, NoColumnLimit) {
     // clang-format on
 }
 
-TEST(CompactConditionals, PartialCompaction) {
+TEST(CompactControlStatements, PartialCompaction) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
     style.ColumnLimit = 30; // NOLINT
@@ -3129,7 +3377,7 @@ TEST(CompactConditionals, PartialCompaction) {
     // clang-format on
 }
 
-TEST(CompactConditionals, PreservesExistingNewlines) {
+TEST(CompactControlStatements, PreservesExistingNewlines) {
     Style style;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
@@ -3155,7 +3403,9 @@ TEST(CompactConditionals, PreservesExistingNewlines) {
 }
 
 TEST(CompactTimeUnits, Default) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3172,6 +3422,8 @@ TEST(CompactTimeUnits, Default) {
 
 TEST(CompactTimeUnits, Disabled) {
     Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
     style.CompactTimeUnits = false;
 
     // clang-format off
@@ -3206,7 +3458,9 @@ TEST(CompactTimeUnits, DisabledWithDivider) {
 }
 
 TEST(CompactTimeUnits, Package) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3222,7 +3476,9 @@ TEST(CompactTimeUnits, Package) {
 }
 
 TEST(CompactTimeUnits, SeparateLines) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3239,7 +3495,9 @@ TEST(CompactTimeUnits, SeparateLines) {
 }
 
 TEST(CompactTimeUnits, SeparateLinesBlankLine) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3257,7 +3515,9 @@ TEST(CompactTimeUnits, SeparateLinesBlankLine) {
 }
 
 TEST(CompactTimeUnits, SeparateLinesPackage) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3288,6 +3548,384 @@ TEST(CompactTimeUnits, SeparateLinesWithComment) {
           timeunit 1ns;
           // precision follows
           timeprecision 1ps;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(DPIImportExpansion, ExpandsMultiplePortsOnePerLine) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package p;
+        import "DPI-C" context function int unsigned c_checksum(input int unsigned seed, input int unsigned len);
+        endpackage
+    )"), style), dedent(R"(
+        package p;
+          import "DPI-C" context function int unsigned c_checksum(
+            input int unsigned seed,
+            input int unsigned len
+          );
+        endpackage
+    )"));
+    // clang-format on
+}
+
+TEST(DPIImportExpansion, SinglePortStaysInline) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package p;
+        import "DPI-C" function void single_port(input int x);
+        endpackage
+    )"), style), dedent(R"(
+        package p;
+          import "DPI-C" function void single_port(input int x);
+        endpackage
+    )"));
+    // clang-format on
+}
+
+TEST(InstanceExpansion, ExpandsNamedParamsWhenPortsExpand) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+        dff #(.W(8), .RST_VAL(8'hFF)) u_dff (.clk(clk), .rst_n(rst_n), .en(vld_i), .d(data_i[7:0]), .q(dff_q));
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          dff #(
+              .W(8),
+              .RST_VAL(8'hFF)
+          ) u_dff (
+              .clk(clk),
+              .rst_n(rst_n),
+              .en(vld_i),
+              .d(data_i[7:0]),
+              .q(dff_q)
+          );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(InstanceExpansion, PositionalParamsStayInline) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+        dff #(8, 8'h00) u_dff (clk, rst_n, vld_i, data_i[15:8], dff_q2);
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          dff #(8, 8'h00) u_dff (
+              clk,
+              rst_n,
+              vld_i,
+              data_i[15:8],
+              dff_q2
+          );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(InstanceExpansion, SingleNamedParamExpandsWithPorts) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+        dff #(.W(4)) u_dff[0:3] (.clk(clk), .rst_n(rst_n), .en(1'b1), .d(nib_d), .q(nib_q));
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          dff #(
+              .W(4)
+          ) u_dff[0:3] (
+              .clk(clk),
+              .rst_n(rst_n),
+              .en(1'b1),
+              .d(nib_d),
+              .q(nib_q)
+          );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(InstanceExpansion, SingleNamedParamStaysInlineWithWildcard) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+        adder #(.W(DW)) u_adder (.*);
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          adder #(.W(DW)) u_adder (.*);
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(InstanceExpansion, SinglePositionalParamStaysInline) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+        packet #(DW) pkt;
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          packet #(DW) pkt;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(BinPackParameters, WrapsLongPortList) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+        function automatic logic [DW-1:0] mask_bytes(input logic [DW-1:0] value, input logic [STRB_W-1:0] strb, input bit invert = 1'b0);
+        return '0;
+        endfunction
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          function automatic logic [DW-1:0] mask_bytes(
+              input logic [DW-1:0] value, input logic [STRB_W-1:0] strb, input bit invert = 1'b0);
+            return '0;
+          endfunction
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(BinPackParameters, ShortPortListStaysInline) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+        task automatic bump(ref int counter, input int unsigned n = 1);
+        endtask
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          task automatic bump(ref int counter, input int unsigned n = 1);
+          endtask
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(BinPackParameters, DisabledOnePerLine) {
+    Style style{};
+    style.BinPackParameters = false;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+        function void foo(input int a, input int b, input int c);
+        endfunction
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          function void foo(
+              input int a,
+              input int b,
+              input int c
+          );
+          endfunction
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(DeviationRegression, ConfigBlockIndentation) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        config cfg;
+        design work.top;
+          default liblist work;
+        instance top.u_dut liblist work;
+             cell dff use work.dff;
+        endconfig
+    )"), style), dedent(R"(
+        config cfg;
+          design work.top;
+          default liblist work;
+          instance top.u_dut liblist work;
+          cell dff use work.dff;
+        endconfig
+    )"));
+    // clang-format on
+}
+
+TEST(DeviationRegression, CoverCrossInlineBody) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        class c;
+          covergroup cg;
+            x_op_len : cross cp_op, cp_len {
+                 ignore_bins skip = binsof(cp_len.lg) && binsof(cp_op.b_ops);
+            }
+          endgroup
+        endclass
+    )"), style), dedent(R"(
+        class c;
+          covergroup cg;
+            x_op_len : cross cp_op, cp_len {ignore_bins skip = binsof (cp_len.lg) && binsof (cp_op.b_ops);}
+          endgroup
+        endclass
+    )"));
+    // clang-format on
+}
+
+TEST(DeviationRegression, ModportExpansion) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        interface intf;
+          modport mst(
+               clocking cb,
+            output req, addr, wdata, we,
+            input gnt, rdata
+          );
+          modport slv(input req, output gnt);
+        endinterface
+    )"), style), dedent(R"(
+        interface intf;
+          modport mst(
+              clocking cb,
+              output req, addr, wdata, we,
+              input gnt, rdata
+          );
+          modport slv(input req, output gnt);
+        endinterface
+    )"));
+    // clang-format on
+}
+
+TEST(DeviationRegression, RestrictProperty) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+          restrict property (@(posedge clk) !$isunknown(addr_i));
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          restrict property (@(posedge clk) !$isunknown(addr_i));
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(DeviationRegression, SequenceMatchItem) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+          property p;
+            logic [7:0] v;
+            @(posedge clk) disable iff (!rst_n) (vld_i, v = data_i) |=> (payload_q == v);
+          endproperty
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          property p;
+            logic [7:0] v;
+            @(posedge clk) disable iff (!rst_n) (vld_i, v = data_i) |=> (payload_q == v);
+          endproperty
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(DistConstraintExpansion, ExpandsOnePerLine) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin
+        assert(pkt.randomize() with {
+        op dist {OP_A0 := 40, OP_A1 := 30, [OP_A2 : OP_B3] :/ 30};
+        });
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            assert (pkt.randomize() with {
+              op dist {
+                OP_A0 := 40,
+                OP_A1 := 30,
+                [OP_A2 : OP_B3] :/ 30
+              };
+            });
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(EnumExpansion, ExpandsMembersOnePerLine) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        typedef enum bit [3:0] {OP_A[4] = 4'd0, OP_B[2:3]} op_e;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          typedef enum bit [3:0] {
+            OP_A[4] = 4'd0,
+            OP_B[2:3]
+          } op_e;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(EnumExpansion, PreservesExistingLayout) {
+    Style style;
+    style.AlignConsecutiveAssignments = {};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        typedef enum logic [2:0] {
+        ST_IDLE = 3'd0,
+        ST_REQ = 3'd1
+        } state_e;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          typedef enum logic [2:0] {
+            ST_IDLE = 3'd0,
+            ST_REQ = 3'd1
+          } state_e;
         endmodule
     )"));
     // clang-format on
@@ -3575,6 +4213,8 @@ TEST(OneStatementPerLine, SingleStatementInBlock) {
 
 TEST(OneStatementPerLine, TimeUnitsDeclaration) {
     Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
     style.CompactTimeUnits = false;
 
     // clang-format off
@@ -3608,7 +4248,9 @@ TEST(OneStatementPerLine, TimeUnitsDeclarationWithDivider) {
 }
 
 TEST(OneStatementPerLine, TypedefDeclaration) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3624,7 +4266,9 @@ TEST(OneStatementPerLine, TypedefDeclaration) {
 }
 
 TEST(OneStatementPerLine, PackageImportDeclaration) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3641,7 +4285,9 @@ TEST(OneStatementPerLine, PackageImportDeclaration) {
 }
 
 TEST(OneStatementPerLine, DPIImportDeclaration) {
-    Style const style;
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -3652,6 +4298,89 @@ TEST(OneStatementPerLine, DPIImportDeclaration) {
         module foo;
           import "DPI-C" function void dpi_fn();
           import "DPI-C" function void dpi_fn2();
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RandsequenceLayout, ProductionsOnePerLine) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+        initial begin
+        randsequence (main)
+             main : first second third;
+          first    :  {$display("first");};
+          second : rand join (0.5) alpha beta;
+          alpha  : {$display("alpha");};
+          beta   : repeat (2) alpha;
+        endsequence
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          initial begin
+            randsequence (main)
+              main : first second third;
+              first : {$display("first");};
+              second : rand join (0.5) alpha beta;
+              alpha : {$display("alpha");};
+              beta : repeat (2) alpha;
+            endsequence
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RandsequenceLayout, CaseStatementIndentation) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+        initial begin
+        randsequence (main)
+        main : case (counter % 2) 0: alpha; default: beta; endcase;
+        endsequence
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          initial begin
+            randsequence (main)
+              main : case (counter % 2)
+                0 : alpha;
+                default : beta;
+              endcase;
+            endsequence
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RandsequenceLayout, ColonSpacingNormalized) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module m;
+        initial begin
+        randsequence (main)
+        main   :    first;
+        endsequence
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module m;
+          initial begin
+            randsequence (main)
+              main : first;
+            endsequence
+          end
         endmodule
     )"));
     // clang-format on
@@ -3726,6 +4455,218 @@ TEST(RemoveEmptyLines, FormatOffPreservesEmptyLines) {
 
         assign x = 1;
         // slang-format on
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RangeSpacing, AlwaysAddsSpaces) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::Always;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [3:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [3 : 0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RangeSpacing, AlwaysPreservesExistingSpaces) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::Always;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [3 : 0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [3 : 0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RangeSpacing, NeverRemovesSpaces) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [3 : 0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [3:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RangeSpacing, NeverPreservesCompact) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [3:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [3:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RangeSpacing, PreserveKeepsCompact) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::Preserve;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [3:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [3:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RangeSpacing, PreserveKeepsSpaces) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::Preserve;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [3 : 0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [3 : 0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RangeSpacing, PreserveRetainsExactSpacing) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::Preserve;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [3   :   0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [3 : 0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RangeSpacing, BitSelectRange) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::Always;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign y = x[7:0];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign y = x[7 : 0];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SequenceSpacing, CycleDelayBracketRange) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        property p;
+        @(posedge clk) disable iff (!rst_n) req |-> ##[1:5] gnt;
+        endproperty
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          property p;
+            @(posedge clk) disable iff (!rst_n) req |-> ##[1:5] gnt;
+          endproperty
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SequenceSpacing, CycleDelayBeforeParenthesizedExpr) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        property p;
+        req ##1(!req);
+        endproperty
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          property p;
+            req ##1 (!req);
+          endproperty
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SequenceSpacing, SequenceRepetitionConsecutive) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        sequence s;
+        req_int ##1(!req_int)[*0:$] ##1 gnt_int[->n];
+        endsequence
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          sequence s;
+            req_int ##1 (!req_int) [* 0: $] ##1 gnt_int [-> n];
+          endsequence
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(SequenceSpacing, SystemFunctionAfterCloseParenthesis) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assume property (@(posedge clk)$stable(rst_n) or $rose(rst_n));
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assume property (@(posedge clk) $stable(rst_n) or $rose(rst_n));
         endmodule
     )"));
     // clang-format on
@@ -3950,7 +4891,9 @@ TEST(SpaceAfterBrackets, IgnoresExpressions) {
 }
 
 TEST(SpaceAfterBrackets, Inserts) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -4012,6 +4955,8 @@ TEST(SpaceAfterBrackets, NormalizesWhenDisabled) {
 
 TEST(SpaceAfterBrackets, PackedDimensions) {
     Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
     style.SpaceAfterBrackets.PackedDimensions = true;
     style.SpaceAfterBrackets.UnpackedDimensions = false;
 
@@ -5113,7 +6058,9 @@ TEST(SpaceBeforeBrackets, IgnoresExpressions) {
 }
 
 TEST(SpaceBeforeBrackets, Inserts) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -5691,7 +6638,9 @@ TEST(SpaceBeforeParensControlStatements, UniqueIf) {
 }
 
 TEST(SpaceBeforeParensParameterList, Collapses) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -5714,6 +6663,8 @@ TEST(SpaceBeforeParensParameterList, Collapses) {
 
 TEST(SpaceBeforeParensParameterList, Disabled) {
     Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
     style.SpaceBeforeParens.ParameterList = false;
 
     // clang-format off
@@ -5762,7 +6713,9 @@ TEST(SpaceBeforeParensParameterList, FormatOff) {
 }
 
 TEST(SpaceBeforeParensParameterList, Inserts) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -5785,6 +6738,8 @@ TEST(SpaceBeforeParensParameterList, Inserts) {
 
 TEST(SpaceBeforeParensParameterList, NormalizesWhenDisabled) {
     Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
     style.SpaceBeforeParens.ParameterList = false;
 
     // clang-format off
@@ -5807,7 +6762,9 @@ TEST(SpaceBeforeParensParameterList, NormalizesWhenDisabled) {
 }
 
 TEST(SpaceBeforeParensParameterList, PreservesNewlines) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -6189,7 +7146,7 @@ TEST(SpaceAroundOperators, ValueRange) {
     )"), style), dedent(R"(
         module foo;
           initial begin
-            x = y inside {[1 : 16]};
+            x = y inside {[1:16]};
           end
         endmodule
     )"));
@@ -6535,6 +7492,8 @@ TEST(SpacesInBrackets, IgnoresExpressions) {
 
 TEST(SpacesInBrackets, Inserts) {
     Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
     style.SpacesInBrackets = true;
 
     // clang-format off
@@ -6857,7 +7816,9 @@ TEST(SpacesInParens, RemovesBefore) {
 }
 
 TEST(WhitespaceNormalization, AttributeInstance) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -6875,7 +7836,9 @@ TEST(WhitespaceNormalization, AttributeInstance) {
 }
 
 TEST(WhitespaceNormalization, KeywordBeforeBrace) {
-    Style const style{};
+    Style style;
+    style.AlignConsecutiveDeclarations = {};
+    style.AlignConsecutivePackedDimensions = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(

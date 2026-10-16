@@ -36,8 +36,8 @@
   - [ ] `end else begin` compaction
   - [ ] Join `begin` to controlling keyword
   - [ ] Mandatory line break before bare `else`
-  - [ ] Scope construct coverage (`class`, `covergroup`)
-  - [ ] Hierarchical instance formatting
+  - [x] Scope construct coverage (`class`, `covergroup`)
+  - [x] Hierarchical instance formatting
   - [ ] Format-off pragma compatibility (`verilog_format`)
   - [ ] Line terminator auto-detection
-  - [ ] Preprocessor directive line breaks
+  - [x] Preprocessor directive line breaks

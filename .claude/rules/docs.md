@@ -70,6 +70,24 @@ The file contains the following sections, in order:
 maintained by the user and should not be modified. Do not read this document
 unless explicitly requested by the user.
 
+### Verible Compatibility
+
+`docs/verible.md` tracks the compatibility state between Verible's default
+formatting behavior and slang-format's output. Update this document when
+deviations are added, resolved, or reclassified.
+
+The file contains the following sections, in order:
+
+- An unnamed introductory section describing the golden reference file and
+  torture test fixture.
+- **Status** - A summary table of remaining deviations by root cause category,
+  with hunk counts and affected line numbers.
+- **Deviation** sections - One per root cause category, each containing affected
+  lines, root cause analysis, why it is not yet fixed, and possible resolution
+  or required refactoring.
+- **Implementation Details** - Prose sections documenting non-obvious alignment
+  mechanisms that are relevant to the deviations.
+
 ## Documentation Style
 
 - Keep documentation sufficiently high-level; avoid implementation details

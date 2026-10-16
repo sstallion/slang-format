@@ -19,6 +19,7 @@ struct LineMetadata {
         Comment,
         Continuation,
         Declaration,
+        DistItem,
         Empty,
         Other,
         PortConnection,
@@ -27,6 +28,7 @@ struct LineMetadata {
     };
 
     Kind kind = Kind::Other;
+    size_t lineNumber = std::string_view::npos; ///< Output line index this metadata corresponds to.
     unsigned depth = 0;
     size_t typeWidth = 0;
     size_t identPos = std::string_view::npos;
@@ -44,6 +46,14 @@ struct LineMetadata {
     };
 
     std::vector<DimInfo> dims;
+
+    /// Spacing data for a single inter-token gap on this line.
+    struct TokenSpacing {
+        unsigned sourceSpaces; ///< Whitespace characters before the token in the source.
+        unsigned outputSpaces; ///< Spaces before the token in the formatted output.
+    };
+
+    std::vector<TokenSpacing> tokenSpacings;
 };
 
 /// Applies all alignment post-processing passes to the formatted output.

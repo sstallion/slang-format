@@ -1,197 +1,233 @@
 # Verible Compatibility
 
-This document tracks the gap analysis between [Verible][1]'s default formatting
-behavior and slang-format's current capabilities. The goal is to determine what
-features are missing such that a Verible style can be emulated perfectly using
-slang-format.
+This document tracks the compatibility state between [Verible][1]'s default
+formatting behavior and slang-format's output. The golden reference file is
+`tests/fixtures/verible.sv.expected`, which is the canonical output of
+`verible-verilog-format` run with no flags against the torture test fixture
+`tests/fixtures/verible.sv`.
 
-The analysis is based on Verible's CLI defaults (from `format-style-init.cc`),
-not the internal struct defaults used by its test suite. Several Verible struct
-defaults are overridden by CLI flag defaults; the CLI values are what users
-experience when running `verible-verilog-format` with no flags.
+## Status
 
-## Architectural Context
+654 of 655 tests pass. The single remaining failure is the Verible fixture test,
+which has 13 differing hunks across 3 root cause categories:
 
-slang-format is a preserve-and-indent formatter: it replaces leading whitespace
-(indentation) but preserves all inter-token spacing on a line. Verible is a
-normalize-all-whitespace formatter: it rewrites spacing between every token pair
-according to context-sensitive rules hardcoded in `token-annotator.cc`.
+| Category                                | Hunks | Lines                              |
+| --------------------------------------- | ----- | ---------------------------------- |
+| InferFromSource rejects alignment       | 6     | 123, 262, 391, 396, 524, 706-723   |
+| Verible multi-space range inconsistency | 4     | 243, 290, 320, 324                 |
+| Missing keyword padding and dim PadLeft | 3     | 301-303                            |
 
-This distinction is the most significant architectural difference between the
-two tools and drives the largest gap identified below.
+Each category is described below with root cause analysis and the refactoring
+required to resolve it.
 
-## Already Matching
+## Deviation: InferFromSource Rejects Alignment
 
-The following Verible defaults are already produced by slang-format's default
-configuration with no changes needed:
+### Affected Lines
 
-| Verible Default                        | slang-format Equivalent                                   |
-| -------------------------------------- | --------------------------------------------------------- |
-| `indentation_spaces: 2`                | `IndentWidth: 2`                                          |
-| Module body indented                   | `ModuleDeclarationSyntax` handles all four kinds          |
-| Nested control flow                    | `visitBody()` increments depth per scope level            |
-| Max 1 consecutive empty line           | `MaxEmptyLinesToKeep: 1`                                  |
-| No auto begin/end insertion            | `InsertBeginEnd.Enabled: false`                           |
-| No parenthesis insertion               | All `InsertParens` fields false                           |
-| No blank line before `function`/`task` | `BreakBeforeFunction: false` and `BreakBeforeTask: false` |
-| No blank line before `specify`         | `BreakBeforeSpecifyBlock: false`                          |
-| No blank line before `always`/`initial`| `BreakBeforeAlways: Never` and `BreakBeforeInitial: Never`|
-| No break between header and body       | `BreakAfterAlways: Never` and `BreakAfterInitial: Never`  |
-| Content on new line after `begin`      | `BreakAfterBegin: true`                                   |
-| Newline before `end`                   | `BreakBeforeEnd: true`                                    |
-| Continuation lines at 4-space indent   | `ContinuationIndentWidth: 4`                              |
-| Port declarations at 4-space indent    | `ParameterPortListIndentWidth: 4`                         |
-| Event separator preserved              | `EventSeparator: Preserve`                                |
-| Dimension bounds preserved             | `PackedDimensionBounds: Preserve`                         |
-| Assignment alignment (infer)           | `AlignConsecutiveAssignments: {Enabled: true, MaxPadding: 2}` |
+| Line(s) | Context              | Actual           | Expected            | Displacement |
+| ------- | -------------------- | ---------------- | ------------------- | ------------ |
+| 123     | Class constructor    | `this.id = ...`  | `this.id   = ...`   | 2            |
+| 262     | Clocking block       | `cb.req <= ...`  | `cb.req  <= ...`    | 1            |
+| 391     | Case statement body  | `rdy_o = ...`    | `rdy_o   = ...`     | 2            |
+| 396     | Case statement body  | `rdy_o = ...`    | `rdy_o   = ...`     | 2            |
+| 524     | Port connection list | `.b(data_i)`     | `.b  (data_i)`      | 2            |
+| 706-709 | Bind port list       | `.clk(clk)`      | `.clk  (clk)`       | 2            |
+| 723     | Instance port list   | `.clk(clk)`      | `.clk  (clk)`       | 2            |
 
-In slang's syntax tree, `ModuleDeclarationSyntax` covers `module`, `interface`,
-`package`, and `program` declarations via a unified `isKind()` predicate. All
-four construct types are therefore handled by the existing `handle()` method.
+### Root Cause
 
-## Missing Features
+The `InferFromSource` alignment policy examines `groupMaxExcess` - the maximum
+difference between source and output inter-token spacing across a group. When
+the source has no excess spacing (the author wrote exactly one space between
+tokens), InferFromSource concludes the author did not intend alignment and
+returns `FlushLeft`.
 
-### Token Spacing Normalization
+Verible does not have an InferFromSource concept; it unconditionally aligns
+assignments and port connections within groups when the displacement is small.
 
-Verible normalizes all inter-token whitespace via context-sensitive rules. The
-complete rule set, as implemented in `token-annotator.cc`, includes:
+### Why Not Fixed
 
-- [x] 1 space after `,` and `;`; 0 before
-- [x] 0 space inside `()`, `[]`, `{}`
-- [x] 1 space around binary and assignment operators (`+`, `-`, `*`, `=`, `<=`, `+=`, etc.)
-- [ ] 0 space for unary prefix and postfix operators (`!`, `~`, `++`, `--`)
-- [ ] 1 space around ternary `?` and `:`
-- [ ] 0 space around cast `'` (e.g. `int'(x)`)
-- [ ] 0 space around `.` and `::`
-- [ ] 1 space between control-flow keywords (`if`, `for`, `while`, etc.) and `(`
-- [ ] 0 space between function/method name and `(`
-- [ ] 1 space between module instance name and `(`
-- [ ] 0 space after `@`
-- [ ] 0 space inside based numeric literals (e.g. `16'hFF`)
-- [x] Minimum 2 spaces before trailing end-of-line comments
+Disabling InferFromSource for assignments and port connections
+(`AlignConsecutiveAssignments`, `AlignConsecutivePortConnections`) or adding a
+`minGuarantee` for these passes causes regressions in existing tests:
 
-slang-format preserves inter-token whitespace verbatim. In `Format.cpp`, the
-`emitTrivia` method passes non-leading `Whitespace` trivia through to the output
-unchanged. There is no spacing classification or normalization infrastructure.
+- `PortListBoundaryBreaksGroup` fails because MaxPadding=1 with displacement=2
+  should reject alignment.
+- `Rule1SmallPaddingAligns` fails because InferFromSource with no source excess
+  should reject alignment.
 
-This is the single largest gap. Without it, slang-format output will differ from
-Verible on virtually any input that has non-canonical spacing. Implementing this
-requires a token-context classification system that examines the preceding and
-following tokens to determine appropriate spacing, and modification of the trivia
-emission logic to replace inter-token whitespace rather than preserve it.
+The `minGuarantee` mechanism works for declarations (where bare-type groups have
+no keywords and benefit from unconditional small-displacement alignment) but
+cannot be extended to assignments and port connections without breaking the
+MaxPadding contract those tests verify.
 
-### `end else begin` Compaction
+### Possible Resolution
 
-Verible places `end else begin` (and `end else` without `begin`) on a single
-line. This is a mandatory formatting rule that applies regardless of the
-original source layout.
+Introduce per-pass alignment defaults that separate declaration behavior
+(always-align for small displacements) from assignment and port connection
+behavior (InferFromSource decides). This would require either:
 
-slang-format preserves whatever line structure exists in the source for the
-`else` clause. If the source has `end`, `else`, and `begin` on separate lines,
-slang-format keeps them that way.
+1. A separate `AlwaysAlignSmallDisplacements` field on `AlignConsecutiveStyle`
+   that bypasses InferFromSource for displacements at or below a threshold, or
+2. Changing the default `AlignConsecutiveAssignments` and
+   `AlignConsecutivePortConnections` to `InferFromSource: false`, which matches
+   Verible but changes slang-format's default behavior for all users.
 
-The `ConditionalStatementSyntax` handler would need to actively manage
-whitespace between `end` and `else` (and between `else` and `begin`),
-suppressing newlines and replacing them with a single space.
+Option 2 is the simpler change but has broader impact. Option 1 is more
+surgical.
 
-### `begin` Stays on Controlling Keyword Line
+## Deviation: Verible Multi-Space Range Inconsistency
 
-Verible ensures `begin` stays on the same line as its controlling keyword (`if`,
-`else`, `always_comb`, `always_ff @(...)`, etc.). If the source has `begin` on a
-separate line from the keyword, Verible moves it up to the keyword's line.
+### Affected Lines
 
-slang-format only adds newlines via `forceNewline()`; it never removes them or
-joins lines. This means it cannot move a `begin` that is on its own line back up
-to the controlling keyword's line.
+| Line | Actual        | Expected           |
+| ---- | ------------- | ------------------ |
+| 243  | `[DW-1 : 0]`  | `[DW-1  :    0]`   |
+| 290  | `[W-1 : 0]`   | `[W-1    :    0]`  |
+| 320  | `[AW-1 : 0]`  | `[AW-1   :    0]`  |
+| 324  | `[DW-1 : 0]`  | `[DW-1    :    0]` |
 
-This requires trivia manipulation to suppress newlines before `begin` in
-specific syntactic contexts. It interacts with token spacing normalization,
-since the whitespace between the keyword and `begin` needs to be normalized to a
-single space.
+### Root Cause
 
-### Mandatory Line Break Before `else`
+slang-format clamps range spacing to at most 1 space in `Preserve` mode
+(`std::min(leadingWhitespaceLength(...), size_t{1})`). Verible normalizes most
+multi-space ranges to single space but inconsistently preserves multi-space in
+certain contexts.
 
-Verible forces a line break before `else` when it is not preceded by `end` on
-the same line. For example, `if (a) x = 1; else y = 2;` all on one line would
-be reformatted with `else` on a new line.
+Testing with `verible-verilog-format` confirms the inconsistency is
+context-dependent. The same source pattern `[W-1    :    0]` is:
 
-slang-format preserves original `else` placement. If the source has `else` on
-the same line as a bare statement, it stays there.
+- Normalized to `[W-1 : 0]` when the port list has a single declaration.
+- Preserved as `[W-1    :    0]` when the port list has multiple declarations
+  with a preceding parameter section that has excess source spacing.
 
-The `ConditionalStatementSyntax` handler needs logic to detect whether `else`
-follows a bare statement (not an `end` token) and force a newline in that case.
+This behavior is not documented in Verible and appears to be an unintentional
+interaction between its spacing normalization and alignment passes.
 
-### Scope Construct Coverage
+### Why Not Fixed
 
-While `ModuleDeclarationSyntax` covers `module`, `interface`, `package`, and
-`program`, `ClassDeclarationSyntax` and `CovergroupDeclarationSyntax` are
-separate types in slang's syntax tree. Neither has an explicit `handle()` method
-in `FormatPrinter`, so their bodies fall through to `visitDefault` without depth
-tracking. This means class and covergroup member indentation is not managed.
+Removing the `std::min` clamp to achieve true preservation produces correct
+results for these 4 lines but introduces 6 new failures at lines where Verible
+does normalize multi-space ranges (lines 43, 61, 119, 260, 350, 556). The net
+result is worse overall compatibility.
 
-Other potentially unhandled scope constructs include checker declarations and
-constraint declarations. The pattern for adding these is identical to the
-existing `visitScopedBlock` helper.
+The current clamping behavior (`Preserve` normalizes to 0-or-1 space) matches
+Verible's intended behavior for the majority of cases.
 
-### Hierarchical Instance Formatting
+### Possible Resolution
 
-Verible indents named port connections (`.port(signal)`) and named parameter
-assignments (`.PARAM(value)`) at `wrap_spaces` (4 spaces by default) from the
-instantiation. These are specific to module/interface instantiation syntax.
+If Verible's inconsistency is accepted as a bug in the golden reference:
 
-slang-format has no `handle()` method for `HierarchyInstantiationSyntax`. These
-constructs fall through to `visitDefault` with no depth tracking for the
-port/parameter connection lists.
+1. Update the 4 affected lines in `verible.sv.expected` to use single-space
+   range notation (matching slang-format's output), or
+2. No code change required; document the deviation as a known Verible
+   inconsistency.
 
-A handler for instantiation syntax with depth tracking for named port and
-parameter lists would close this gap.
+If exact replication is required, the formatting pass would need to detect the
+specific contexts where Verible preserves multi-space ranges. The relevant
+context appears to be a port list group where the preceding parameter section
+contributes excess source spacing to the group's metadata. This is fragile and
+couples the formatter to an undocumented Verible implementation detail.
 
-### Format-Off Pragma Compatibility
+## Deviation: Missing Keyword Padding and Dim PadLeft
 
-Verible recognizes `// verilog_format: off` and `// verilog_format: on` pragmas
-to control formatting regions. slang-format only recognizes `// slang-format
-off` and `// slang-format on`.
+### Affected Lines
 
-For codebases that use Verible's pragma syntax, slang-format would need to
-accept both pragma formats. This requires extending `matchesPragma()` in
-`Format.cpp` and the corresponding detection in `Align.cpp`'s `classifyLines`.
+| Line | Actual                     | Expected                    |
+| ---- | -------------------------- | --------------------------- |
+| 301  | `input wire [W-1:0] a,`    | `input  wire [  W-1:0] a,`  |
+| 302  | `input wire [W-1 : 0] b,`  | `input  wire [W-1 : 0] b,`  |
+| 303  | `output wire [W-1:0] sum`  | `output wire [  W-1:0] sum` |
 
-### Line Terminator Auto-Detection
+### Root Cause
 
-Verible's `line_terminator: auto` default detects whether the source file uses
-LF or CRLF line endings and preserves the detected style. slang-format
-unconditionally emits `\n` (LF).
+The expected output requires two simultaneous alignment features:
 
-This requires scanning the input for `\r\n` sequences, a style option for the
-line terminator, and using the detected or configured terminator throughout the
-formatting output.
+1. **Keyword padding**: `input` (5 chars) padded to `output` (6 chars) width,
+   producing `input  wire` (2 spaces between keyword and type body).
+2. **Dim PadLeft**: `[W-1:0]` padded to `[  W-1:0]` to align `:` positions
+   across the group.
 
-### Preprocessor Directive Line Breaks
+Both features exist in slang-format, but the `InferFromSource` policy prevents
+them from activating for this group. The adder module's source has multi-space
+range spacing (`[W-1     :    0]`) whose excess is captured by
+`captureTokenSpacing`. However, the `skipSpacingCapture` flag - which prevents
+range normalization from inflating `groupMaxExcess` - also hides this excess
+from the InferFromSource decision.
 
-Verible inserts mandatory line breaks before preprocessor directives
-(`` `define``, `` `include``, `` `ifdef``, etc.). slang-format has no special
-handling for preprocessor directives; they pass through `visitDefault` with
-their original whitespace.
+Without source excess, InferFromSource returns `FlushLeft` for both the packed
+dimension alignment pass and the subsequent declaration alignment pass.
 
-Detection of preprocessor directive tokens in the formatting pass with forced
-newline insertion would address this.
+### Why Not Fixed
 
-## Not Applicable
+The `skipSpacingCapture` mechanism is load-bearing for other groups. Removing it
+causes the counter module (dff) port list to incorrectly align declarations
+because the range spacing excess would inflate `groupMaxExcess` above the
+InferFromSource threshold.
 
-The following Verible features are disabled by default and do not require
-emulation:
+The fundamental tension: range spacing excess is relevant for dimension
+alignment decisions (where it indicates the author intended dimensional
+structure) but irrelevant for declaration alignment decisions (where only
+type-to-identifier spacing matters).
 
-| Feature                           | Reason                                           |
-| --------------------------------- | ------------------------------------------------ |
-| `column_limit: 100`               | Only enforced when `try_wrap_long_lines` is true |
-| `try_wrap_long_lines: false`      | Line wrapping is disabled by default             |
-| Line break and penalty parameters | Only used by the wrapping optimizer              |
-| Port dimension right-alignment    | Disabled by default                              |
-| `expand_coverpoints`              | Disabled by default (CLI override)               |
+### Required Refactoring
 
-These features are part of Verible's optimizer-based line wrapping system, which
-is not active under default CLI settings. If Verible users enable
-`try_wrap_long_lines`, the column limit and penalty system become relevant, but
-that represents a non-default configuration outside the scope of this analysis.
+Resolve the tension by tracking range and non-range excess separately:
+
+1. Add a `rangeExcess` field to `LineMetadata::TokenSpacing` (or a parallel
+   `rangeTokenSpacings` vector) that captures excess specifically from range
+   operator tokens.
+2. Compute `groupMaxExcess` separately for range tokens and non-range tokens.
+3. Use range excess for packed dimension alignment decisions
+   (`AlignConsecutivePackedDimensions`).
+4. Use non-range excess for declaration alignment decisions
+   (`AlignConsecutiveDeclarations`).
+
+This separation allows the dim alignment pass to detect author intent from range
+spacing while preventing range spacing from polluting declaration alignment
+decisions. The implementation touches `captureTokenSpacing` in `Format.cpp` and
+`computeGroupMaxExcess` in `Align.cpp`.
+
+## Implementation Details
+
+### Keyword Padding
+
+Declaration keyword padding aligns direction keywords (`input`, `output`,
+`inout`, `ref`) and parameter keywords (`parameter`, `localparam`) within a
+group by padding shorter keywords with spaces. The implementation:
+
+- `classifyLine` in `Align.cpp` tracks `keywordWidth` per line.
+- `computeDeclGroupSummary` computes `maxKeywordWidth` across the group.
+- `alignGroupDeclLine` emits the keyword, pads to `maxKeywordWidth`, then emits
+  the type body.
+
+Keyword padding is disabled when `maxKeywordWidth + 1 + maxBodyWidth` exceeds
+the natural `maxTypeWidth` (the largest `typeWidth` observed in the group). This
+prevents keyword padding from inflating the identifier column beyond what the
+widest line requires.
+
+### minGuarantee
+
+The `minGuarantee` flag in `InferContext` causes `inferAlignPolicy` to return
+`Align` for displacements of 1 or 2 regardless of InferFromSource excess. It is
+enabled only for declaration groups with no direction or parameter keywords
+(bare-type groups such as `logic x; logic [7:0] y;`). The flag is gated on the
+`hasKeywords` field of `DeclGroupSummary`, not on `maxKeywordWidth`, because
+keyword padding may disable `maxKeywordWidth` for space reasons without changing
+whether the group semantically contains keywords.
+
+### Struct and Union Member Classification
+
+`StructUnionMemberSyntax` nodes do not inherit from `DataDeclarationSyntax` in
+slang's syntax tree. A dedicated handler in `Format.cpp` sets
+`nextLineKind = Declaration` so that the alignment pass correctly classifies
+members of `struct` and `union` types (including user-defined types like
+`beat_t`) as declarations.
+
+When the text-based classifier in `Align.cpp` cannot parse a line as a
+declaration (e.g., unrecognized user-defined types), the
+`reclassifyAsDeclaration` helper extracts `typeWidth` and `identPos` from the
+first-word/second-word pattern, provided the metadata has flagged the line as a
+declaration.
 
 [1]: https://github.com/chipsalliance/verible

@@ -30,6 +30,10 @@ struct AlignConsecutiveStyle {
     /// the left-side value.
     bool AlignColon = false;
 
+    /// If true, use original source spacing to infer whether to align:
+    /// align when the source was aligned, flush-left when it was not.
+    bool InferFromSource = false;
+
     /// Maximum number of spaces any line may be padded; 0 means unlimited.
     unsigned MaxPadding = 0;
 
@@ -49,6 +53,8 @@ enum class BracketAlignmentStyle { Align, AlwaysBreak, BlockIndent, DontAlign };
 enum class DimensionBoundsStyle { LSBFirst, MSBFirst, Preserve };
 
 enum class EventSeparatorStyle { Comma, Or, Preserve };
+
+enum class RangeSpacingStyle { Always, Never, Preserve };
 
 /// Controls automatic insertion of begin/end around statement bodies.
 struct InsertBeginEndStyle {
@@ -138,28 +144,49 @@ struct Style {
     BracketAlignmentStyle AlignAfterOpenParen = BracketAlignmentStyle::Align;
 
     /// Controls alignment of assignment operators in consecutive declarations.
-    AlignConsecutiveStyle AlignConsecutiveAssignments{.Enabled = true, .MaxPadding = 2};
+    AlignConsecutiveStyle AlignConsecutiveAssignments{.Enabled = true,
+                                                      .InferFromSource = true,
+                                                      .MaxPadding = 2};
 
     /// Controls alignment of opening parentheses in consecutive named port
     /// connections.
-    AlignConsecutiveStyle AlignConsecutivePortConnections{.Enabled = true, .MaxPadding = 2};
+    AlignConsecutiveStyle AlignConsecutivePortConnections{.Enabled = true,
+                                                          .InferFromSource = true,
+                                                          .MaxPadding = 2};
 
     /// Controls alignment of trailing comments in consecutive lines.
     AlignConsecutiveStyle AlignTrailingComments;
 
     /// Controls alignment of signal names in consecutive declarations.
-    AlignConsecutiveStyle AlignConsecutiveDeclarations;
+    AlignConsecutiveStyle AlignConsecutiveDeclarations{.Enabled = true,
+                                                       .InferFromSource = true,
+                                                       .MaxPadding = 2};
 
     /// Controls alignment of packed dimensions in consecutive declarations.
-    AlignConsecutiveStyle AlignConsecutivePackedDimensions;
+    AlignConsecutiveStyle AlignConsecutivePackedDimensions{
+        .Enabled = true, .InferFromSource = true, .MaxPadding = 2, .PadLeft = true};
 
     /// Controls alignment of signal names and assignment operators in
     /// consecutive timing controls.
     AlignConsecutiveStyle AlignConsecutiveTimingControls;
 
+    /// If true, constraint blocks with a single item are joined onto one line.
+    bool AllowShortConstraintBlocksOnASingleLine = true;
+
+    /// If true, coverpoint and cover cross bodies are joined onto one line when they fit.
+    bool AllowShortCoverpointsOnASingleLine = true;
+
     /// If true, arguments are bin-packed when they exceed the column limit.
     /// If false, each argument is placed on its own line.
     bool BinPackArguments = true;
+
+    /// If true, function and task port parameters are bin-packed.
+    /// If false, each parameter is placed on its own line.
+    bool BinPackParameters = true;
+
+    /// If true, instance port connections are bin-packed.
+    /// If false, each port connection is placed on its own line.
+    bool BinPackPortConnections = false;
 
     /// Maximum number of consecutive empty lines to keep.
     unsigned MaxEmptyLinesToKeep = 1;
@@ -192,6 +219,9 @@ struct Style {
 
     /// Controls the order of packed dimension bounds.
     DimensionBoundsStyle PackedDimensionBounds = DimensionBoundsStyle::Preserve;
+
+    /// Controls spacing around `:` in range expressions and declared dimensions.
+    RangeSpacingStyle RangeSpacing = RangeSpacingStyle::Preserve;
 
     /// Normalizes whitespace after an always keyword.
     bool SpaceAfterAlways = true;
@@ -242,6 +272,10 @@ struct Style {
     /// Controls insertion of a newline between always and its body.
     BlockBreakStyle BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
+    /// If true, inserts a newline after assertion labels on concurrent assertions and immediate
+    /// assertions with else clauses.
+    bool BreakAfterAssertionLabel = true;
+
     /// Controls insertion of a newline between initial and its body.
     BlockBreakStyle BreakAfterInitial = BlockBreakStyle::OnlyMultiline;
 
@@ -269,9 +303,9 @@ struct Style {
     /// The column limit.
     unsigned ColumnLimit = 100; // NOLINT
 
-    /// If true, compacts bare conditional bodies onto the same line when the
-    /// result fits within the column limit.
-    bool CompactConditionals = true;
+    /// If true, compacts bare control statement bodies onto the same line when
+    /// the result fits within the column limit.
+    bool CompactControlStatements = true;
 
     /// If true, keeps consecutive timeunit and timeprecision declarations on the same line.
     bool CompactTimeUnits = true;

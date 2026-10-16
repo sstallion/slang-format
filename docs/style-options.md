@@ -116,6 +116,7 @@ remaining sub-options take effect only when `Enabled` is `true`.
 ```yaml
 AlignConsecutiveAssignments:
   Enabled: true
+  InferFromSource: true
   MaxPadding: 2
   AcrossComments: false
   AcrossEmptyLines: false
@@ -129,31 +130,31 @@ If `false`, disables all alignment regardless of other options.
 **Default:** `true`
 
 ```sv
-// Enabled: true, MaxPadding: 0 (declaration initializers)
+// Enabled: true, InferFromSource: false, MaxPadding: 0 (declaration initializers)
 module foo;
   logic a       = 1;
   logic [7:0] b = 2;
 endmodule
 
-// Enabled: true, MaxPadding: 0 (continuous assignments)
+// Enabled: true, InferFromSource: false, MaxPadding: 0 (continuous assignments)
 module foo;
   assign x        = 1;
   assign longname = 2;
 endmodule
 
-// Enabled: true, MaxPadding: 0 (blocking assignments)
+// Enabled: true, InferFromSource: false, MaxPadding: 0 (blocking assignments)
 always_comb begin
   a        = 1;
   longname = 2;
 end
 
-// Enabled: true, MaxPadding: 0 (nonblocking assignments)
+// Enabled: true, InferFromSource: false, MaxPadding: 0 (nonblocking assignments)
 always_ff @(posedge clk) begin
   a        <= 1;
   longname <= 2;
 end
 
-// Enabled: true, MaxPadding: 0 (continuation lines)
+// Enabled: true, InferFromSource: false, MaxPadding: 0 (continuation lines)
 module foo;
   localparam [1:0] STATE_0 = 1,
     STATE_1                = 2,
@@ -164,6 +165,36 @@ endmodule
 module foo;
   logic a = 1;
   logic [7:0] b = 2;
+endmodule
+```
+
+#### InferFromSource (bool)
+
+If `true`, the formatter examines original source spacing to infer whether the
+author intended alignment. Groups where the source is flush-left are left
+unaligned; groups where the source shows significant excess spacing are aligned.
+Groups where the alignment displacement falls within `MaxPadding` are always
+aligned regardless of this setting.
+
+**Default:** `true`
+
+```sv
+// InferFromSource: true (flush-left source stays flush-left)
+module foo;
+  assign x = 1;
+  assign longname = 2;
+endmodule
+
+// InferFromSource: true (pre-aligned source triggers alignment)
+module foo;
+  assign x        = 1;
+  assign longname = 2;
+endmodule
+
+// InferFromSource: false (always aligns when MaxPadding allows)
+module foo;
+  assign x        = 1;
+  assign longname = 2;
 endmodule
 ```
 
@@ -226,7 +257,9 @@ sub-options take effect only when `Enabled` is `true`.
 
 ```yaml
 AlignConsecutiveDeclarations:
-  Enabled: false
+  Enabled: true
+  InferFromSource: true
+  MaxPadding: 2
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
@@ -235,7 +268,7 @@ AlignConsecutiveDeclarations:
 
 If `false`, disables all alignment regardless of other options.
 
-**Default:** `false`
+**Default:** `true`
 
 ```sv
 // Enabled: true
@@ -252,13 +285,19 @@ module foo;
                    STATE_2 = 3;
 endmodule
 
-// Enabled: false (default)
+// Enabled: false
 module foo;
   logic a;
   logic [7:0] b;
   logic [15:0] c;
 endmodule
 ```
+
+#### InferFromSource (bool)
+
+See `AlignConsecutiveAssignments.InferFromSource`.
+
+**Default:** `true`
 
 #### AcrossComments (bool)
 
@@ -309,12 +348,14 @@ take effect only when `Enabled` is `true`.
 
 ```yaml
 AlignConsecutivePackedDimensions:
-  Enabled: false
+  Enabled: true
+  InferFromSource: true
+  MaxPadding: 2
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
   AlignColon: false
-  PadLeft: false
+  PadLeft: true
   PadRight: false
 ```
 
@@ -322,7 +363,7 @@ AlignConsecutivePackedDimensions:
 
 If `false`, disables all alignment regardless of other options.
 
-**Default:** `false`
+**Default:** `true`
 
 ```sv
 // Enabled: true
@@ -331,12 +372,18 @@ module foo;
   logic [7:0] b;
 endmodule
 
-// Enabled: false (default)
+// Enabled: false
 module foo;
   bit [7:0] a;
   logic [7:0] b;
 endmodule
 ```
+
+#### InferFromSource (bool)
+
+See `AlignConsecutiveAssignments.InferFromSource`.
+
+**Default:** `true`
 
 #### AcrossComments (bool)
 
@@ -385,7 +432,7 @@ endmodule
 If `true`, left-pad content within brackets to right-justify values. Takes
 precedence over `PadRight` when both are set.
 
-**Default:** `false`
+**Default:** `true`
 
 ```sv
 // PadLeft: true
@@ -430,6 +477,7 @@ sub-options take effect only when `Enabled` is `true`.
 ```yaml
 AlignConsecutivePortConnections:
   Enabled: true
+  InferFromSource: true
   MaxPadding: 2
   AcrossComments: false
   AcrossEmptyLines: false
@@ -459,6 +507,12 @@ dff u_chk (
     .gnt(gnt_int)
 );
 ```
+
+#### InferFromSource (bool)
+
+See `AlignConsecutiveAssignments.InferFromSource`.
+
+**Default:** `true`
 
 #### MaxPadding (unsigned)
 

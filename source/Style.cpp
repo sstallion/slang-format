@@ -75,6 +75,18 @@ constexpr std::string_view toString(EventSeparatorStyle style) {
     return "Preserve";
 }
 
+constexpr std::string_view toString(RangeSpacingStyle style) {
+    switch (style) {
+        case RangeSpacingStyle::Always:
+            return "Always";
+        case RangeSpacingStyle::Never:
+            return "Never";
+        case RangeSpacingStyle::Preserve:
+            return "Preserve";
+    }
+    return "Preserve";
+}
+
 void parseAlignConsecutive(const YAML::Node& node, AlignConsecutiveStyle& config) {
     if (auto v = node["Enabled"]) {
         config.Enabled = v.as<bool>();
@@ -94,6 +106,10 @@ void parseAlignConsecutive(const YAML::Node& node, AlignConsecutiveStyle& config
 
     if (auto v = node["AlignColon"]) {
         config.AlignColon = v.as<bool>();
+    }
+
+    if (auto v = node["InferFromSource"]) {
+        config.InferFromSource = v.as<bool>();
     }
 
     if (auto v = node["MaxPadding"]) {
@@ -197,6 +213,18 @@ EventSeparatorStyle parseEventSeparator(std::string_view s) {
     return EventSeparatorStyle::Preserve;
 }
 
+RangeSpacingStyle parseRangeSpacing(std::string_view s) {
+    if (s == "Always") {
+        return RangeSpacingStyle::Always;
+    }
+
+    if (s == "Never") {
+        return RangeSpacingStyle::Never;
+    }
+
+    return RangeSpacingStyle::Preserve;
+}
+
 void parseAlignOptions(const YAML::Node& node, Style& style) {
     if (auto n = node["AlignConsecutiveAssignments"]) {
         parseAlignConsecutive(n, style.AlignConsecutiveAssignments);
@@ -226,6 +254,10 @@ void parseAlignOptions(const YAML::Node& node, Style& style) {
 void parseBreakStyle(const YAML::Node& node, Style& style) {
     if (auto v = node["BreakAfterAlways"]) {
         style.BreakAfterAlways = parseBlockBreak(v.as<std::string>());
+    }
+
+    if (auto v = node["BreakAfterAssertionLabel"]) {
+        style.BreakAfterAssertionLabel = v.as<bool>();
     }
 
     if (auto v = node["BreakAfterBegin"]) {
@@ -264,6 +296,7 @@ void parseBreakStyle(const YAML::Node& node, Style& style) {
 struct AlignConsecutiveFields {
     bool acrossParameterPortList = false;
     bool alignColon = false;
+    bool inferFromSource = false;
     bool maxPadding = false;
     bool padLeftRight = false;
 };
@@ -280,6 +313,9 @@ void emitAlignConsecutive(YAML::Emitter& out, const AlignConsecutiveStyle& confi
     }
     if (fields.alignColon) {
         out << YAML::Key << "AlignColon" << YAML::Value << config.AlignColon;
+    }
+    if (fields.inferFromSource) {
+        out << YAML::Key << "InferFromSource" << YAML::Value << config.InferFromSource;
     }
     if (fields.maxPadding) {
         out << YAML::Key << "MaxPadding" << YAML::Value << config.MaxPadding;
@@ -424,6 +460,17 @@ void parseSpacingOptions(const YAML::Node& node, Style& style) {
     }
 }
 
+YAML::Node nodeWithAlias(const YAML::Node& node, std::string_view key, std::string_view alias) {
+    auto v = node[key];
+    return v ? v : node[alias];
+}
+
+void parseBool(const YAML::Node& node, std::string_view key, bool& target) {
+    if (auto v = node[key]) {
+        target = v.as<bool>();
+    }
+}
+
 } // namespace
 
 namespace slang::format {
@@ -434,10 +481,14 @@ Style getDefaultStyle() {
 
 std::string dumpConfiguration(const Style& style) {
     constexpr AlignConsecutiveFields assignFields{.acrossParameterPortList = true,
+                                                  .inferFromSource = true,
                                                   .maxPadding = true};
+    constexpr AlignConsecutiveFields declFields{.acrossParameterPortList = true,
+                                                .inferFromSource = true};
     constexpr AlignConsecutiveFields portListFields{.acrossParameterPortList = true};
     constexpr AlignConsecutiveFields allFields{.acrossParameterPortList = true,
                                                .alignColon = true,
+                                               .inferFromSource = true,
                                                .padLeftRight = true};
 
     YAML::Emitter out;
@@ -448,7 +499,7 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::Key << "AlignConsecutiveAssignments" << YAML::Value;
     emitAlignConsecutive(out, style.AlignConsecutiveAssignments, assignFields);
     out << YAML::Key << "AlignConsecutiveDeclarations" << YAML::Value;
-    emitAlignConsecutive(out, style.AlignConsecutiveDeclarations, portListFields);
+    emitAlignConsecutive(out, style.AlignConsecutiveDeclarations, declFields);
     out << YAML::Key << "AlignConsecutivePackedDimensions" << YAML::Value;
     emitAlignConsecutive(out, style.AlignConsecutivePackedDimensions, allFields);
     out << YAML::Key << "AlignConsecutivePortConnections" << YAML::Value;
@@ -457,9 +508,16 @@ std::string dumpConfiguration(const Style& style) {
     emitAlignConsecutive(out, style.AlignConsecutiveTimingControls, {});
     out << YAML::Key << "AlignTrailingComments" << YAML::Value;
     emitAlignConsecutive(out, style.AlignTrailingComments, portListFields);
+    out << YAML::Key << "AllowShortConstraintBlocksOnASingleLine" << YAML::Value
+        << style.AllowShortConstraintBlocksOnASingleLine;
+    out << YAML::Key << "AllowShortCoverpointsOnASingleLine" << YAML::Value
+        << style.AllowShortCoverpointsOnASingleLine;
     out << YAML::Key << "BinPackArguments" << YAML::Value << style.BinPackArguments;
+    out << YAML::Key << "BinPackParameters" << YAML::Value << style.BinPackParameters;
+    out << YAML::Key << "BinPackPortConnections" << YAML::Value << style.BinPackPortConnections;
     out << YAML::Key << "BreakAfterAlways" << YAML::Value
         << std::string{toString(style.BreakAfterAlways)};
+    out << YAML::Key << "BreakAfterAssertionLabel" << YAML::Value << style.BreakAfterAssertionLabel;
     out << YAML::Key << "BreakAfterBegin" << YAML::Value << style.BreakAfterBegin;
     out << YAML::Key << "BreakAfterInitial" << YAML::Value
         << std::string{toString(style.BreakAfterInitial)};
@@ -472,7 +530,7 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::Key << "BreakBeforeSpecifyBlock" << YAML::Value << style.BreakBeforeSpecifyBlock;
     out << YAML::Key << "BreakBeforeTask" << YAML::Value << style.BreakBeforeTask;
     out << YAML::Key << "ColumnLimit" << YAML::Value << style.ColumnLimit;
-    out << YAML::Key << "CompactConditionals" << YAML::Value << style.CompactConditionals;
+    out << YAML::Key << "CompactControlStatements" << YAML::Value << style.CompactControlStatements;
     out << YAML::Key << "CompactTimeUnits" << YAML::Value << style.CompactTimeUnits;
     out << YAML::Key << "ContinuationIndentWidth" << YAML::Value << style.ContinuationIndentWidth;
     out << YAML::Key << "EventSeparator" << YAML::Value
@@ -490,6 +548,7 @@ std::string dumpConfiguration(const Style& style) {
         << std::string{toString(style.PackedDimensionBounds)};
     out << YAML::Key << "ParameterPortListIndentWidth" << YAML::Value
         << style.ParameterPortListIndentWidth;
+    out << YAML::Key << "RangeSpacing" << YAML::Value << std::string{toString(style.RangeSpacing)};
     out << YAML::Key << "RemoveEmptyLines" << YAML::Value << style.RemoveEmptyLines;
     out << YAML::Key << "SpaceAfterAlways" << YAML::Value << style.SpaceAfterAlways;
     out << YAML::Key << "SpaceAfterBrackets" << YAML::Value;
@@ -528,21 +587,22 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
         style.AlignAfterOpenParen = parseBracketAlignment(v.as<std::string>());
     }
 
-    if (auto v = node["BinPackArguments"]) {
-        style.BinPackArguments = v.as<bool>();
-    }
+    parseBool(node, "AllowShortConstraintBlocksOnASingleLine",
+              style.AllowShortConstraintBlocksOnASingleLine);
+    parseBool(node, "AllowShortCoverpointsOnASingleLine", style.AllowShortCoverpointsOnASingleLine);
+    parseBool(node, "BinPackArguments", style.BinPackArguments);
+    parseBool(node, "BinPackParameters", style.BinPackParameters);
+    parseBool(node, "BinPackPortConnections", style.BinPackPortConnections);
 
     if (auto v = node["ColumnLimit"]) {
         style.ColumnLimit = v.as<unsigned>();
     }
 
-    if (auto v = node["CompactConditionals"]) {
-        style.CompactConditionals = v.as<bool>();
+    if (auto v = nodeWithAlias(node, "CompactControlStatements", "CompactConditionals")) {
+        style.CompactControlStatements = v.as<bool>();
     }
 
-    if (auto v = node["CompactTimeUnits"]) {
-        style.CompactTimeUnits = v.as<bool>();
-    }
+    parseBool(node, "CompactTimeUnits", style.CompactTimeUnits);
 
     if (auto v = node["MaxEmptyLinesToKeep"]) {
         style.MaxEmptyLinesToKeep = v.as<unsigned>();
@@ -572,9 +632,7 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
         style.ParameterPortListIndentWidth = style.ContinuationIndentWidth;
     }
 
-    if (auto v = node["IndentCaseItem"]) {
-        style.IndentCaseItem = v.as<bool>();
-    }
+    parseBool(node, "IndentCaseItem", style.IndentCaseItem);
 
     if (auto v = node["EventSeparator"]) {
         style.EventSeparator = parseEventSeparator(v.as<std::string>());
@@ -584,17 +642,17 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
         style.OneLineFormatOffRegex = v.as<std::string>();
     }
 
-    if (auto v = node["OneStatementPerLine"]) {
-        style.OneStatementPerLine = v.as<bool>();
-    }
+    parseBool(node, "OneStatementPerLine", style.OneStatementPerLine);
 
     if (auto v = node["PackedDimensionBounds"]) {
         style.PackedDimensionBounds = parseDimensionBounds(v.as<std::string>());
     }
 
-    if (auto v = node["RemoveEmptyLines"]) {
-        style.RemoveEmptyLines = v.as<bool>();
+    if (auto v = node["RangeSpacing"]) {
+        style.RangeSpacing = parseRangeSpacing(v.as<std::string>());
     }
+
+    parseBool(node, "RemoveEmptyLines", style.RemoveEmptyLines);
 
     parseSpacingOptions(node, style);
 

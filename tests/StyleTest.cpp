@@ -424,6 +424,20 @@ TEST(ParseConfiguration, ParsesAlignConsecutiveStyleAlignColon) {
     EXPECT_TRUE(style.AlignConsecutivePackedDimensions.AlignColon);
 }
 
+TEST(ParseConfiguration, ParsesAlignConsecutiveStyleInferFromSource) {
+    Style style;
+
+    // clang-format off
+    YAML::Node const node = YAML::Load(dedent(R"(
+        AlignConsecutiveAssignments:
+          InferFromSource: true
+    )"));
+    // clang-format on
+
+    ASSERT_NO_THROW(parseConfiguration(node, style));
+    EXPECT_TRUE(style.AlignConsecutiveAssignments.InferFromSource);
+}
+
 TEST(ParseConfiguration, ParsesAlignConsecutiveStylePadLeft) {
     Style style;
 
@@ -476,11 +490,32 @@ TEST(ParseConfiguration, ParameterPortListIndentWidthDefaultsToContinuationInden
     EXPECT_EQ(style.ParameterPortListIndentWidth, 4U);
 }
 
+TEST(ParseConfiguration, ParsesAllowShortConstraintBlocksOnASingleLine) {
+    YAML::Node const node = YAML::Load("AllowShortConstraintBlocksOnASingleLine: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.AllowShortConstraintBlocksOnASingleLine);
+}
+
+TEST(ParseConfiguration, ParsesAllowShortCoverpointsOnASingleLine) {
+    YAML::Node const node = YAML::Load("AllowShortCoverpointsOnASingleLine: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.AllowShortCoverpointsOnASingleLine);
+}
+
 TEST(ParseConfiguration, ParsesBinPackArguments) {
     YAML::Node const node = YAML::Load("BinPackArguments: false");
     Style style;
     parseConfiguration(node, style);
     EXPECT_FALSE(style.BinPackArguments);
+}
+
+TEST(ParseConfiguration, ParsesBinPackParameters) {
+    YAML::Node const node = YAML::Load("BinPackParameters: false");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.BinPackParameters);
 }
 
 TEST(ParseConfiguration, ParsesBreakAfterAlways) {
@@ -546,11 +581,11 @@ TEST(ParseConfiguration, ParsesBreakBeforeTask) {
     EXPECT_EQ(style.BreakBeforeTask, false);
 }
 
-TEST(ParseConfiguration, ParsesCompactConditionals) {
-    YAML::Node const node = YAML::Load("CompactConditionals: false");
+TEST(ParseConfiguration, ParsesCompactControlStatements) {
+    YAML::Node const node = YAML::Load("CompactControlStatements: false");
     Style style;
     parseConfiguration(node, style);
-    EXPECT_FALSE(style.CompactConditionals);
+    EXPECT_FALSE(style.CompactControlStatements);
 }
 
 TEST(ParseConfiguration, ParsesCompactTimeUnits) {
@@ -768,6 +803,27 @@ TEST(ParseConfiguration, ParsesRemoveEmptyLines) {
     Style style;
     parseConfiguration(node, style);
     EXPECT_TRUE(style.RemoveEmptyLines);
+}
+
+TEST(ParseConfiguration, ParsesRangeSpacingAlways) {
+    YAML::Node const node = YAML::Load("RangeSpacing: Always");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::Always);
+}
+
+TEST(ParseConfiguration, ParsesRangeSpacingNever) {
+    YAML::Node const node = YAML::Load("RangeSpacing: Never");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::Never);
+}
+
+TEST(ParseConfiguration, ParsesRangeSpacingPreserve) {
+    YAML::Node const node = YAML::Load("RangeSpacing: Preserve");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::Preserve);
 }
 
 TEST(ParseConfiguration, ParsesSpaceAfterAlways) {
@@ -1007,7 +1063,10 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("MaxPadding: 2"), std::string::npos);
+    EXPECT_NE(result.find("AllowShortConstraintBlocksOnASingleLine: true"), std::string::npos);
+    EXPECT_NE(result.find("AllowShortCoverpointsOnASingleLine: true"), std::string::npos);
     EXPECT_NE(result.find("BinPackArguments: true"), std::string::npos);
+    EXPECT_NE(result.find("BinPackParameters: true"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterInitial: OnlyMultiline"), std::string::npos);
@@ -1017,7 +1076,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("BreakBeforeFunction: false"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeSpecifyBlock: false"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeTask: false"), std::string::npos);
-    EXPECT_NE(result.find("CompactConditionals: true"), std::string::npos);
+    EXPECT_NE(result.find("CompactControlStatements: true"), std::string::npos);
     EXPECT_NE(result.find("CompactTimeUnits: true"), std::string::npos);
     EXPECT_NE(result.find("ContinuationIndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("EventSeparator: Preserve"), std::string::npos);
@@ -1029,6 +1088,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("PackedDimensionBounds: Preserve"), std::string::npos);
     EXPECT_NE(result.find("ParameterPortListIndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("RemoveEmptyLines: false"), std::string::npos);
+    EXPECT_NE(result.find("RangeSpacing: Preserve"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterAlways: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterBrackets:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterCaseColon: true"), std::string::npos);
@@ -1047,7 +1107,8 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("UnpackedDimensionBounds: Preserve"), std::string::npos);
     EXPECT_NE(result.find("Enabled: false"), std::string::npos);
     EXPECT_NE(result.find("AlignColon: false"), std::string::npos);
-    EXPECT_NE(result.find("PadLeft: false"), std::string::npos);
+    EXPECT_NE(result.find("InferFromSource: true"), std::string::npos);
+    EXPECT_NE(result.find("PadLeft: true"), std::string::npos);
     EXPECT_NE(result.find("PadRight: false"), std::string::npos);
     EXPECT_NE(result.find("ControlStatements: false"), std::string::npos);
     EXPECT_NE(result.find("AlwaysStatements: false"), std::string::npos);
@@ -1062,7 +1123,10 @@ TEST(DumpConfiguration, DefaultStyle) {
 TEST(DumpConfiguration, NonDefaultValues) {
     Style style;
     style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
+    style.AllowShortConstraintBlocksOnASingleLine = false;
+    style.AllowShortCoverpointsOnASingleLine = false;
     style.BinPackArguments = false;
+    style.BinPackParameters = false;
     style.IndentWidth = 4;
     style.BreakAfterAlways = BlockBreakStyle::Always;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
@@ -1070,7 +1134,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.BreakBeforeFunction = true;
     style.BreakBeforeSpecifyBlock = true;
     style.BreakBeforeTask = true;
-    style.CompactConditionals = false;
+    style.CompactControlStatements = false;
     style.CompactTimeUnits = false;
     style.EventSeparator = EventSeparatorStyle::Comma;
     style.InsertBeginEnd.Enabled = true;
@@ -1080,6 +1144,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.InsertParens.NamedEvents = true;
     style.OneStatementPerLine = false;
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+    style.RangeSpacing = RangeSpacingStyle::Always;
     style.RemoveEmptyLines = true;
     style.SpaceAfterAlways = false;
     style.SpaceAfterBrackets.PackedDimensions = false;
@@ -1104,7 +1169,10 @@ TEST(DumpConfiguration, NonDefaultValues) {
 
     auto const result = dumpConfiguration(style);
     EXPECT_NE(result.find("AlignAfterOpenParen: AlwaysBreak"), std::string::npos);
+    EXPECT_NE(result.find("AllowShortConstraintBlocksOnASingleLine: false"), std::string::npos);
+    EXPECT_NE(result.find("AllowShortCoverpointsOnASingleLine: false"), std::string::npos);
     EXPECT_NE(result.find("BinPackArguments: false"), std::string::npos);
+    EXPECT_NE(result.find("BinPackParameters: false"), std::string::npos);
     EXPECT_NE(result.find("IndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("BreakAfterAlways: Always"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeAlways: Always"), std::string::npos);
@@ -1112,12 +1180,13 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("BreakBeforeInitial: Always"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeSpecifyBlock: true"), std::string::npos);
     EXPECT_NE(result.find("BreakBeforeTask: true"), std::string::npos);
-    EXPECT_NE(result.find("CompactConditionals: false"), std::string::npos);
+    EXPECT_NE(result.find("CompactControlStatements: false"), std::string::npos);
     EXPECT_NE(result.find("CompactTimeUnits: false"), std::string::npos);
     EXPECT_NE(result.find("EventSeparator: Comma"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("OneStatementPerLine: false"), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
+    EXPECT_NE(result.find("RangeSpacing: Always"), std::string::npos);
     EXPECT_NE(result.find("RemoveEmptyLines: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterAlways: false"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterBrackets:"), std::string::npos);
@@ -1142,6 +1211,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.AlignConsecutiveDeclarations.Enabled = true;
     original.AlignConsecutiveDeclarations.AcrossEmptyLines = true;
     original.AlignConsecutivePackedDimensions.AlignColon = true;
+    original.AlignConsecutivePackedDimensions.InferFromSource = true;
     original.AlignConsecutivePackedDimensions.PadLeft = true;
     original.AlignConsecutivePackedDimensions.PadRight = true;
     original.AlignConsecutivePortConnections.Enabled = true;
@@ -1150,7 +1220,10 @@ TEST(DumpConfiguration, RoundTrip) {
     original.AlignConsecutiveTimingControls.AcrossEmptyLines = true;
     original.AlignTrailingComments.Enabled = true;
     original.AlignTrailingComments.AcrossEmptyLines = true;
+    original.AllowShortConstraintBlocksOnASingleLine = false;
+    original.AllowShortCoverpointsOnASingleLine = false;
     original.BinPackArguments = false;
+    original.BinPackParameters = false;
     original.IndentWidth = 4;
     original.ContinuationIndentWidth = 4;
     original.ParameterPortListIndentWidth = 4;
@@ -1166,12 +1239,13 @@ TEST(DumpConfiguration, RoundTrip) {
     original.BreakBeforeFunction = false;
     original.BreakBeforeSpecifyBlock = false;
     original.BreakBeforeTask = false;
-    original.CompactConditionals = false;
+    original.CompactControlStatements = false;
     original.CompactTimeUnits = false;
     original.EventSeparator = EventSeparatorStyle::Or;
     original.OneLineFormatOffRegex = ".*test.*";
     original.OneStatementPerLine = false;
     original.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
+    original.RangeSpacing = RangeSpacingStyle::Never;
     original.SpaceAfterAlways = false;
     original.SpaceAfterBrackets.PackedDimensions = false;
     original.SpaceAfterBrackets.UnpackedDimensions = true;

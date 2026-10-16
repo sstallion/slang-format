@@ -12,6 +12,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 using namespace slang::format;
@@ -25,11 +26,14 @@ constexpr auto npos = std::string_view::npos;
 struct LineInfo {
     Kind kind;
     size_t indent = 0;
-    size_t typeWidth = 0;    ///< Distance from indent to identifier start.
-    size_t identPos = 0;     ///< Absolute position of identifier in the line.
-    size_t equalsPos = npos; ///< Position of '=' in declaration, or npos if absent.
-    size_t dimPos = npos;    ///< Position of first '[' after type keyword, or npos if absent.
-    unsigned depth = 0;      ///< AST nesting depth at the line's emission point.
+    size_t keywordWidth = 0;   ///< Width of direction/parameter keyword, or 0 if absent.
+    size_t typeWidth = 0;      ///< Distance from indent to identifier start.
+    size_t identPos = 0;       ///< Absolute position of identifier in the line.
+    size_t equalsPos = npos;   ///< Position of '=' in declaration, or npos if absent.
+    size_t dimPos = npos;      ///< Position of first '[' after type keyword, or npos if absent.
+    unsigned depth = 0;        ///< AST nesting depth at the line's emission point.
+    unsigned maxExcess = 0;    ///< Maximum source-vs-output spacing excess on this line.
+    bool metadataKind = false; ///< True when kind was set from tree-walk metadata.
 };
 
 constexpr std::array TypeKeywords{
@@ -239,7 +243,7 @@ size_t findAssignOperator(std::string_view line, size_t pos) {
     }
 
     if ((c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '&' || c == '|' ||
-         c == '^') &&
+         c == '^' || c == ':') &&
         remaining >= 2 && line[pos + 1] == '=') {
         return pos;
     }
@@ -418,7 +422,9 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
 
     size_t pos = indentEnd;
     size_t dimPos = npos;
+    size_t keywordWidth = 0;
     if (isDirectionKeyword(firstWord) || isParameterKeyword(firstWord)) {
+        keywordWidth = firstWord.size();
         pos = skipSpaces(line, pos + firstWord.size());
         dimPos = findDimPos(line, pos, firstWord);
         pos = skipDirectionType(line, pos);
@@ -466,6 +472,7 @@ LineInfo classifyLine(std::string_view line, bool formatOff) {
     auto eqPos = findEquals(line, pos);
     return {.kind = Kind::Declaration,
             .indent = indentEnd,
+            .keywordWidth = keywordWidth,
             .typeWidth = pos - indentEnd,
             .identPos = pos,
             .equalsPos = eqPos,
@@ -502,40 +509,191 @@ struct GroupRange {
     size_t end;
 };
 
-void alignGroup(std::string& result, const std::vector<std::string_view>& lines,
-                const std::vector<LineInfo>& infos, GroupRange range) {
-    size_t declCount = 0;
+struct DeclGroupMetrics {
+    size_t maxKeywordWidth = 0;
     size_t maxTypeWidth = 0;
-    std::optional<size_t> groupIndent;
-    for (size_t i = range.start; i < range.end; i++) {
-        if (infos[i].kind == Kind::Declaration) {
-            declCount++;
-            maxTypeWidth = std::max(maxTypeWidth, infos[i].typeWidth);
-            if (!groupIndent) {
-                groupIndent = infos[i].indent;
+    size_t maxIdentToEquals = 0;
+    bool hasEquals = false;
+};
+
+void alignGroupDeclLine(std::string& result, std::string_view line, const LineInfo& info,
+                        const DeclGroupMetrics& metrics) {
+    auto indent = info.indent;
+    auto identPos = info.identPos;
+    auto targetPos = indent + metrics.maxTypeWidth;
+
+    if (metrics.maxKeywordWidth > 0 && info.keywordWidth > 0) {
+        auto keywordEnd = indent + info.keywordWidth;
+        result.append(line.substr(0, keywordEnd));
+        result.append(metrics.maxKeywordWidth - info.keywordWidth + 1, ' ');
+
+        auto typeBodyStart = skipSpaces(line, keywordEnd);
+        auto typeTextEnd = trimTrailingSpaces(line, identPos);
+        if (typeBodyStart < typeTextEnd) {
+            result.append(line.substr(typeBodyStart, typeTextEnd - typeBodyStart));
+        }
+        result.append(targetPos - (metrics.maxKeywordWidth + 1) -
+                          (typeTextEnd > typeBodyStart ? typeTextEnd - typeBodyStart : 0) - indent,
+                      ' ');
+    }
+    else {
+        auto typeTextEnd = trimTrailingSpaces(line, identPos);
+        result.append(line.substr(0, typeTextEnd));
+        result.append(targetPos - (typeTextEnd - indent) - indent, ' ');
+    }
+
+    if (metrics.hasEquals && info.equalsPos != npos) {
+        auto eqPos = info.equalsPos;
+        auto preEqualsEnd = trimTrailingSpaces(line, eqPos);
+        auto padding = metrics.maxIdentToEquals - (eqPos - identPos);
+
+        result.append(line.substr(identPos, preEqualsEnd - identPos));
+        result.append(padding + (eqPos - preEqualsEnd), ' ');
+        result.append(line.substr(eqPos));
+    }
+    else {
+        result.append(line.substr(identPos));
+    }
+}
+
+enum class AlignPolicy { Align, FlushLeft };
+
+/// Context passed to alignment functions for InferFromSource decisions.
+struct InferContext {
+    bool enabled = false;
+    bool minGuarantee = false;
+    unsigned maxPadding = 0;
+    unsigned maxDisplacement = 0;
+    unsigned groupMaxExcess = 0;
+};
+
+AlignPolicy inferAlignPolicy(unsigned displacement, const InferContext& ctx) {
+    static constexpr unsigned minGuaranteeThreshold = 2;
+
+    if (ctx.enabled) {
+        if (ctx.minGuarantee && displacement > 0 && displacement <= minGuaranteeThreshold) {
+            return AlignPolicy::Align;
+        }
+
+        if (ctx.maxDisplacement > 0 && displacement > ctx.maxDisplacement) {
+            return AlignPolicy::FlushLeft;
+        }
+
+        if (ctx.groupMaxExcess <= 2) {
+            return AlignPolicy::FlushLeft;
+        }
+
+        return AlignPolicy::Align;
+    }
+
+    return (ctx.maxPadding == 0 || displacement <= ctx.maxPadding) ? AlignPolicy::Align
+                                                                   : AlignPolicy::FlushLeft;
+}
+
+unsigned computeGroupMaxExcess(const std::vector<LineMetadata>& lineMetadata,
+                               const std::unordered_map<size_t, size_t>& metaByLine, size_t start,
+                               size_t end) {
+    unsigned maxExcess = 0;
+    for (auto i = start; i < end; i++) {
+        auto it = metaByLine.find(i);
+        if (it == metaByLine.end()) {
+            continue;
+        }
+
+        for (const auto& ts : lineMetadata[it->second].tokenSpacings) {
+            if (ts.sourceSpaces > ts.outputSpaces) {
+                maxExcess = std::max(maxExcess, ts.sourceSpaces - ts.outputSpaces);
             }
         }
+    }
+    return maxExcess;
+}
+
+size_t typeBodyWidth(const LineInfo& info) {
+    auto w = info.typeWidth;
+    if (info.keywordWidth > 0) {
+        w -= info.keywordWidth + 1;
+    }
+    return w;
+}
+
+size_t typeNameWidth(const LineInfo& info) {
+    auto start = info.indent + (info.keywordWidth > 0 ? info.keywordWidth + 1 : 0);
+    auto end = info.dimPos != npos ? info.dimPos : info.identPos;
+    return end > start ? end - start : 0;
+}
+
+struct DeclGroupSummary {
+    DeclGroupMetrics metrics;
+    size_t declCount = 0;
+    size_t displacement = 0;
+    bool hasKeywords = false;
+    std::optional<size_t> groupIndent;
+};
+
+DeclGroupSummary computeDeclGroupSummary(const std::vector<LineInfo>& infos, GroupRange range) {
+    DeclGroupSummary summary;
+    size_t minNameWidth = npos;
+    size_t maxNameWidth = 0;
+    size_t maxBodyWidth = 0;
+    for (size_t i = range.start; i < range.end; i++) {
+        if (infos[i].kind == Kind::Declaration) {
+            summary.declCount++;
+            if (infos[i].keywordWidth > 0) {
+                summary.hasKeywords = true;
+            }
+            summary.metrics.maxKeywordWidth = std::max(summary.metrics.maxKeywordWidth,
+                                                       infos[i].keywordWidth);
+            summary.metrics.maxTypeWidth = std::max(summary.metrics.maxTypeWidth,
+                                                    infos[i].typeWidth);
+            if (!summary.groupIndent) {
+                summary.groupIndent = infos[i].indent;
+            }
+            if (infos[i].equalsPos != npos) {
+                summary.metrics.hasEquals = true;
+                summary.metrics.maxIdentToEquals = std::max(summary.metrics.maxIdentToEquals,
+                                                            infos[i].equalsPos - infos[i].identPos);
+            }
+
+            auto nw = typeNameWidth(infos[i]);
+            maxNameWidth = std::max(maxNameWidth, nw);
+            minNameWidth = std::min(minNameWidth, nw);
+            maxBodyWidth = std::max(maxBodyWidth, typeBodyWidth(infos[i]));
+        }
         else if (infos[i].kind == Kind::Continuation) {
-            declCount++;
+            summary.declCount++;
         }
     }
 
-    auto targetAbsCol = groupIndent.value_or(0) + maxTypeWidth;
+    if (summary.metrics.maxKeywordWidth > 0 &&
+        summary.metrics.maxKeywordWidth + 1 + maxBodyWidth > summary.metrics.maxTypeWidth) {
+        summary.metrics.maxKeywordWidth = 0;
+    }
+
+    summary.displacement = (minNameWidth != npos) ? maxNameWidth - minNameWidth : 0;
+    return summary;
+}
+
+void alignGroup(std::string& result, const std::vector<std::string_view>& lines,
+                const std::vector<LineInfo>& infos, GroupRange range, const InferContext& ctx) {
+    auto [metrics, declCount, displacement, hasKeywords,
+          groupIndent] = computeDeclGroupSummary(infos, range);
+
+    auto declCtx = ctx;
+    if (!hasKeywords) {
+        declCtx.minGuarantee = true;
+    }
+    auto policy = declCount >= 2 ? inferAlignPolicy(static_cast<unsigned>(displacement), declCtx)
+                                 : AlignPolicy::FlushLeft;
+
+    auto targetAbsCol = groupIndent.value_or(0) + metrics.maxTypeWidth;
 
     for (size_t i = range.start; i < range.end; i++) {
-        if (infos[i].kind == Kind::Declaration && declCount >= 2) {
-            auto line = lines[i];
-            auto indent = infos[i].indent;
-            auto identPos = infos[i].identPos;
-            auto targetPos = indent + maxTypeWidth;
-
-            auto typeTextEnd = trimTrailingSpaces(line, identPos);
-
-            result.append(line.substr(0, typeTextEnd));
-            result.append(targetPos - (typeTextEnd - indent) - indent, ' ');
-            result.append(line.substr(identPos));
+        if (infos[i].kind == Kind::Declaration && policy == AlignPolicy::Align &&
+            infos[i].identPos > infos[i].indent) {
+            alignGroupDeclLine(result, lines[i], infos[i], metrics);
         }
-        else if (infos[i].kind == Kind::Continuation && declCount >= 2) {
+        else if (infos[i].kind == Kind::Continuation && policy == AlignPolicy::Align) {
             auto line = lines[i];
             auto indent = infos[i].indent;
 
@@ -632,6 +790,7 @@ struct DimContent {
     std::string_view left;
     std::string_view right;
     bool hasColon;
+    bool hasColonSpaces;
     size_t openPos;
     size_t closePos;
 };
@@ -641,6 +800,39 @@ struct DimWidths {
     size_t maxLeftWidth = 0;
     size_t maxRightWidth = 0;
 };
+
+DimContent makeDimContent(std::string_view full, size_t openPos, size_t closePos) {
+    auto colonPos = full.find(':');
+    if (colonPos == npos) {
+        return {.full = full,
+                .left = full,
+                .right = {},
+                .hasColon = false,
+                .hasColonSpaces = false,
+                .openPos = openPos,
+                .closePos = closePos};
+    }
+
+    auto left = full.substr(0, colonPos);
+    auto right = full.substr(colonPos + 1);
+    auto hasSpaces = left.ends_with(' ') || right.starts_with(' ');
+
+    while (left.ends_with(' ')) {
+        left.remove_suffix(1);
+    }
+
+    while (right.starts_with(' ')) {
+        right.remove_prefix(1);
+    }
+
+    return {.full = full,
+            .left = left,
+            .right = right,
+            .hasColon = true,
+            .hasColonSpaces = hasSpaces,
+            .openPos = openPos,
+            .closePos = closePos};
+}
 
 std::vector<DimContent> parseDimContents(std::string_view line, size_t pos) {
     std::vector<DimContent> dims;
@@ -674,33 +866,36 @@ std::vector<DimContent> parseDimContents(std::string_view line, size_t pos) {
         }
 
         auto full = line.substr(contentStart, contentEnd - contentStart);
-        auto colonPos = full.find(':');
-        if (colonPos != npos) {
-            dims.push_back({.full = full,
-                            .left = full.substr(0, colonPos),
-                            .right = full.substr(colonPos + 1),
-                            .hasColon = true,
-                            .openPos = openPos,
-                            .closePos = closePos});
-        }
-        else {
-            dims.push_back({.full = full,
-                            .left = full,
-                            .right = {},
-                            .hasColon = false,
-                            .openPos = openPos,
-                            .closePos = closePos});
-        }
+        dims.push_back(makeDimContent(full, openPos, closePos));
     }
     return dims;
 }
 
 void emitDimContent(std::string& result, const DimContent& dim, const DimWidths& widths,
-                    const AlignConsecutiveStyle& alignStyle) {
+                    const AlignConsecutiveStyle& alignStyle, RangeSpacingStyle rangeSpacing) {
+    auto emitColon = [&](std::string& out) {
+        switch (rangeSpacing) {
+            case RangeSpacingStyle::Always:
+                out += " : ";
+                break;
+            case RangeSpacingStyle::Never:
+                out += ':';
+                break;
+            case RangeSpacingStyle::Preserve:
+                if (dim.hasColonSpaces) {
+                    out += " : ";
+                }
+                else {
+                    out += ':';
+                }
+                break;
+        }
+    };
+
     if (alignStyle.AlignColon && dim.hasColon) {
         result.append(widths.maxLeftWidth - dim.left.size(), ' ');
         result.append(dim.left);
-        result += ':';
+        emitColon(result);
 
         if (alignStyle.PadLeft) {
             result.append(widths.maxRightWidth - dim.right.size(), ' ');
@@ -712,6 +907,28 @@ void emitDimContent(std::string& result, const DimContent& dim, const DimWidths&
         }
         else {
             result.append(dim.right);
+        }
+    }
+    else if (dim.hasColon) {
+        auto emitFull = [&](std::string& out) {
+            out.append(dim.left);
+            emitColon(out);
+            out.append(dim.right);
+        };
+
+        if (alignStyle.PadLeft) {
+            std::string full;
+            emitFull(full);
+            result.append(widths.maxFullWidth - full.size(), ' ');
+            result.append(full);
+        }
+        else if (alignStyle.PadRight) {
+            auto start = result.size();
+            emitFull(result);
+            result.append(widths.maxFullWidth - (result.size() - start), ' ');
+        }
+        else {
+            emitFull(result);
         }
     }
     else if (alignStyle.PadLeft) {
@@ -730,7 +947,7 @@ void emitDimContent(std::string& result, const DimContent& dim, const DimWidths&
 void emitRewrittenDims(std::string& result, std::string_view line,
                        const std::vector<DimContent>& dims,
                        const std::vector<DimWidths>& slotWidths,
-                       const AlignConsecutiveStyle& alignStyle) {
+                       const AlignConsecutiveStyle& alignStyle, RangeSpacingStyle rangeSpacing) {
     size_t lastClose = npos;
     for (size_t j = 0; j < dims.size(); j++) {
         if (j > 0 && dims[j].openPos > lastClose + 1) {
@@ -738,7 +955,7 @@ void emitRewrittenDims(std::string& result, std::string_view line,
         }
 
         result += '[';
-        emitDimContent(result, dims[j], slotWidths[j], alignStyle);
+        emitDimContent(result, dims[j], slotWidths[j], alignStyle, rangeSpacing);
         result += ']';
         lastClose = dims[j].closePos;
     }
@@ -749,7 +966,24 @@ void emitRewrittenDims(std::string& result, std::string_view line,
     }
 }
 
-std::vector<DimWidths> computeSlotWidths(const std::vector<std::vector<DimContent>>& allDims) {
+size_t colonWidth(const DimContent& dim, RangeSpacingStyle rangeSpacing) {
+    if (!dim.hasColon) {
+        return 0;
+    }
+
+    switch (rangeSpacing) {
+        case RangeSpacingStyle::Always:
+            return 3;
+        case RangeSpacingStyle::Never:
+            return 1;
+        case RangeSpacingStyle::Preserve:
+            return dim.hasColonSpaces ? 3 : 1;
+    }
+    return 1;
+}
+
+std::vector<DimWidths> computeSlotWidths(const std::vector<std::vector<DimContent>>& allDims,
+                                         RangeSpacingStyle rangeSpacing) {
     size_t maxSlots = 0;
     for (const auto& dims : allDims) {
         maxSlots = std::max(maxSlots, dims.size());
@@ -758,7 +992,9 @@ std::vector<DimWidths> computeSlotWidths(const std::vector<std::vector<DimConten
     std::vector<DimWidths> slotWidths(maxSlots);
     for (const auto& dims : allDims) {
         for (size_t j = 0; j < dims.size(); j++) {
-            slotWidths[j].maxFullWidth = std::max(slotWidths[j].maxFullWidth, dims[j].full.size());
+            auto fullWidth = dims[j].left.size() + dims[j].right.size() +
+                             colonWidth(dims[j], rangeSpacing);
+            slotWidths[j].maxFullWidth = std::max(slotWidths[j].maxFullWidth, fullWidth);
 
             if (dims[j].hasColon) {
                 slotWidths[j].maxLeftWidth = std::max(slotWidths[j].maxLeftWidth,
@@ -788,7 +1024,7 @@ std::vector<std::vector<DimContent>> collectDimContents(const std::vector<std::s
 
 void alignGroupDimensions(std::string& result, const std::vector<std::string_view>& lines,
                           const std::vector<LineInfo>& infos, GroupRange range,
-                          const AlignConsecutiveStyle& alignStyle) {
+                          const AlignConsecutiveStyle& alignStyle, RangeSpacingStyle rangeSpacing) {
     size_t dimCount = 0;
     size_t maxDimCol = 0;
     for (size_t i = range.start; i < range.end; i++) {
@@ -805,14 +1041,14 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
 
     std::vector<std::vector<DimContent>> allDims;
     std::vector<DimWidths> slotWidths;
-    if (contentAlign && dimCount >= 2) {
+    if (contentAlign) {
         allDims = collectDimContents(lines, infos, range);
-        slotWidths = computeSlotWidths(allDims);
+        slotWidths = computeSlotWidths(allDims, rangeSpacing);
     }
 
     size_t dimIdx = 0;
     for (size_t i = range.start; i < range.end; i++) {
-        if (infos[i].kind == Kind::Declaration && infos[i].dimPos != npos && dimCount >= 2) {
+        if (infos[i].kind == Kind::Declaration && infos[i].dimPos != npos) {
             auto line = lines[i];
             auto dp = infos[i].dimPos;
 
@@ -822,7 +1058,8 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
             result.append(maxDimCol - preDimEnd, ' ');
 
             if (contentAlign && dimIdx < allDims.size() && !allDims[dimIdx].empty()) {
-                emitRewrittenDims(result, line, allDims[dimIdx], slotWidths, alignStyle);
+                emitRewrittenDims(result, line, allDims[dimIdx], slotWidths, alignStyle,
+                                  rangeSpacing);
             }
             else {
                 result.append(line.substr(dp));
@@ -842,7 +1079,7 @@ void alignGroupDimensions(std::string& result, const std::vector<std::string_vie
 
 bool isAlignableKind(const LineInfo& info) {
     return info.kind == Kind::Assignment || info.kind == Kind::Declaration ||
-           info.kind == Kind::Continuation;
+           info.kind == Kind::Continuation || info.kind == Kind::DistItem;
 }
 
 /// Returns true if any line in \p range (excluding the first) has a depth strictly less than
@@ -895,16 +1132,17 @@ std::vector<size_t> assignSubRuns(const std::vector<LineInfo>& infos, GroupRange
 }
 
 void alignGroupEquals(std::string& result, const std::vector<std::string_view>& lines,
-                      const std::vector<LineInfo>& infos, GroupRange range, unsigned maxPadding) {
+                      const std::vector<LineInfo>& infos, GroupRange range,
+                      const InferContext& ctx) {
     auto subRuns = assignSubRuns(infos, range);
 
-    // Collect unique (depth, subRun) pairs and compute alignment metrics.
     struct AlignBucket {
         unsigned depth;
         size_t subRun;
         size_t maxEqualsCol = 0;
         size_t minEqualsCol = npos;
         size_t count = 0;
+        unsigned maxExcess = 0;
     };
     std::vector<AlignBucket> buckets;
 
@@ -927,6 +1165,7 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
         buckets[b].count++;
         buckets[b].maxEqualsCol = std::max(buckets[b].maxEqualsCol, infos[i].equalsPos);
         buckets[b].minEqualsCol = std::min(buckets[b].minEqualsCol, infos[i].equalsPos);
+        buckets[b].maxExcess = std::max(buckets[b].maxExcess, infos[i].maxExcess);
     }
 
     for (auto i = range.start; i < range.end; i++) {
@@ -938,7 +1177,11 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
 
         auto b = findBucket(infos[i].depth, subRuns[i - range.start]);
         auto padding = buckets[b].maxEqualsCol - buckets[b].minEqualsCol;
-        if (buckets[b].count >= 2 && (maxPadding == 0 || padding <= maxPadding)) {
+        auto bucketCtx = ctx;
+        bucketCtx.groupMaxExcess = buckets[b].maxExcess;
+        auto policy = buckets[b].count >= 2 ? inferAlignPolicy(padding, bucketCtx)
+                                            : AlignPolicy::FlushLeft;
+        if (policy == AlignPolicy::Align) {
             auto line = lines[i];
             auto eqPos = infos[i].equalsPos;
 
@@ -957,7 +1200,7 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
 
 void alignGroupPortConnections(std::string& result, const std::vector<std::string_view>& lines,
                                const std::vector<LineInfo>& infos, GroupRange range,
-                               unsigned maxPadding) {
+                               const InferContext& ctx) {
     size_t maxParenCol = 0;
     size_t minParenCol = npos;
     size_t connCount = 0;
@@ -972,7 +1215,8 @@ void alignGroupPortConnections(std::string& result, const std::vector<std::strin
     for (auto i = range.start; i < range.end; i++) {
         if (infos[i].kind == Kind::PortConnection && infos[i].equalsPos != npos) {
             auto padding = maxParenCol - minParenCol;
-            if (connCount >= 2 && (maxPadding == 0 || padding <= maxPadding)) {
+            auto policy = connCount >= 2 ? inferAlignPolicy(padding, ctx) : AlignPolicy::FlushLeft;
+            if (policy == AlignPolicy::Align) {
                 auto line = lines[i];
                 auto parenPos = infos[i].equalsPos;
                 auto preParenEnd = trimTrailingSpaces(line, parenPos);
@@ -1095,7 +1339,8 @@ void alignTimingIdentsAndEquals(std::string& result, const std::vector<std::stri
 }
 
 void alignGroupTiming(std::string& result, const std::vector<std::string_view>& lines,
-                      const std::vector<LineInfo>& infos, GroupRange range) {
+                      const std::vector<LineInfo>& infos, GroupRange range,
+                      const InferContext& /*ctx*/) {
     size_t count = 0;
     size_t maxTypeWidth = 0;
     for (auto i = range.start; i < range.end; i++) {
@@ -1141,6 +1386,10 @@ void reclassifyContinuationLines(const std::vector<std::string_view>& lines,
             continue;
         }
 
+        if (infos[i].metadataKind) {
+            continue;
+        }
+
         if (!followsDeclaration(infos, i) || !isContinuationLine(lines[i])) {
             continue;
         }
@@ -1152,12 +1401,72 @@ void reclassifyContinuationLines(const std::vector<std::string_view>& lines,
                     .identPos = indentEnd,
                     .equalsPos = findEquals(lines[i], indentEnd),
                     .dimPos = npos,
-                    .depth = infos[i].depth};
+                    .depth = infos[i].depth,
+                    .maxExcess = infos[i].maxExcess,
+                    .metadataKind = infos[i].metadataKind};
+    }
+}
+
+size_t findDistOperator(std::string_view line) {
+    for (size_t j = 0; j + 1 < line.size(); j++) {
+        if (line[j] == ':' && line[j + 1] == '=') {
+            return j;
+        }
+    }
+    return npos;
+}
+
+void reclassifyAsDeclaration(std::string_view line, LineInfo& info) {
+    auto fw = extractWord(line, info.indent);
+    if (fw.empty()) {
+        return;
+    }
+
+    auto afterType = skipSpaces(line, info.indent + fw.size());
+    if (afterType < line.size() &&
+        (std::isalpha(static_cast<unsigned char>(line[afterType])) != 0 ||
+         line[afterType] == '_')) {
+        info.typeWidth = afterType - info.indent;
+        info.identPos = afterType;
+    }
+}
+
+void applyLineMetadata(std::string_view line, LineInfo& info, const LineMetadata& meta,
+                       bool formatOff) {
+    info.depth = meta.depth;
+
+    for (const auto& ts : meta.tokenSpacings) {
+        if (ts.sourceSpaces > ts.outputSpaces) {
+            info.maxExcess = std::max(info.maxExcess,
+                                      static_cast<unsigned>(ts.sourceSpaces - ts.outputSpaces));
+        }
+    }
+
+    if (!formatOff && meta.kind != Kind::Other) {
+        if (meta.kind == Kind::Declaration && info.kind == Kind::Other) {
+            reclassifyAsDeclaration(line, info);
+        }
+        info.kind = meta.kind;
+        info.metadataKind = true;
+    }
+
+    if (info.kind == Kind::PortConnection) {
+        info.equalsPos = findPortConnectionParen(line);
+    }
+    else if (info.kind == Kind::DistItem && info.equalsPos == npos) {
+        info.equalsPos = findDistOperator(line);
     }
 }
 
 std::vector<LineInfo> classifyLines(const std::vector<std::string_view>& lines,
                                     const std::vector<LineMetadata>& lineMetadata) {
+    std::unordered_map<size_t, size_t> metaByLine;
+    for (size_t j = 0; j < lineMetadata.size(); j++) {
+        if (lineMetadata[j].lineNumber != npos) {
+            metaByLine[lineMetadata[j].lineNumber] = j;
+        }
+    }
+
     std::vector<LineInfo> infos;
     infos.reserve(lines.size());
     auto formatOff = false;
@@ -1170,16 +1479,9 @@ std::vector<LineInfo> classifyLines(const std::vector<std::string_view>& lines,
         }
 
         auto info = classifyLine(lines[i], formatOff);
-        if (i < lineMetadata.size()) {
-            info.depth = lineMetadata[i].depth;
-
-            if (!formatOff && lineMetadata[i].kind != Kind::Other) {
-                info.kind = lineMetadata[i].kind;
-            }
-
-            if (info.kind == Kind::PortConnection) {
-                info.equalsPos = findPortConnectionParen(lines[i]);
-            }
+        auto it = metaByLine.find(i);
+        if (it != metaByLine.end()) {
+            applyLineMetadata(lines[i], info, lineMetadata[it->second], formatOff);
         }
         infos.push_back(info);
     }
@@ -1196,7 +1498,8 @@ std::string applyAlignConsecutive(const std::string& output,
                                   const AlignConsecutiveStyle& alignStyle,
                                   const GroupBreakConfig& config, BreakPred breakPred,
                                   AlignFn alignFn,
-                                  const std::vector<LineMetadata>& lineMetadata = {}) {
+                                  const std::vector<LineMetadata>& lineMetadata = {},
+                                  unsigned continuationIndentWidth = 4, bool minGuarantee = false) {
     if (!alignStyle.Enabled) {
         return output;
     }
@@ -1221,6 +1524,22 @@ std::string applyAlignConsecutive(const std::string& output,
 
     auto infos = classifyLines(lines, lineMetadata);
 
+    std::unordered_map<size_t, size_t> metaByLine;
+    for (size_t j = 0; j < lineMetadata.size(); j++) {
+        if (lineMetadata[j].lineNumber != npos) {
+            metaByLine[lineMetadata[j].lineNumber] = j;
+        }
+    }
+
+    auto makeCtx = [&](size_t start, size_t end) {
+        return InferContext{.enabled = alignStyle.InferFromSource,
+                            .minGuarantee = minGuarantee,
+                            .maxPadding = alignStyle.MaxPadding,
+                            .maxDisplacement = alignStyle.MaxPadding * continuationIndentWidth,
+                            .groupMaxExcess = computeGroupMaxExcess(lineMetadata, metaByLine, start,
+                                                                    end)};
+    };
+
     std::string result;
     result.reserve(output.size());
     AlignState state;
@@ -1231,7 +1550,8 @@ std::string applyAlignConsecutive(const std::string& output,
                                           config);
 
         if (breakGroup && state.inGroup) {
-            alignFn(result, lines, infos, {.start = state.groupStart, .end = i});
+            auto ctx = makeCtx(state.groupStart, i);
+            alignFn(result, lines, infos, {.start = state.groupStart, .end = i}, ctx);
             state.inGroup = false;
             state.groupIndent.reset();
             state.groupDepth.reset();
@@ -1250,7 +1570,8 @@ std::string applyAlignConsecutive(const std::string& output,
     }
 
     if (state.inGroup) {
-        alignFn(result, lines, infos, {.start = state.groupStart, .end = lines.size()});
+        auto ctx = makeCtx(state.groupStart, lines.size());
+        alignFn(result, lines, infos, {.start = state.groupStart, .end = lines.size()}, ctx);
     }
 
     if (!result.empty() && result.back() == '\n' && (output.empty() || output.back() != '\n')) {
@@ -1267,7 +1588,7 @@ namespace slang::format {
 std::string applyAlignment(const std::string& output, const Style& style,
                            const std::vector<LineMetadata>& lineMetadata) {
     static constexpr std::array declKinds{Kind::Declaration};
-    static constexpr std::array assignKinds{Kind::Assignment, Kind::Declaration};
+    static constexpr std::array assignKinds{Kind::Assignment, Kind::Declaration, Kind::DistItem};
     static constexpr std::array portConnectionKinds{Kind::PortConnection};
     static constexpr std::array timingKinds{Kind::TimingControl};
     static constexpr std::array trailingKinds{Kind::Assignment, Kind::Declaration,
@@ -1285,34 +1606,59 @@ std::string applyAlignment(const std::string& output, const Style& style,
                                                      .continuationPassThrough = false};
 
     auto dimAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
-                               const std::vector<LineInfo>& inf, GroupRange rng) {
-        alignGroupDimensions(r, l, inf, rng, style.AlignConsecutivePackedDimensions);
+                               const std::vector<LineInfo>& inf, GroupRange rng,
+                               const InferContext& ctx) {
+        size_t maxDimCol = 0;
+        size_t minDimCol = npos;
+        for (size_t i = rng.start; i < rng.end; i++) {
+            if (inf[i].kind == Kind::Declaration && inf[i].dimPos != npos) {
+                maxDimCol = std::max(maxDimCol, inf[i].dimPos);
+                minDimCol = std::min(minDimCol, inf[i].dimPos);
+            }
+        }
+        auto displacement = (minDimCol != npos) ? maxDimCol - minDimCol : size_t{0};
+        auto policy = inferAlignPolicy(static_cast<unsigned>(displacement), ctx);
+        if (policy == AlignPolicy::FlushLeft) {
+            for (size_t i = rng.start; i < rng.end; i++) {
+                r.append(l[i]);
+                r += '\n';
+            }
+            return;
+        }
+        alignGroupDimensions(r, l, inf, rng, style.AlignConsecutivePackedDimensions,
+                             style.RangeSpacing);
     };
     auto result = applyAlignConsecutive(output, style.AlignConsecutivePackedDimensions, dimConfig,
-                                        shouldBreakDimGroup, dimAlignFn, lineMetadata);
+                                        shouldBreakDimGroup, dimAlignFn, lineMetadata,
+                                        style.ContinuationIndentWidth);
     result = applyAlignConsecutive(result, style.AlignConsecutiveDeclarations, declConfig,
-                                   shouldBreakGroup, alignGroup, lineMetadata);
+                                   shouldBreakGroup, alignGroup, lineMetadata,
+                                   style.ContinuationIndentWidth);
     result = applyAlignConsecutive(result, style.AlignConsecutiveTimingControls, timingConfig,
-                                   shouldBreakGroup, alignGroupTiming, lineMetadata);
-    auto assignAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
-                                  const std::vector<LineInfo>& inf, GroupRange rng) {
-        alignGroupEquals(r, l, inf, rng, style.AlignConsecutiveAssignments.MaxPadding);
-    };
+                                   shouldBreakGroup, alignGroupTiming, lineMetadata,
+                                   style.ContinuationIndentWidth);
+    auto assignAlignFn = [](std::string& r, const std::vector<std::string_view>& l,
+                            const std::vector<LineInfo>& inf, GroupRange rng,
+                            const InferContext& ctx) { alignGroupEquals(r, l, inf, rng, ctx); };
     result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments, assignConfig,
-                                   shouldBreakGroup, assignAlignFn, lineMetadata);
-    auto portConnAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
-                                    const std::vector<LineInfo>& inf, GroupRange rng) {
-        alignGroupPortConnections(r, l, inf, rng, style.AlignConsecutivePortConnections.MaxPadding);
+                                   shouldBreakGroup, assignAlignFn, lineMetadata,
+                                   style.ContinuationIndentWidth);
+    auto portConnAlignFn = [](std::string& r, const std::vector<std::string_view>& l,
+                              const std::vector<LineInfo>& inf, GroupRange rng,
+                              const InferContext& ctx) {
+        alignGroupPortConnections(r, l, inf, rng, ctx);
     };
     result = applyAlignConsecutive(result, style.AlignConsecutivePortConnections,
                                    portConnectionConfig, shouldBreakGroup, portConnAlignFn,
-                                   lineMetadata);
+                                   lineMetadata, style.ContinuationIndentWidth);
     auto trailingAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
-                                    const std::vector<LineInfo>& inf, GroupRange rng) {
+                                    const std::vector<LineInfo>& inf, GroupRange rng,
+                                    const InferContext& /*ctx*/) {
         alignGroupTrailingComments(r, l, inf, rng, style.SpacesBeforeTrailingComments);
     };
     result = applyAlignConsecutive(result, style.AlignTrailingComments, trailingConfig,
-                                   shouldBreakGroup, trailingAlignFn, lineMetadata);
+                                   shouldBreakGroup, trailingAlignFn, lineMetadata,
+                                   style.ContinuationIndentWidth);
     return result;
 }
 
