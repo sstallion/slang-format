@@ -186,6 +186,15 @@ large, the engine aligns to reproduce the author's aligned layout. The
 displacement at or below `MinPadding` are always aligned regardless of
 inference, ensuring small groups receive consistent treatment.
 
+When `RangeSpacing` is set to `MatchSource`, the formatting pass preserves exact
+source whitespace around range colons. A normalization pass runs before the
+packed dimension alignment pass, reducing multi-space ranges back to
+single-space for lines not adjacent to port list groups with excess spacing.
+Running normalization before alignment ensures dim column widths are computed
+from the normalized content. Lines adjacent to parameter port list groups with
+sufficient source excess retain their multi-space ranges through both
+normalization and alignment, preserving the author's intended visual structure.
+
 #### Indentation
 
 The `OneLineFormatOffRegex` option strips indentation from lines matching a

@@ -79,12 +79,14 @@ constexpr std::string_view toString(RangeSpacingStyle style) {
     switch (style) {
         case RangeSpacingStyle::Always:
             return "Always";
+        case RangeSpacingStyle::MatchSource:
+            return "MatchSource";
         case RangeSpacingStyle::Never:
             return "Never";
         case RangeSpacingStyle::Preserve:
             return "Preserve";
     }
-    return "Preserve";
+    return "MatchSource";
 }
 
 void parseAlignConsecutive(const YAML::Node& node, AlignConsecutiveStyle& config) {
@@ -226,7 +228,11 @@ RangeSpacingStyle parseRangeSpacing(std::string_view s) {
         return RangeSpacingStyle::Never;
     }
 
-    return RangeSpacingStyle::Preserve;
+    if (s == "Preserve") {
+        return RangeSpacingStyle::Preserve;
+    }
+
+    return RangeSpacingStyle::MatchSource;
 }
 
 void parseAlignOptions(const YAML::Node& node, Style& style) {

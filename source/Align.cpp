@@ -9,6 +9,7 @@
 #include <cctype>
 #include <cstddef>
 #include <optional>
+#include <set>
 #include <span>
 #include <string>
 #include <string_view>
@@ -886,6 +887,7 @@ void emitDimContent(std::string& result, const DimContent& dim, const DimWidths&
             case RangeSpacingStyle::Never:
                 out += ':';
                 break;
+            case RangeSpacingStyle::MatchSource:
             case RangeSpacingStyle::Preserve:
                 if (dim.hasColonSpaces) {
                     out += " : ";
@@ -981,6 +983,7 @@ size_t colonWidth(const DimContent& dim, RangeSpacingStyle rangeSpacing) {
             return 3;
         case RangeSpacingStyle::Never:
             return 1;
+        case RangeSpacingStyle::MatchSource:
         case RangeSpacingStyle::Preserve:
             return dim.hasColonSpaces ? 3 : 1;
     }
@@ -1602,6 +1605,166 @@ std::string applyAlignConsecutive(const std::string& output,
     return result;
 }
 
+bool hasMultiSpaceRange(const LineMetadata& meta) {
+    return std::ranges::any_of(meta.rangeSpacings, [](const auto& rs) {
+        return rs.sourceLeftSpaces > 1 || rs.sourceRightSpaces > 1;
+    });
+}
+
+unsigned computeMetaExcess(const LineMetadata& meta) {
+    unsigned excess = 0;
+    for (const auto& ts : meta.tokenSpacings) {
+        if (ts.sourceSpaces > ts.outputSpaces) {
+            excess = std::max(excess, ts.sourceSpaces - ts.outputSpaces);
+        }
+    }
+    return excess;
+}
+
+std::set<size_t> computePortListAdjacentLines(const std::vector<LineMetadata>& lineMetadata) {
+    std::set<size_t> adjacentLines;
+    unsigned groupExcess = 0;
+    unsigned boundaryCount = 0;
+
+    for (const auto& meta : lineMetadata) {
+        if (meta.kind == Kind::PortListBoundary) {
+            if (boundaryCount == 0 && groupExcess >= 2) {
+                boundaryCount = 1;
+            }
+            else if (boundaryCount == 1) {
+                boundaryCount = 2;
+            }
+            else {
+                boundaryCount = 0;
+            }
+
+            groupExcess = 0;
+            continue;
+        }
+
+        if (meta.kind == Kind::Empty) {
+            boundaryCount = 0;
+            groupExcess = 0;
+            continue;
+        }
+
+        if (meta.kind == Kind::Comment) {
+            continue;
+        }
+
+        if (boundaryCount >= 1) {
+            if (hasMultiSpaceRange(meta)) {
+                adjacentLines.insert(meta.lineNumber);
+            }
+            continue;
+        }
+
+        groupExcess = std::max(groupExcess, computeMetaExcess(meta));
+    }
+
+    return adjacentLines;
+}
+
+std::string normalizeBracketRange(std::string_view content) {
+    auto colonPos = content.find(':');
+    if (colonPos == npos) {
+        return std::string{content};
+    }
+
+    auto left = content.substr(0, colonPos);
+    auto right = content.substr(colonPos + 1);
+
+    auto const hadSpaces = (colonPos > 0 && content[colonPos - 1] == ' ') ||
+                           (colonPos + 1 < content.size() && content[colonPos + 1] == ' ');
+
+    while (left.ends_with(' ')) {
+        left.remove_suffix(1);
+    }
+
+    while (right.starts_with(' ')) {
+        right.remove_prefix(1);
+    }
+
+    std::string result;
+    result.append(left);
+    result += hadSpaces ? " : " : ":";
+    result.append(right);
+    return result;
+}
+
+std::string normalizeLineRanges(std::string_view line) {
+    std::string normalized;
+    normalized.reserve(line.size());
+    size_t pos = 0;
+    while (pos < line.size()) {
+        if (line[pos] == '[') {
+            auto closePos = line.find(']', pos);
+            if (closePos != npos) {
+                auto content = line.substr(pos + 1, closePos - pos - 1);
+                if (content.find(':') != npos) {
+                    normalized += '[';
+                    normalized += normalizeBracketRange(content);
+                    normalized += ']';
+                    pos = closePos + 1;
+                    continue;
+                }
+            }
+        }
+
+        normalized += line[pos];
+        pos++;
+    }
+    return normalized;
+}
+
+std::string normalizeRangeSpacing(const std::string& output,
+                                  const std::vector<LineMetadata>& lineMetadata,
+                                  RangeSpacingStyle rangeSpacing) {
+    if (rangeSpacing != RangeSpacingStyle::MatchSource) {
+        return output;
+    }
+
+    auto const adjacentLines = computePortListAdjacentLines(lineMetadata);
+
+    std::unordered_map<size_t, size_t> metaByLine;
+    for (size_t j = 0; j < lineMetadata.size(); j++) {
+        if (lineMetadata[j].lineNumber != npos) {
+            metaByLine[lineMetadata[j].lineNumber] = j;
+        }
+    }
+
+    std::string result;
+    result.reserve(output.size());
+
+    std::string_view remaining{output};
+    size_t lineNum = 0;
+    while (!remaining.empty()) {
+        auto nl = remaining.find('\n');
+        auto line = (nl == npos) ? remaining : remaining.substr(0, nl);
+
+        auto shouldNormalize = false;
+        auto it = metaByLine.find(lineNum);
+        if (it != metaByLine.end()) {
+            const auto& meta = lineMetadata[it->second];
+            shouldNormalize = hasMultiSpaceRange(meta) && !adjacentLines.contains(lineNum);
+        }
+
+        result.append(shouldNormalize ? normalizeLineRanges(line) : line);
+
+        if (nl != npos) {
+            result += '\n';
+            remaining.remove_prefix(nl + 1);
+        }
+        else {
+            remaining = {};
+        }
+
+        lineNum++;
+    }
+
+    return result;
+}
+
 } // namespace
 
 namespace slang::format {
@@ -1626,6 +1789,10 @@ std::string applyAlignment(const std::string& output, const Style& style,
     static constexpr GroupBreakConfig trailingConfig{.memberKinds = trailingKinds,
                                                      .continuationPassThrough = false};
 
+    auto normalized = (style.AlignConsecutivePackedDimensions.InferFromSource)
+                          ? normalizeRangeSpacing(output, lineMetadata, style.RangeSpacing)
+                          : output;
+
     auto dimAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
                                const std::vector<LineInfo>& inf, GroupRange rng,
                                const InferContext& ctx) {
@@ -1649,8 +1816,8 @@ std::string applyAlignment(const std::string& output, const Style& style,
         alignGroupDimensions(r, l, inf, rng, style.AlignConsecutivePackedDimensions,
                              style.RangeSpacing);
     };
-    auto result = applyAlignConsecutive(output, style.AlignConsecutivePackedDimensions, dimConfig,
-                                        shouldBreakDimGroup, dimAlignFn, lineMetadata,
+    auto result = applyAlignConsecutive(normalized, style.AlignConsecutivePackedDimensions,
+                                        dimConfig, shouldBreakDimGroup, dimAlignFn, lineMetadata,
                                         style.ContinuationIndentWidth);
     result = applyAlignConsecutive(result, style.AlignConsecutiveDeclarations, declConfig,
                                    shouldBreakGroup, alignGroup, lineMetadata,
@@ -1680,6 +1847,7 @@ std::string applyAlignment(const std::string& output, const Style& style,
     result = applyAlignConsecutive(result, style.AlignTrailingComments, trailingConfig,
                                    shouldBreakGroup, trailingAlignFn, lineMetadata,
                                    style.ContinuationIndentWidth);
+
     return result;
 }
 

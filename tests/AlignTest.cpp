@@ -2292,6 +2292,52 @@ TEST(InferFromSource, MinPaddingInterveningStatementsBreakSubRun) {
 }
 // clang-format on
 
+// clang-format off
+TEST(MatchSource, NormalizesMultiSpaceRange) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::MatchSource;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [7   :   0] x;
+        logic [15 : 0] y;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7 : 0] x;
+          logic [15 : 0] y;
+        endmodule
+    )"));
+}
+
+TEST(MatchSource, PreservesPortListAdjacentMultiSpaceRange) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::MatchSource;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module bar #(
+            parameter int AW   = 12,
+            parameter int DW   = 32
+        ) (
+            input  logic [AW-1   :    0] addr,
+            input  logic [DW-1    :    0] wdata,
+            output logic [DW-1    :    0] rdata
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module bar #(
+            parameter int AW = 12,
+            parameter int DW = 32
+        ) (
+            input logic [AW-1   :    0] addr,
+            input logic [DW-1    :    0] wdata,
+            output logic [DW-1    :    0] rdata
+        );
+        endmodule
+    )"));
+}
+// clang-format on
+
 TEST(AlignTrailingComments, None) {
     Style const style{};
 

@@ -54,6 +54,14 @@ struct LineMetadata {
     };
 
     std::vector<TokenSpacing> tokenSpacings;
+
+    /// Source spacing around the colon in a range expression.
+    struct RangeSpacing {
+        unsigned sourceLeftSpaces;  ///< Source whitespace before the range colon.
+        unsigned sourceRightSpaces; ///< Source whitespace after the range colon.
+    };
+
+    std::vector<RangeSpacing> rangeSpacings;
 };
 
 /// Applies all alignment post-processing passes to the formatted output.

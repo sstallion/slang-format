@@ -826,6 +826,13 @@ TEST(ParseConfiguration, ParsesRangeSpacingAlways) {
     EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::Always);
 }
 
+TEST(ParseConfiguration, ParsesRangeSpacingMatchSource) {
+    YAML::Node const node = YAML::Load("RangeSpacing: MatchSource");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::MatchSource);
+}
+
 TEST(ParseConfiguration, ParsesRangeSpacingNever) {
     YAML::Node const node = YAML::Load("RangeSpacing: Never");
     Style style;
@@ -1103,7 +1110,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("PackedDimensionBounds: Preserve"), std::string::npos);
     EXPECT_NE(result.find("ParameterPortListIndentWidth: 4"), std::string::npos);
     EXPECT_NE(result.find("RemoveEmptyLines: false"), std::string::npos);
-    EXPECT_NE(result.find("RangeSpacing: Preserve"), std::string::npos);
+    EXPECT_NE(result.find("RangeSpacing: MatchSource"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterAlways: true"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterBrackets:"), std::string::npos);
     EXPECT_NE(result.find("SpaceAfterCaseColon: true"), std::string::npos);

@@ -9,68 +9,14 @@ formatting behavior and slang-format's output. The golden reference file is
 ## Status
 
 660 of 661 tests pass. The single remaining failure is the Verible fixture test,
-which has 7 differing hunks across 2 root cause categories:
+which has 1 differing hunk across 1 root cause category:
 
-| Category                                | Hunks | Lines    |
-| --------------------------------------- | ----- | -------- |
-| Verible multi-space range inconsistency | 4     | 243, 290, 320, 324 |
-| Missing keyword padding and dim PadLeft | 3     | 301-303  |
+| Category                                | Hunks | Lines   |
+| --------------------------------------- | ----- | ------- |
+| Missing keyword padding and dim PadLeft | 1     | 301-303 |
 
-Each category is described below with root cause analysis and the refactoring
+The category is described below with root cause analysis and the refactoring
 required to resolve it.
-
-## Deviation: Verible Multi-Space Range Inconsistency
-
-### Affected Lines
-
-| Line | Actual        | Expected           |
-| ---- | ------------- | ------------------ |
-| 243  | `[DW-1 : 0]`  | `[DW-1  :    0]`   |
-| 290  | `[W-1 : 0]`   | `[W-1    :    0]`  |
-| 320  | `[AW-1 : 0]`  | `[AW-1   :    0]`  |
-| 324  | `[DW-1 : 0]`  | `[DW-1    :    0]` |
-
-### Root Cause
-
-slang-format clamps range spacing to at most 1 space in `Preserve` mode
-(`std::min(leadingWhitespaceLength(...), size_t{1})`). Verible normalizes most
-multi-space ranges to single space but inconsistently preserves multi-space in
-certain contexts.
-
-Testing with `verible-verilog-format` confirms the inconsistency is
-context-dependent. The same source pattern `[W-1    :    0]` is:
-
-- Normalized to `[W-1 : 0]` when the port list has a single declaration.
-- Preserved as `[W-1    :    0]` when the port list has multiple declarations
-  with a preceding parameter section that has excess source spacing.
-
-This behavior is not documented in Verible and appears to be an unintentional
-interaction between its spacing normalization and alignment passes.
-
-### Why Not Fixed
-
-Removing the `std::min` clamp to achieve true preservation produces correct
-results for these 4 lines but introduces 6 new failures at lines where Verible
-does normalize multi-space ranges (lines 43, 61, 119, 260, 350, 556). The net
-result is worse overall compatibility.
-
-The current clamping behavior (`Preserve` normalizes to 0-or-1 space) matches
-Verible's intended behavior for the majority of cases.
-
-### Possible Resolution
-
-If Verible's inconsistency is accepted as a bug in the golden reference:
-
-1. Update the 4 affected lines in `verible.sv.expected` to use single-space
-   range notation (matching slang-format's output), or
-2. No code change required; document the deviation as a known Verible
-   inconsistency.
-
-If exact replication is required, the formatting pass would need to detect the
-specific contexts where Verible preserves multi-space ranges. The relevant
-context appears to be a port list group where the preceding parameter section
-contributes excess source spacing to the group's metadata. This is fragile and
-couples the formatter to an undocumented Verible implementation detail.
 
 ## Deviation: Missing Keyword Padding and Dim PadLeft
 

@@ -4528,6 +4528,57 @@ TEST(RangeSpacing, NeverPreservesCompact) {
     // clang-format on
 }
 
+TEST(RangeSpacing, MatchSourceKeepsCompact) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::MatchSource;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [3:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [3:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RangeSpacing, MatchSourceKeepsSpaces) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::MatchSource;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [3 : 0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [3 : 0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RangeSpacing, MatchSourceNormalizesMultiSpace) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::MatchSource;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [3   :   0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [3 : 0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(RangeSpacing, PreserveKeepsCompact) {
     Style style;
     style.RangeSpacing = RangeSpacingStyle::Preserve;

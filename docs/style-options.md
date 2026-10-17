@@ -1617,6 +1617,74 @@ endmodule
 
 ---
 
+### RangeSpacing (RangeSpacingStyle)
+
+Controls whitespace around the colon in packed dimension range expressions such
+as `[7:0]` or `[7 : 0]`.
+
+`MatchSource` preserves the source style (compact or spaced) and normalizes
+multi-space ranges to single-space in most contexts. Ranges adjacent to a
+parameter port list group with excess alignment spacing are left unchanged,
+preserving the author's intended visual alignment.
+
+**Default:** `MatchSource`
+
+| Value         | Description                                                 |
+| ------------- | ----------------------------------------------------------- |
+| `Always`      | A space is always inserted on each side of the colon.       |
+| `MatchSource` | Source style is preserved; multi-space ranges are normalized.|
+| `Never`       | Spaces around the colon are always removed.                 |
+| `Preserve`    | Source style is preserved; multi-space ranges are clamped.  |
+
+`Always` - spaces are inserted around the colon:
+
+```sv
+// Before
+module foo;
+  logic [7:0] x;
+endmodule
+
+// After
+module foo;
+  logic [7 : 0] x;
+endmodule
+```
+
+`MatchSource` (default) - source style is preserved:
+
+```sv
+module foo;
+  logic [7:0] x;
+  logic [15 : 0] y;
+endmodule
+```
+
+`Never` - spaces around the colon are removed:
+
+```sv
+// Before
+module foo;
+  logic [7 : 0] x;
+endmodule
+
+// After
+module foo;
+  logic [7:0] x;
+endmodule
+```
+
+`Preserve` - source style is preserved, multi-space ranges clamped to
+single-space:
+
+```sv
+module foo;
+  logic [7:0] x;
+  logic [15 : 0] y;
+endmodule
+```
+
+---
+
 ### ParameterPortListIndentWidth (unsigned)
 
 Number of spaces used to indent items in a module ANSI port declaration. When

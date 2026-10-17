@@ -58,7 +58,7 @@ enum class DimensionBoundsStyle { LSBFirst, MSBFirst, Preserve };
 
 enum class EventSeparatorStyle { Comma, Or, Preserve };
 
-enum class RangeSpacingStyle { Always, Never, Preserve };
+enum class RangeSpacingStyle { Always, MatchSource, Never, Preserve };
 
 /// Controls automatic insertion of begin/end around statement bodies.
 struct InsertBeginEndStyle {
@@ -223,7 +223,7 @@ struct Style {
     DimensionBoundsStyle PackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
     /// Controls spacing around `:` in range expressions and declared dimensions.
-    RangeSpacingStyle RangeSpacing = RangeSpacingStyle::Preserve;
+    RangeSpacingStyle RangeSpacing = RangeSpacingStyle::MatchSource;
 
     /// Normalizes whitespace after an always keyword.
     bool SpaceAfterAlways = true;

@@ -549,6 +549,13 @@ public:
                 leftSpaces = 1;
                 rightSpaces = 1;
                 break;
+            case RangeSpacingStyle::MatchSource:
+                leftSpaces = leadingWhitespaceLength(vr.op);
+                rightSpaces = leadingWhitespaceLength(vr.right->getFirstToken());
+                currentLineMeta.rangeSpacings.push_back(
+                    {.sourceLeftSpaces = static_cast<unsigned>(leftSpaces),
+                     .sourceRightSpaces = static_cast<unsigned>(rightSpaces)});
+                break;
             case RangeSpacingStyle::Never:
                 break;
             case RangeSpacingStyle::Preserve:
@@ -563,11 +570,13 @@ public:
             output.append(leftSpaces, ' ');
         }
         skipSpacingCapture = true;
+        beforeOperator = false;
         emitToken(vr.op);
         if (formatEnabled && rightSpaces != 0 && !atLineStart) {
             output.append(rightSpaces, ' ');
         }
         skipSpacingCapture = true;
+        beforeOperator = false;
 
         vr.right->visit(*this);
         emitToken(vr.closeBracket);
@@ -2608,6 +2617,13 @@ public:
                 leftSpaces = 1;
                 rightSpaces = 1;
                 break;
+            case RangeSpacingStyle::MatchSource:
+                leftSpaces = leadingWhitespaceLength(sel.range);
+                rightSpaces = leadingWhitespaceLength(sel.right->getFirstToken());
+                currentLineMeta.rangeSpacings.push_back(
+                    {.sourceLeftSpaces = static_cast<unsigned>(leftSpaces),
+                     .sourceRightSpaces = static_cast<unsigned>(rightSpaces)});
+                break;
             case RangeSpacingStyle::Never:
                 break;
             case RangeSpacingStyle::Preserve:
@@ -2622,11 +2638,13 @@ public:
             output.append(leftSpaces, ' ');
         }
         skipSpacingCapture = true;
+        beforeOperator = false;
         emitToken(sel.range);
         if (formatEnabled && rightSpaces != 0 && !atLineStart) {
             output.append(rightSpaces, ' ');
         }
         skipSpacingCapture = true;
+        beforeOperator = false;
 
         sel.right->visit(*this);
     }
