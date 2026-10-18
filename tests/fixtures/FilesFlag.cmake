@@ -6,7 +6,7 @@ file(WRITE ${WORK_DIR}/filelist.txt
      "\n"
      "${FIXTURES_DIR}/inplace.sv\n")
 
-execute_process(COMMAND ${SLANG_FORMAT} --files ${WORK_DIR}/filelist.txt
+execute_process(COMMAND ${SLANG_FORMAT} --no-config --files ${WORK_DIR}/filelist.txt
                 RESULT_VARIABLE result
                 OUTPUT_VARIABLE output)
 

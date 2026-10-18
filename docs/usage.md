@@ -15,6 +15,8 @@ OPTIONS:
                       Blank lines and lines starting with '#' are ignored.
   -i                  Inplace edit <file>s, if specified.
   --list-ignored      List ignored files.
+  --no-config         Do not search for the .slang-format file.
+  --no-ignored        Do not search for the .slang-format-ignore file.
   -h,--help           Display available options.
   --version           Display version information and exit.
 ```
@@ -56,6 +58,9 @@ To generate a configuration file from the current defaults, issue:
 slang-format --dump-config > .slang-format
 ```
 
+To disable configuration file lookup entirely, pass `--no-config`. The default
+style is used for all files.
+
 See [Style Options][1] for a complete list of supported options.
 
 ## Ignoring Files
@@ -81,6 +86,9 @@ Use `--list-ignored` to see which files would be ignored:
 ```shell
 slang-format --list-ignored *.sv
 ```
+
+To disable ignore file lookup entirely, pass `--no-ignored`. All specified files
+are formatted.
 
 [1]: https://github.com/sstallion/slang-format/blob/main/docs/style-options.md
 [2]: https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_13

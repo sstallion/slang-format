@@ -36,6 +36,20 @@ add_test(NAME ListIgnored
                  -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
                  -P ${FIXTURES_DIR}/ListIgnored.cmake)
 
+add_test(NAME NoConfig
+         COMMAND ${CMAKE_COMMAND}
+                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
+                 -DFIXTURES_DIR=${FIXTURES_DIR}
+                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
+                 -P ${FIXTURES_DIR}/NoConfig.cmake)
+
+add_test(NAME NoIgnore
+         COMMAND ${CMAKE_COMMAND}
+                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
+                 -DFIXTURES_DIR=${FIXTURES_DIR}
+                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
+                 -P ${FIXTURES_DIR}/NoIgnore.cmake)
+
 add_test(NAME Stdin
          COMMAND ${CMAKE_COMMAND}
                  -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>

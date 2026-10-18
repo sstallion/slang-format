@@ -1,7 +1,7 @@
 # Copyright 2026 Steven Stallion
 # SPDX-License-Identifier: MIT
 
-execute_process(COMMAND ${SLANG_FORMAT} --list-ignored
+execute_process(COMMAND ${SLANG_FORMAT} --no-config --list-ignored
                         ${FIXTURES_DIR}/ignored.sv
                         ${FIXTURES_DIR}/not_ignored.sv
                 RESULT_VARIABLE result

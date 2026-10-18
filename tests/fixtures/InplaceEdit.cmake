@@ -3,7 +3,7 @@
 
 file(COPY ${FIXTURES_DIR}/inplace.sv DESTINATION ${WORK_DIR})
 
-execute_process(COMMAND ${SLANG_FORMAT} -i ${WORK_DIR}/inplace.sv
+execute_process(COMMAND ${SLANG_FORMAT} --no-config -i ${WORK_DIR}/inplace.sv
                 RESULT_VARIABLE result)
 
 if(NOT result EQUAL 0)

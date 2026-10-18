@@ -1,7 +1,7 @@
 # Copyright 2026 Steven Stallion
 # SPDX-License-Identifier: MIT
 
-execute_process(COMMAND ${SLANG_FORMAT} ${FIXTURES_DIR}/verible.sv
+execute_process(COMMAND ${SLANG_FORMAT} --no-config ${FIXTURES_DIR}/verible.sv
                 RESULT_VARIABLE result
                 OUTPUT_VARIABLE output)
 

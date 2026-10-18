@@ -1,7 +1,7 @@
 # Copyright 2026 Steven Stallion
 # SPDX-License-Identifier: MIT
 
-execute_process(COMMAND ${SLANG_FORMAT} -
+execute_process(COMMAND ${SLANG_FORMAT} --no-config -
                 INPUT_FILE ${FIXTURES_DIR}/stdin.sv
                 RESULT_VARIABLE result
                 OUTPUT_VARIABLE output)

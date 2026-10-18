@@ -72,14 +72,14 @@ std::vector<std::string> buildFileList(std::vector<std::string>& positionalFiles
     return files;
 }
 
-void listIgnoredFiles(const std::vector<std::string>& files) {
+void listIgnoredFiles(const std::vector<std::string>& files, bool noIgnore) {
     for (const auto& file : files) {
         if (file == "-"sv) {
             continue;
         }
 
         const auto path = std::filesystem::absolute(file);
-        if (isIgnored(path)) {
+        if (!noIgnore && isIgnored(path)) {
             std::cout << file << "\n";
         }
     }
@@ -101,7 +101,8 @@ void writeFile(const std::filesystem::path& path, const std::string& content) {
     stream << content;
 }
 
-int formatFiles(std::string_view programName, const std::vector<std::string>& files, bool inplace) {
+int formatFiles(std::string_view programName, const std::vector<std::string>& files, bool inplace,
+                bool noConfig, bool noIgnore) {
     auto failed = 0;
     for (const auto& file : files) {
         try {
@@ -109,17 +110,18 @@ int formatFiles(std::string_view programName, const std::vector<std::string>& fi
                 if (inplace) {
                     continue;
                 }
-                auto style = getStyle(std::filesystem::current_path());
+                auto style = noConfig ? getDefaultStyle()
+                                      : getStyle(std::filesystem::current_path());
                 std::cout << reformat(std::cin, style);
                 continue;
             }
 
             const auto path = std::filesystem::absolute(file);
-            if (isIgnored(path)) {
+            if (!noIgnore && isIgnored(path)) {
                 continue;
             }
 
-            auto style = getStyle(path.parent_path());
+            auto style = noConfig ? getDefaultStyle() : getStyle(path.parent_path());
 
             if (inplace) {
                 auto source = readFile(path);
@@ -153,6 +155,8 @@ int main(int argc, char* argv[]) {
     std::optional<bool> help;
     std::optional<bool> inplace;
     std::optional<bool> listIgnored;
+    std::optional<bool> noConfig;
+    std::optional<bool> noIgnored;
     std::optional<bool> version;
     std::vector<std::string> fileListPaths;
     std::vector<std::string> positionalFiles;
@@ -164,6 +168,8 @@ int main(int argc, char* argv[]) {
                 "<filename>");
     cmdLine.add("-i", inplace, "Inplace edit <file>s, if specified.");
     cmdLine.add("--list-ignored", listIgnored, "List ignored files.");
+    cmdLine.add("--no-config", noConfig, "Do not search for the .slang-format file.");
+    cmdLine.add("--no-ignored", noIgnored, "Do not search for the .slang-format-ignore file.");
     cmdLine.add("-h,--help", help, "Display available options.");
     cmdLine.add("--version", version, "Display version information and exit.");
     cmdLine.setPositional(positionalFiles, "[@<file>] [<file>]");
@@ -186,7 +192,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (dumpConfig.value_or(false)) {
-        auto style = getStyle(std::filesystem::current_path());
+        auto style = noConfig.value_or(false) ? getDefaultStyle()
+                                              : getStyle(std::filesystem::current_path());
         std::cout << dumpConfiguration(style) << "\n";
         return EXIT_SUCCESS;
     }
@@ -199,11 +206,12 @@ int main(int argc, char* argv[]) {
         }
 
         if (listIgnored.value_or(false)) {
-            listIgnoredFiles(files);
+            listIgnoredFiles(files, noIgnored.value_or(false));
             return EXIT_SUCCESS;
         }
 
-        auto failed = formatFiles(cmdLine.getProgramName(), files, inplace.value_or(false));
+        auto failed = formatFiles(cmdLine.getProgramName(), files, inplace.value_or(false),
+                                  noConfig.value_or(false), noIgnored.value_or(false));
         return failed > 0 ? EXIT_FAILURE : EXIT_SUCCESS;
     }
     catch (const std::exception& e) {
