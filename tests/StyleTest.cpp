@@ -651,6 +651,34 @@ TEST(ParseConfiguration, ParsesIndentWidth) {
     EXPECT_EQ(style.IndentWidth, 4U);
 }
 
+TEST(ParseConfiguration, ParsesLineEndingCRLF) {
+    YAML::Node const node = YAML::Load("LineEnding: CRLF");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.LineEnding, LineEndingStyle::CRLF);
+}
+
+TEST(ParseConfiguration, ParsesLineEndingDeriveCRLF) {
+    YAML::Node const node = YAML::Load("LineEnding: DeriveCRLF");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.LineEnding, LineEndingStyle::DeriveCRLF);
+}
+
+TEST(ParseConfiguration, ParsesLineEndingDeriveLF) {
+    YAML::Node const node = YAML::Load("LineEnding: DeriveLF");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.LineEnding, LineEndingStyle::DeriveLF);
+}
+
+TEST(ParseConfiguration, ParsesLineEndingLF) {
+    YAML::Node const node = YAML::Load("LineEnding: LF");
+    Style style;
+    parseConfiguration(node, style);
+    EXPECT_EQ(style.LineEnding, LineEndingStyle::LF);
+}
+
 TEST(ParseConfiguration, ParsesInsertBeginEndAlwaysStatements) {
     Style style;
 
@@ -1104,6 +1132,7 @@ TEST(DumpConfiguration, DefaultStyle) {
     EXPECT_NE(result.find("EventSeparator: Preserve"), std::string::npos);
     EXPECT_NE(result.find("IndentCaseItem: false"), std::string::npos);
     EXPECT_NE(result.find("IndentWidth: 2"), std::string::npos);
+    EXPECT_NE(result.find("LineEnding: DeriveLF"), std::string::npos);
     EXPECT_NE(result.find("MaxEmptyLinesToKeep: 1"), std::string::npos);
     EXPECT_NE(result.find("OneLineFormatOffRegex: \"\""), std::string::npos);
     EXPECT_NE(result.find("OneStatementPerLine: true"), std::string::npos);
@@ -1159,6 +1188,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     style.CompactControlStatements = false;
     style.CompactTimeUnits = false;
     style.EventSeparator = EventSeparatorStyle::Comma;
+    style.LineEnding = LineEndingStyle::CRLF;
     style.InsertBeginEnd.Enabled = true;
     style.InsertParens.Delays = true;
     style.InsertParens.ExpressionEvents = true;
@@ -1205,6 +1235,7 @@ TEST(DumpConfiguration, NonDefaultValues) {
     EXPECT_NE(result.find("CompactControlStatements: false"), std::string::npos);
     EXPECT_NE(result.find("CompactTimeUnits: false"), std::string::npos);
     EXPECT_NE(result.find("EventSeparator: Comma"), std::string::npos);
+    EXPECT_NE(result.find("LineEnding: CRLF"), std::string::npos);
     EXPECT_NE(result.find("Enabled: true"), std::string::npos);
     EXPECT_NE(result.find("OneStatementPerLine: false"), std::string::npos);
     EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
@@ -1265,6 +1296,7 @@ TEST(DumpConfiguration, RoundTrip) {
     original.CompactControlStatements = false;
     original.CompactTimeUnits = false;
     original.EventSeparator = EventSeparatorStyle::Or;
+    original.LineEnding = LineEndingStyle::LF;
     original.OneLineFormatOffRegex = ".*test.*";
     original.OneStatementPerLine = false;
     original.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;

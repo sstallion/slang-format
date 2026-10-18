@@ -58,6 +58,8 @@ enum class DimensionBoundsStyle { LSBFirst, MSBFirst, Preserve };
 
 enum class EventSeparatorStyle { Comma, Or, Preserve };
 
+enum class LineEndingStyle { CRLF, DeriveCRLF, DeriveLF, LF };
+
 enum class RangeSpacingStyle { Always, MatchSource, Never, Preserve };
 
 /// Controls automatic insertion of begin/end around statement bodies.
@@ -218,6 +220,9 @@ struct Style {
 
     /// Disables formatting for any line matching this pattern.
     std::string OneLineFormatOffRegex;
+
+    /// Controls line ending characters in formatted output.
+    LineEndingStyle LineEnding = LineEndingStyle::DeriveLF;
 
     /// Controls the order of packed dimension bounds.
     DimensionBoundsStyle PackedDimensionBounds = DimensionBoundsStyle::Preserve;

@@ -33,7 +33,7 @@
 - [x] Full releases including packaging
 - [ ] Build slang-format as a library (cf. [LibFormat][1])
 - [ ] Publish API documentation
-- [ ] Verible compatibility:
+- [x] Verible compatibility:
   - [x] Token spacing normalization
   - [x] `end else begin` compaction
   - [x] Join `begin` to controlling keyword
@@ -41,7 +41,7 @@
   - [x] Scope construct coverage (`class`, `covergroup`)
   - [x] Hierarchical instance formatting
   - [x] Format-off pragma compatibility (`verilog_format`)
-  - [ ] Line terminator auto-detection
+  - [x] Line terminator auto-detection
   - [x] Preprocessor directive line breaks
 - [ ] Add style presets (i.e. `--style=<string>`
 - [ ] Define builtin styles using YAML

@@ -75,6 +75,20 @@ constexpr std::string_view toString(EventSeparatorStyle style) {
     return "Preserve";
 }
 
+constexpr std::string_view toString(LineEndingStyle style) {
+    switch (style) {
+        case LineEndingStyle::CRLF:
+            return "CRLF";
+        case LineEndingStyle::DeriveCRLF:
+            return "DeriveCRLF";
+        case LineEndingStyle::DeriveLF:
+            return "DeriveLF";
+        case LineEndingStyle::LF:
+            return "LF";
+    }
+    return "DeriveLF";
+}
+
 constexpr std::string_view toString(RangeSpacingStyle style) {
     switch (style) {
         case RangeSpacingStyle::Always:
@@ -217,6 +231,22 @@ EventSeparatorStyle parseEventSeparator(std::string_view s) {
     }
 
     return EventSeparatorStyle::Preserve;
+}
+
+LineEndingStyle parseLineEnding(std::string_view s) {
+    if (s == "CRLF") {
+        return LineEndingStyle::CRLF;
+    }
+
+    if (s == "DeriveCRLF") {
+        return LineEndingStyle::DeriveCRLF;
+    }
+
+    if (s == "LF") {
+        return LineEndingStyle::LF;
+    }
+
+    return LineEndingStyle::DeriveLF;
 }
 
 RangeSpacingStyle parseRangeSpacing(std::string_view s) {
@@ -552,6 +582,7 @@ std::string dumpConfiguration(const Style& style) {
         << std::string{toString(style.EventSeparator)};
     out << YAML::Key << "IndentCaseItem" << YAML::Value << style.IndentCaseItem;
     out << YAML::Key << "IndentWidth" << YAML::Value << style.IndentWidth;
+    out << YAML::Key << "LineEnding" << YAML::Value << std::string{toString(style.LineEnding)};
     out << YAML::Key << "InsertBeginEnd" << YAML::Value;
     emitInsertBeginEnd(out, style.InsertBeginEnd);
     out << YAML::Key << "InsertParens" << YAML::Value;
@@ -648,6 +679,10 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
     }
 
     parseBool(node, "IndentCaseItem", style.IndentCaseItem);
+
+    if (auto v = node["LineEnding"]) {
+        style.LineEnding = parseLineEnding(v.as<std::string>());
+    }
 
     if (auto v = node["EventSeparator"]) {
         style.EventSeparator = parseEventSeparator(v.as<std::string>());

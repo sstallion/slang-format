@@ -3988,13 +3988,69 @@ std::string applyOneLineFormatOff(const std::string& output, const std::regex& r
     return result;
 }
 
+LineEndingStyle resolveLineEnding(std::string_view text, LineEndingStyle lineEnding) {
+    if (lineEnding == LineEndingStyle::LF || lineEnding == LineEndingStyle::CRLF) {
+        return lineEnding;
+    }
+
+    size_t crlfCount = 0;
+    size_t lfCount = 0;
+    for (size_t i = 0; i < text.size(); i++) {
+        if (text[i] == '\n') {
+            if (i > 0 && text[i - 1] == '\r') {
+                crlfCount++;
+            }
+            else {
+                lfCount++;
+            }
+        }
+    }
+
+    if (lineEnding == LineEndingStyle::DeriveCRLF) {
+        return lfCount > crlfCount ? LineEndingStyle::LF : LineEndingStyle::CRLF;
+    }
+    return crlfCount > lfCount ? LineEndingStyle::CRLF : LineEndingStyle::LF;
+}
+
+std::string stripCarriageReturns(std::string_view text) {
+    std::string result;
+    result.reserve(text.size());
+    for (auto c : text) {
+        if (c != '\r') {
+            result += c;
+        }
+    }
+    return result;
+}
+
+std::string applyLineEnding(const std::string& text) {
+    std::string result;
+    result.reserve(text.size() * 2);
+    for (auto c : text) {
+        if (c == '\n') {
+            result += '\r';
+        }
+        result += c;
+    }
+    return result;
+}
+
 } // namespace
 
 namespace slang::format {
 
 std::string reformat(std::string_view text, const Style& style) {
+    auto resolved = resolveLineEnding(text, style.LineEnding);
+
+    std::string cleaned;
+    auto parseInput = text;
+    if (text.find('\r') != std::string_view::npos) {
+        cleaned = stripCarriageReturns(text);
+        parseInput = cleaned;
+    }
+
     SourceManager sm;
-    auto tree = SyntaxTree::fromText(text, sm, "source");
+    auto tree = SyntaxTree::fromText(parseInput, sm, "source");
     tree = applyBeginEndInsertion(tree, style);
     tree = applyInsertParens(tree, style);
     tree = applyEventSeparator(tree, style);
@@ -4009,6 +4065,11 @@ std::string reformat(std::string_view text, const Style& style) {
         std::regex const re(style.OneLineFormatOffRegex);
         result = applyOneLineFormatOff(result, re);
     }
+
+    if (resolved == LineEndingStyle::CRLF) {
+        result = applyLineEnding(result);
+    }
+
     return result;
 }
 

@@ -5,6 +5,7 @@
 #include "Style.h"
 #include "TestHelper.h"
 
+#include <cstddef>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -4160,6 +4161,70 @@ TEST(Directive, TimescaleAtFileScope) {
         endmodule
     )"));
     // clang-format on
+}
+
+TEST(LineEnding, LFStripsCarriageReturns) {
+    Style style;
+    style.LineEnding = LineEndingStyle::LF;
+
+    auto result = reformat("module foo;\r\nassign x = 1;\r\nendmodule\r\n", style);
+    EXPECT_EQ(result.find('\r'), std::string::npos);
+    EXPECT_NE(result.find('\n'), std::string::npos);
+}
+
+TEST(LineEnding, CRLFEmitsCRLF) {
+    Style style;
+    style.LineEnding = LineEndingStyle::CRLF;
+
+    auto result = reformat("module foo;\nassign x = 1;\nendmodule\n", style);
+    for (size_t i = 0; i < result.size(); i++) {
+        if (result[i] == '\n') {
+            EXPECT_GT(i, 0U);
+            EXPECT_EQ(result[i - 1], '\r');
+        }
+    }
+}
+
+TEST(LineEnding, DeriveCRLFDefaultsToCRLF) {
+    Style style;
+    style.LineEnding = LineEndingStyle::DeriveCRLF;
+
+    auto result = reformat("module foo;\r\nassign x = 1;\r\nendmodule\r\n", style);
+    for (size_t i = 0; i < result.size(); i++) {
+        if (result[i] == '\n') {
+            EXPECT_GT(i, 0U);
+            EXPECT_EQ(result[i - 1], '\r');
+        }
+    }
+}
+
+TEST(LineEnding, DeriveCRLFSwitchesToLFWhenMoreLF) {
+    Style style;
+    style.LineEnding = LineEndingStyle::DeriveCRLF;
+
+    auto result = reformat("module foo;\nassign x = 1;\nendmodule\n", style);
+    EXPECT_EQ(result.find('\r'), std::string::npos);
+}
+
+TEST(LineEnding, DeriveLFDefaultsToLF) {
+    Style style;
+    style.LineEnding = LineEndingStyle::DeriveLF;
+
+    auto result = reformat("module foo;\nassign x = 1;\nendmodule\n", style);
+    EXPECT_EQ(result.find('\r'), std::string::npos);
+}
+
+TEST(LineEnding, DeriveLFSwitchesToCRLFWhenMoreCRLF) {
+    Style style;
+    style.LineEnding = LineEndingStyle::DeriveLF;
+
+    auto result = reformat("module foo;\r\nassign x = 1;\r\nendmodule\r\n", style);
+    for (size_t i = 0; i < result.size(); i++) {
+        if (result[i] == '\n') {
+            EXPECT_GT(i, 0U);
+            EXPECT_EQ(result[i - 1], '\r');
+        }
+    }
 }
 
 TEST(OneStatementPerLine, AlreadySeparateLines) {
