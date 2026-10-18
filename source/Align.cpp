@@ -1074,11 +1074,9 @@ std::vector<std::vector<DimContent>> collectDimContents(const std::vector<std::s
 void alignGroupDimensions(std::string& result, const std::vector<std::string_view>& lines,
                           const std::vector<LineInfo>& infos, GroupRange range,
                           const AlignConsecutiveStyle& alignStyle, RangeSpacingStyle rangeSpacing) {
-    size_t dimCount = 0;
     size_t maxDimCol = 0;
     for (size_t i = range.start; i < range.end; i++) {
         if (infos[i].kind == Kind::Declaration && infos[i].dimPos != npos) {
-            dimCount++;
             maxDimCol = std::max(maxDimCol, infos[i].dimPos);
         }
         else if (infos[i].kind == Kind::Declaration) {
@@ -1243,8 +1241,9 @@ void alignGroupEquals(std::string& result, const std::vector<std::string_view>& 
         auto padding = buckets[b].maxEqualsCol - buckets[b].minEqualsCol;
         auto bucketCtx = ctx;
         bucketCtx.groupMaxExcess = buckets[b].maxExcess;
-        auto policy = buckets[b].count >= 2 ? inferAlignPolicy(padding, bucketCtx)
-                                            : AlignPolicy::FlushLeft;
+        auto policy = buckets[b].count >= 2
+                         ? inferAlignPolicy(static_cast<unsigned>(padding), bucketCtx)
+                         : AlignPolicy::FlushLeft;
         if (policy == AlignPolicy::Align) {
             auto line = lines[i];
             auto eqPos = infos[i].equalsPos;
@@ -1279,7 +1278,8 @@ void alignGroupPortConnections(std::string& result, const std::vector<std::strin
     for (auto i = range.start; i < range.end; i++) {
         if (infos[i].kind == Kind::PortConnection && infos[i].equalsPos != npos) {
             auto padding = maxParenCol - minParenCol;
-            auto policy = connCount >= 2 ? inferAlignPolicy(padding, ctx) : AlignPolicy::FlushLeft;
+            auto policy = connCount >= 2 ? inferAlignPolicy(static_cast<unsigned>(padding), ctx)
+                                       : AlignPolicy::FlushLeft;
             if (policy == AlignPolicy::Align) {
                 auto line = lines[i];
                 auto parenPos = infos[i].equalsPos;
