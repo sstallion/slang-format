@@ -535,17 +535,16 @@ void alignGroupDeclLine(std::string& result, std::string_view line, const LineIn
             auto nameEnd = trimTrailingSpaces(line, info.dimPos);
             auto nameWidth = nameEnd > typeBodyStart ? nameEnd - typeBodyStart : size_t{0};
             auto dimEnd = trimTrailingSpaces(line, identPos);
+            auto dimWidth = dimEnd - info.dimPos;
 
             if (nameWidth > 0) {
                 result.append(line.substr(typeBodyStart, nameWidth));
-                result += ' ';
             }
-            result.append(line.substr(info.dimPos, dimEnd - info.dimPos));
 
-            auto emitted = metrics.maxKeywordWidth + 1 + nameWidth + (nameWidth > 0 ? 1 : 0) +
-                           (dimEnd - info.dimPos);
-            auto remaining = targetPos - indent - emitted;
-            result.append(remaining, ' ');
+            auto bodyTarget = targetPos - indent - metrics.maxKeywordWidth - 1;
+            result.append(bodyTarget - nameWidth - dimWidth - 1, ' ');
+            result.append(line.substr(info.dimPos, dimWidth));
+            result += ' ';
         }
         else {
             if (typeBodyStart < typeTextEnd) {

@@ -305,6 +305,33 @@ TEST(AlignConsecutiveDeclarations, ParameterDeclarations) {
     )"));
 }
 
+// clang-format off
+TEST(AlignConsecutiveDeclarations, ParameterDimRightJustified) {
+    Style style;
+    style.AlignConsecutiveDeclarations = {.Enabled = true, .InferFromSource = false,
+                                         .MaxPadding = 0};
+    style.AlignConsecutiveAssignments = {.Enabled = true, .InferFromSource = false,
+                                         .MaxPadding = 0};
+    style.AlignConsecutivePackedDimensions = {};
+
+    EXPECT_EQ(reformat(dedent(R"(
+        package foo;
+          parameter int unsigned DEFAULT_WIDTH = 32;
+          localparam int unsigned ADDR_W = 12;
+          localparam bit [7:0] MAGIC = 8'hA5;
+          localparam string BANNER = "tort";
+        endpackage
+    )"), style), dedent(R"(
+        package foo;
+          parameter  int unsigned DEFAULT_WIDTH = 32;
+          localparam int unsigned ADDR_W        = 12;
+          localparam bit    [7:0] MAGIC         = 8'hA5;
+          localparam string       BANNER        = "tort";
+        endpackage
+    )"));
+}
+// clang-format on
+
 TEST(AlignConsecutiveDeclarations, SingleDeclarationNotAligned) {
     Style const style{};
 
@@ -312,7 +339,9 @@ TEST(AlignConsecutiveDeclarations, SingleDeclarationNotAligned) {
         module foo;
           logic [7:0] a;
         endmodule
-    )"), style), dedent(R"(
+    )"),
+                       style),
+              dedent(R"(
         module foo;
           logic [7:0] a;
         endmodule
@@ -333,7 +362,9 @@ TEST(AlignConsecutiveDeclarations, FormatOffRegionSkipped) {
           logic c;
           logic [15:0] d;
         endmodule
-    )"), style), dedent(R"(
+    )"),
+                       style),
+              dedent(R"(
         module foo;
           // slang-format off
           logic a;
@@ -362,7 +393,9 @@ TEST(AlignConsecutiveDeclarations, IndentLevelBreaksGroup) {
           logic c;
           logic [15:0] d;
         endmodule
-    )"), style), dedent(R"(
+    )"),
+                       style),
+              dedent(R"(
         module foo #(
           parameter             N = 4,
           parameter logic [7:0] M = 8

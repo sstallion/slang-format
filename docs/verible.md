@@ -8,12 +8,7 @@ formatting behavior and slang-format's output. The golden reference file is
 
 ## Status
 
-667 of 668 tests pass. The single remaining failure is the Verible fixture test,
-which has 1 differing hunk across 1 root cause category:
-
-| Category                 | Hunks | Lines |
-| ------------------------ | ----- | ----- |
-| Incorrect dim column     | 1     | 31    |
+668 of 668 tests pass.
 
 ## Implementation Details
 
