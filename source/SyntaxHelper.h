@@ -35,4 +35,11 @@ inline bool isUnpackedDimensionParent(slang::syntax::SyntaxKind kind) {
     return slang::syntax::DeclaratorSyntax::isKind(kind);
 }
 
+/// Returns true if \p tc is an event control.
+inline bool isEventControl(const slang::syntax::TimingControlSyntax& tc) {
+    return tc.kind == slang::syntax::SyntaxKind::EventControl ||
+           tc.kind == slang::syntax::SyntaxKind::EventControlWithExpression ||
+           tc.kind == slang::syntax::SyntaxKind::ImplicitEventControl;
+}
+
 } // namespace slang::format

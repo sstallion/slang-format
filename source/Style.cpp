@@ -4,7 +4,9 @@
 #include "FileLoader.h"
 #include "Style.h"
 
+#include <algorithm>
 #include <array>
+#include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <optional>
@@ -103,234 +105,147 @@ constexpr std::string_view toString(RangeSpacingStyle style) {
     return "MatchSource";
 }
 
-void parseAlignConsecutive(const YAML::Node& node, AlignConsecutiveStyle& config) {
-    if (auto v = node["Enabled"]) {
-        config.Enabled = v.as<bool>();
+constexpr std::array AllBlockBreakStyles{BlockBreakStyle::Always, BlockBreakStyle::Never,
+                                         BlockBreakStyle::OnlyMultiline};
+constexpr std::array AllBracketAlignmentStyles{BracketAlignmentStyle::Align,
+                                               BracketAlignmentStyle::AlwaysBreak,
+                                               BracketAlignmentStyle::BlockIndent,
+                                               BracketAlignmentStyle::DontAlign};
+constexpr std::array AllDimensionBoundsStyles{DimensionBoundsStyle::LSBFirst,
+                                              DimensionBoundsStyle::MSBFirst,
+                                              DimensionBoundsStyle::Preserve};
+constexpr std::array AllEventSeparatorStyles{EventSeparatorStyle::Comma, EventSeparatorStyle::Or,
+                                             EventSeparatorStyle::Preserve};
+constexpr std::array AllLineEndingStyles{LineEndingStyle::CRLF, LineEndingStyle::DeriveCRLF,
+                                         LineEndingStyle::DeriveLF, LineEndingStyle::LF};
+constexpr std::array AllRangeSpacingStyles{RangeSpacingStyle::Always,
+                                           RangeSpacingStyle::MatchSource, RangeSpacingStyle::Never,
+                                           RangeSpacingStyle::Preserve};
+
+template<typename T, size_t N>
+void parseEnum(const YAML::Node& node, std::string_view key, T& target,
+               const std::array<T, N>& values, T fallback) {
+    const auto v = node[key];
+    if (!v) {
+        return;
     }
 
-    if (auto v = node["AcrossComments"]) {
-        config.AcrossComments = v.as<bool>();
-    }
+    const auto text = v.as<std::string>();
+    const auto* const it = std::ranges::find_if(values,
+                                                [&](T value) { return toString(value) == text; });
+    target = it != values.end() ? *it : fallback;
+}
 
-    if (auto v = node["AcrossEmptyLines"]) {
-        config.AcrossEmptyLines = v.as<bool>();
-    }
-
-    if (auto v = node["AcrossParameterPortList"]) {
-        config.AcrossParameterPortList = v.as<bool>();
-    }
-
-    if (auto v = node["AlignColon"]) {
-        config.AlignColon = v.as<bool>();
-    }
-
-    if (auto v = node["InferFromSource"]) {
-        config.InferFromSource = v.as<bool>();
-    }
-
-    if (auto v = node["MaxPadding"]) {
-        config.MaxPadding = v.as<unsigned>();
-    }
-
-    if (auto v = node["MinPadding"]) {
-        config.MinPadding = v.as<unsigned>();
-    }
-
-    if (auto v = node["PadLeft"]) {
-        config.PadLeft = v.as<bool>();
-    }
-
-    if (auto v = node["PadRight"]) {
-        config.PadRight = v.as<bool>();
+void parseBool(const YAML::Node& node, std::string_view key, bool& target) {
+    if (auto v = node[key]) {
+        target = v.as<bool>();
     }
 }
 
-void parseInsertBeginEnd(const YAML::Node& node, InsertBeginEndStyle& config) {
-    if (auto v = node["Enabled"]) {
-        config.Enabled = v.as<bool>();
-    }
-
-    if (auto v = node["AlwaysStatements"]) {
-        config.AlwaysStatements = v.as<bool>();
-    }
-
-    if (auto v = node["ControlStatements"]) {
-        config.ControlStatements = v.as<bool>();
-    }
-
-    if (auto v = node["InitialStatements"]) {
-        config.InitialStatements = v.as<bool>();
+void parseUnsigned(const YAML::Node& node, std::string_view key, unsigned& target) {
+    if (auto v = node[key]) {
+        target = v.as<unsigned>();
     }
 }
 
-void parseInsertParens(const YAML::Node& node, InsertParensStyle& config) {
-    if (auto v = node["Delays"]) {
-        config.Delays = v.as<bool>();
-    }
-
-    if (auto v = node["ExpressionEvents"]) {
-        config.ExpressionEvents = v.as<bool>();
-    }
-
-    if (auto v = node["ImplicitEvents"]) {
-        config.ImplicitEvents = v.as<bool>();
-    }
-
-    if (auto v = node["NamedEvents"]) {
-        config.NamedEvents = v.as<bool>();
+void parseString(const YAML::Node& node, std::string_view key, std::string& target) {
+    if (auto v = node[key]) {
+        target = v.as<std::string>();
     }
 }
 
-BracketAlignmentStyle parseBracketAlignment(std::string_view s) {
-    if (s == "AlwaysBreak") {
-        return BracketAlignmentStyle::AlwaysBreak;
-    }
-
-    if (s == "BlockIndent") {
-        return BracketAlignmentStyle::BlockIndent;
-    }
-
-    if (s == "DontAlign") {
-        return BracketAlignmentStyle::DontAlign;
-    }
-
-    return BracketAlignmentStyle::Align;
+YAML::Node nodeWithAlias(const YAML::Node& node, std::string_view key, std::string_view alias) {
+    auto v = node[key];
+    return v ? v : node[alias];
 }
 
-BlockBreakStyle parseBlockBreak(std::string_view s) {
-    if (s == "Always") {
-        return BlockBreakStyle::Always;
+void parseAlignConsecutive(const YAML::Node& parent, std::string_view key,
+                           AlignConsecutiveStyle& config) {
+    const auto node = parent[key];
+    if (!node) {
+        return;
     }
 
-    if (s == "OnlyMultiline") {
-        return BlockBreakStyle::OnlyMultiline;
-    }
-
-    return BlockBreakStyle::Never;
+    parseBool(node, "Enabled", config.Enabled);
+    parseBool(node, "AcrossComments", config.AcrossComments);
+    parseBool(node, "AcrossEmptyLines", config.AcrossEmptyLines);
+    parseBool(node, "AcrossParameterPortList", config.AcrossParameterPortList);
+    parseBool(node, "AlignColon", config.AlignColon);
+    parseBool(node, "InferFromSource", config.InferFromSource);
+    parseUnsigned(node, "MaxPadding", config.MaxPadding);
+    parseUnsigned(node, "MinPadding", config.MinPadding);
+    parseBool(node, "PadLeft", config.PadLeft);
+    parseBool(node, "PadRight", config.PadRight);
 }
 
-DimensionBoundsStyle parseDimensionBounds(std::string_view s) {
-    if (s == "LSBFirst") {
-        return DimensionBoundsStyle::LSBFirst;
+void parseInsertBeginEnd(const YAML::Node& parent, std::string_view key,
+                         InsertBeginEndStyle& config) {
+    const auto node = parent[key];
+    if (!node) {
+        return;
     }
 
-    if (s == "MSBFirst") {
-        return DimensionBoundsStyle::MSBFirst;
-    }
-
-    return DimensionBoundsStyle::Preserve;
+    parseBool(node, "Enabled", config.Enabled);
+    parseBool(node, "AlwaysStatements", config.AlwaysStatements);
+    parseBool(node, "ControlStatements", config.ControlStatements);
+    parseBool(node, "InitialStatements", config.InitialStatements);
 }
 
-EventSeparatorStyle parseEventSeparator(std::string_view s) {
-    if (s == "Comma") {
-        return EventSeparatorStyle::Comma;
+void parseInsertParens(const YAML::Node& parent, std::string_view key, InsertParensStyle& config) {
+    const auto node = parent[key];
+    if (!node) {
+        return;
     }
 
-    if (s == "Or") {
-        return EventSeparatorStyle::Or;
-    }
-
-    return EventSeparatorStyle::Preserve;
+    parseBool(node, "Delays", config.Delays);
+    parseBool(node, "ExpressionEvents", config.ExpressionEvents);
+    parseBool(node, "ImplicitEvents", config.ImplicitEvents);
+    parseBool(node, "NamedEvents", config.NamedEvents);
 }
 
-LineEndingStyle parseLineEnding(std::string_view s) {
-    if (s == "CRLF") {
-        return LineEndingStyle::CRLF;
+void parseSpaceAfterBrackets(const YAML::Node& parent, std::string_view key,
+                             SpaceAfterBracketsStyle& config) {
+    const auto node = parent[key];
+    if (!node) {
+        return;
     }
 
-    if (s == "DeriveCRLF") {
-        return LineEndingStyle::DeriveCRLF;
-    }
-
-    if (s == "LF") {
-        return LineEndingStyle::LF;
-    }
-
-    return LineEndingStyle::DeriveLF;
+    parseBool(node, "PackedDimensions", config.PackedDimensions);
+    parseBool(node, "UnpackedDimensions", config.UnpackedDimensions);
 }
 
-RangeSpacingStyle parseRangeSpacing(std::string_view s) {
-    if (s == "Always") {
-        return RangeSpacingStyle::Always;
+void parseSpaceAfterParens(const YAML::Node& parent, std::string_view key,
+                           SpaceAfterParensStyle& config) {
+    const auto node = parent[key];
+    if (!node) {
+        return;
     }
 
-    if (s == "Never") {
-        return RangeSpacingStyle::Never;
-    }
-
-    if (s == "Preserve") {
-        return RangeSpacingStyle::Preserve;
-    }
-
-    return RangeSpacingStyle::MatchSource;
+    parseBool(node, "ControlStatements", config.ControlStatements);
+    parseBool(node, "EventControls", config.EventControls);
 }
 
-void parseAlignOptions(const YAML::Node& node, Style& style) {
-    if (auto n = node["AlignConsecutiveAssignments"]) {
-        parseAlignConsecutive(n, style.AlignConsecutiveAssignments);
+void parseSpaceBeforeBrackets(const YAML::Node& parent, std::string_view key,
+                              SpaceBeforeBracketsStyle& config) {
+    const auto node = parent[key];
+    if (!node) {
+        return;
     }
 
-    if (auto n = node["AlignTrailingComments"]) {
-        parseAlignConsecutive(n, style.AlignTrailingComments);
-    }
-
-    if (auto n = node["AlignConsecutiveDeclarations"]) {
-        parseAlignConsecutive(n, style.AlignConsecutiveDeclarations);
-    }
-
-    if (auto n = node["AlignConsecutivePackedDimensions"]) {
-        parseAlignConsecutive(n, style.AlignConsecutivePackedDimensions);
-    }
-
-    if (auto n = node["AlignConsecutivePortConnections"]) {
-        parseAlignConsecutive(n, style.AlignConsecutivePortConnections);
-    }
-
-    if (auto n = node["AlignConsecutiveTimingControls"]) {
-        parseAlignConsecutive(n, style.AlignConsecutiveTimingControls);
-    }
+    parseBool(node, "PackedDimensions", config.PackedDimensions);
+    parseBool(node, "UnpackedDimensions", config.UnpackedDimensions);
 }
 
-void parseBreakStyle(const YAML::Node& node, Style& style) {
-    if (auto v = node["BreakAfterAlways"]) {
-        style.BreakAfterAlways = parseBlockBreak(v.as<std::string>());
+void parseSpaceBeforeParens(const YAML::Node& parent, std::string_view key,
+                            SpaceBeforeParensStyle& config) {
+    const auto node = parent[key];
+    if (!node) {
+        return;
     }
 
-    if (auto v = node["BreakAfterAssertionLabel"]) {
-        style.BreakAfterAssertionLabel = v.as<bool>();
-    }
-
-    if (auto v = node["BreakAfterBegin"]) {
-        style.BreakAfterBegin = v.as<bool>();
-    }
-
-    if (auto v = node["BreakAfterInitial"]) {
-        style.BreakAfterInitial = parseBlockBreak(v.as<std::string>());
-    }
-
-    if (auto v = node["BreakBeforeAlways"]) {
-        style.BreakBeforeAlways = parseBlockBreak(v.as<std::string>());
-    }
-
-    if (auto v = node["BreakBeforeEnd"]) {
-        style.BreakBeforeEnd = v.as<bool>();
-    }
-
-    if (auto v = node["BreakBeforeFunction"]) {
-        style.BreakBeforeFunction = v.as<bool>();
-    }
-
-    if (auto v = node["BreakBeforeInitial"]) {
-        style.BreakBeforeInitial = parseBlockBreak(v.as<std::string>());
-    }
-
-    if (auto v = node["BreakBeforeSpecifyBlock"]) {
-        style.BreakBeforeSpecifyBlock = v.as<bool>();
-    }
-
-    if (auto v = node["BreakBeforeTask"]) {
-        style.BreakBeforeTask = v.as<bool>();
-    }
+    parseBool(node, "ControlStatements", config.ControlStatements);
+    parseBool(node, "ParameterList", config.ParameterList);
+    parseBool(node, "PortList", config.PortList);
 }
 
 struct AlignConsecutiveFields {
@@ -389,49 +304,17 @@ void emitInsertParens(YAML::Emitter& out, const InsertParensStyle& config) {
     out << YAML::EndMap;
 }
 
-void emitSpaceAfterParens(YAML::Emitter& out, const SpaceAfterParensStyle& config) {
-    out << YAML::BeginMap;
-    out << YAML::Key << "ControlStatements" << YAML::Value << config.ControlStatements;
-    out << YAML::Key << "EventControls" << YAML::Value << config.EventControls;
-    out << YAML::EndMap;
-}
-
-void emitSpaceBeforeParens(YAML::Emitter& out, const SpaceBeforeParensStyle& config) {
-    out << YAML::BeginMap;
-    out << YAML::Key << "ControlStatements" << YAML::Value << config.ControlStatements;
-    out << YAML::Key << "ParameterList" << YAML::Value << config.ParameterList;
-    out << YAML::Key << "PortList" << YAML::Value << config.PortList;
-    out << YAML::EndMap;
-}
-
-void parseSpaceAfterParens(const YAML::Node& node, SpaceAfterParensStyle& config) {
-    if (auto v = node["ControlStatements"]) {
-        config.ControlStatements = v.as<bool>();
-    }
-
-    if (auto v = node["EventControls"]) {
-        config.EventControls = v.as<bool>();
-    }
-}
-
-void parseSpaceBeforeParens(const YAML::Node& node, SpaceBeforeParensStyle& config) {
-    if (auto v = node["ControlStatements"]) {
-        config.ControlStatements = v.as<bool>();
-    }
-
-    if (auto v = node["ParameterList"]) {
-        config.ParameterList = v.as<bool>();
-    }
-
-    if (auto v = node["PortList"]) {
-        config.PortList = v.as<bool>();
-    }
-}
-
 void emitSpaceAfterBrackets(YAML::Emitter& out, const SpaceAfterBracketsStyle& config) {
     out << YAML::BeginMap;
     out << YAML::Key << "PackedDimensions" << YAML::Value << config.PackedDimensions;
     out << YAML::Key << "UnpackedDimensions" << YAML::Value << config.UnpackedDimensions;
+    out << YAML::EndMap;
+}
+
+void emitSpaceAfterParens(YAML::Emitter& out, const SpaceAfterParensStyle& config) {
+    out << YAML::BeginMap;
+    out << YAML::Key << "ControlStatements" << YAML::Value << config.ControlStatements;
+    out << YAML::Key << "EventControls" << YAML::Value << config.EventControls;
     out << YAML::EndMap;
 }
 
@@ -442,77 +325,12 @@ void emitSpaceBeforeBrackets(YAML::Emitter& out, const SpaceBeforeBracketsStyle&
     out << YAML::EndMap;
 }
 
-void parseSpaceAfterBrackets(const YAML::Node& node, SpaceAfterBracketsStyle& config) {
-    if (auto v = node["PackedDimensions"]) {
-        config.PackedDimensions = v.as<bool>();
-    }
-
-    if (auto v = node["UnpackedDimensions"]) {
-        config.UnpackedDimensions = v.as<bool>();
-    }
-}
-
-void parseSpaceBeforeBrackets(const YAML::Node& node, SpaceBeforeBracketsStyle& config) {
-    if (auto v = node["PackedDimensions"]) {
-        config.PackedDimensions = v.as<bool>();
-    }
-
-    if (auto v = node["UnpackedDimensions"]) {
-        config.UnpackedDimensions = v.as<bool>();
-    }
-}
-
-void parseSpacingOptions(const YAML::Node& node, Style& style) {
-    if (auto v = node["SpaceAfterAlways"]) {
-        style.SpaceAfterAlways = v.as<bool>();
-    }
-
-    if (auto v = node["SpaceAfterCaseColon"]) {
-        style.SpaceAfterCaseColon = v.as<bool>();
-    }
-
-    if (auto v = node["SpaceAfterComma"]) {
-        style.SpaceAfterComma = v.as<bool>();
-    }
-
-    if (auto v = node["SpaceAfterSemicolon"]) {
-        style.SpaceAfterSemicolon = v.as<bool>();
-    }
-
-    if (auto v = node["SpaceBeforeCaseColon"]) {
-        style.SpaceBeforeCaseColon = v.as<bool>();
-    }
-
-    if (auto v = node["SpaceAroundOperators"]) {
-        style.SpaceAroundOperators = v.as<bool>();
-    }
-
-    if (auto v = node["SpacesBeforeTrailingComments"]) {
-        style.SpacesBeforeTrailingComments = v.as<unsigned>();
-    }
-
-    if (auto v = node["SpacesInBraces"]) {
-        style.SpacesInBraces = v.as<bool>();
-    }
-
-    if (auto v = node["SpacesInBrackets"]) {
-        style.SpacesInBrackets = v.as<bool>();
-    }
-
-    if (auto v = node["SpacesInParens"]) {
-        style.SpacesInParens = v.as<bool>();
-    }
-}
-
-YAML::Node nodeWithAlias(const YAML::Node& node, std::string_view key, std::string_view alias) {
-    auto v = node[key];
-    return v ? v : node[alias];
-}
-
-void parseBool(const YAML::Node& node, std::string_view key, bool& target) {
-    if (auto v = node[key]) {
-        target = v.as<bool>();
-    }
+void emitSpaceBeforeParens(YAML::Emitter& out, const SpaceBeforeParensStyle& config) {
+    out << YAML::BeginMap;
+    out << YAML::Key << "ControlStatements" << YAML::Value << config.ControlStatements;
+    out << YAML::Key << "ParameterList" << YAML::Value << config.ParameterList;
+    out << YAML::Key << "PortList" << YAML::Value << config.PortList;
+    out << YAML::EndMap;
 }
 
 } // namespace
@@ -582,11 +400,11 @@ std::string dumpConfiguration(const Style& style) {
         << std::string{toString(style.EventSeparator)};
     out << YAML::Key << "IndentCaseItem" << YAML::Value << style.IndentCaseItem;
     out << YAML::Key << "IndentWidth" << YAML::Value << style.IndentWidth;
-    out << YAML::Key << "LineEnding" << YAML::Value << std::string{toString(style.LineEnding)};
     out << YAML::Key << "InsertBeginEnd" << YAML::Value;
     emitInsertBeginEnd(out, style.InsertBeginEnd);
     out << YAML::Key << "InsertParens" << YAML::Value;
     emitInsertParens(out, style.InsertParens);
+    out << YAML::Key << "LineEnding" << YAML::Value << std::string{toString(style.LineEnding)};
     out << YAML::Key << "MaxEmptyLinesToKeep" << YAML::Value << style.MaxEmptyLinesToKeep;
     out << YAML::Key << "OneLineFormatOffRegex" << YAML::Value << style.OneLineFormatOffRegex;
     out << YAML::Key << "OneStatementPerLine" << YAML::Value << style.OneStatementPerLine;
@@ -604,12 +422,12 @@ std::string dumpConfiguration(const Style& style) {
     out << YAML::Key << "SpaceAfterParens" << YAML::Value;
     emitSpaceAfterParens(out, style.SpaceAfterParens);
     out << YAML::Key << "SpaceAfterSemicolon" << YAML::Value << style.SpaceAfterSemicolon;
+    out << YAML::Key << "SpaceAroundOperators" << YAML::Value << style.SpaceAroundOperators;
     out << YAML::Key << "SpaceBeforeBrackets" << YAML::Value;
     emitSpaceBeforeBrackets(out, style.SpaceBeforeBrackets);
     out << YAML::Key << "SpaceBeforeCaseColon" << YAML::Value << style.SpaceBeforeCaseColon;
     out << YAML::Key << "SpaceBeforeParens" << YAML::Value;
     emitSpaceBeforeParens(out, style.SpaceBeforeParens);
-    out << YAML::Key << "SpaceAroundOperators" << YAML::Value << style.SpaceAroundOperators;
     out << YAML::Key << "SpacesBeforeTrailingComments" << YAML::Value
         << style.SpacesBeforeTrailingComments;
     out << YAML::Key << "SpacesInBraces" << YAML::Value << style.SpacesInBraces;
@@ -627,114 +445,78 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
         throw std::runtime_error("configuration must be a YAML mapping");
     }
 
-    parseAlignOptions(node, style);
-
-    if (auto v = node["AlignAfterOpenParen"]) {
-        style.AlignAfterOpenParen = parseBracketAlignment(v.as<std::string>());
-    }
-
+    parseEnum(node, "AlignAfterOpenParen", style.AlignAfterOpenParen, AllBracketAlignmentStyles,
+              BracketAlignmentStyle::Align);
+    parseAlignConsecutive(node, "AlignConsecutiveAssignments", style.AlignConsecutiveAssignments);
+    parseAlignConsecutive(node, "AlignConsecutiveDeclarations", style.AlignConsecutiveDeclarations);
+    parseAlignConsecutive(node, "AlignConsecutivePackedDimensions",
+                          style.AlignConsecutivePackedDimensions);
+    parseAlignConsecutive(node, "AlignConsecutivePortConnections",
+                          style.AlignConsecutivePortConnections);
+    parseAlignConsecutive(node, "AlignConsecutiveTimingControls",
+                          style.AlignConsecutiveTimingControls);
+    parseAlignConsecutive(node, "AlignTrailingComments", style.AlignTrailingComments);
     parseBool(node, "AllowShortConstraintBlocksOnASingleLine",
               style.AllowShortConstraintBlocksOnASingleLine);
     parseBool(node, "AllowShortCoverpointsOnASingleLine", style.AllowShortCoverpointsOnASingleLine);
     parseBool(node, "BinPackArguments", style.BinPackArguments);
     parseBool(node, "BinPackParameters", style.BinPackParameters);
     parseBool(node, "BinPackPortConnections", style.BinPackPortConnections);
-
-    if (auto v = node["ColumnLimit"]) {
-        style.ColumnLimit = v.as<unsigned>();
-    }
-
+    parseEnum(node, "BreakAfterAlways", style.BreakAfterAlways, AllBlockBreakStyles,
+              BlockBreakStyle::Never);
+    parseBool(node, "BreakAfterAssertionLabel", style.BreakAfterAssertionLabel);
+    parseBool(node, "BreakAfterBegin", style.BreakAfterBegin);
+    parseEnum(node, "BreakAfterInitial", style.BreakAfterInitial, AllBlockBreakStyles,
+              BlockBreakStyle::Never);
+    parseEnum(node, "BreakBeforeAlways", style.BreakBeforeAlways, AllBlockBreakStyles,
+              BlockBreakStyle::Never);
+    parseBool(node, "BreakBeforeEnd", style.BreakBeforeEnd);
+    parseBool(node, "BreakBeforeFunction", style.BreakBeforeFunction);
+    parseEnum(node, "BreakBeforeInitial", style.BreakBeforeInitial, AllBlockBreakStyles,
+              BlockBreakStyle::Never);
+    parseBool(node, "BreakBeforeSpecifyBlock", style.BreakBeforeSpecifyBlock);
+    parseBool(node, "BreakBeforeTask", style.BreakBeforeTask);
+    parseUnsigned(node, "ColumnLimit", style.ColumnLimit);
     if (auto v = nodeWithAlias(node, "CompactControlStatements", "CompactConditionals")) {
         style.CompactControlStatements = v.as<bool>();
     }
-
     parseBool(node, "CompactTimeUnits", style.CompactTimeUnits);
-
-    if (auto v = node["MaxEmptyLinesToKeep"]) {
-        style.MaxEmptyLinesToKeep = v.as<unsigned>();
-    }
-
-    bool hasContinuation{false};
-    if (auto v = node["IndentWidth"]) {
-        style.IndentWidth = v.as<unsigned>();
-    }
-
-    if (auto v = node["ContinuationIndentWidth"]) {
-        style.ContinuationIndentWidth = v.as<unsigned>();
-        hasContinuation = true;
-    }
-
-    bool hasParamPort{false};
-    if (auto v = node["ParameterPortListIndentWidth"]) {
-        style.ParameterPortListIndentWidth = v.as<unsigned>();
-        hasParamPort = true;
-    }
-
-    if (!hasContinuation) {
-        style.ContinuationIndentWidth = style.IndentWidth;
-    }
-
-    if (!hasParamPort) {
-        style.ParameterPortListIndentWidth = style.ContinuationIndentWidth;
-    }
-
+    parseEnum(node, "EventSeparator", style.EventSeparator, AllEventSeparatorStyles,
+              EventSeparatorStyle::Preserve);
     parseBool(node, "IndentCaseItem", style.IndentCaseItem);
-
-    if (auto v = node["LineEnding"]) {
-        style.LineEnding = parseLineEnding(v.as<std::string>());
-    }
-
-    if (auto v = node["EventSeparator"]) {
-        style.EventSeparator = parseEventSeparator(v.as<std::string>());
-    }
-
-    if (auto v = node["OneLineFormatOffRegex"]) {
-        style.OneLineFormatOffRegex = v.as<std::string>();
-    }
-
+    // ContinuationIndentWidth and ParameterPortListIndentWidth default to preceding widths.
+    parseUnsigned(node, "IndentWidth", style.IndentWidth);
+    style.ContinuationIndentWidth = style.IndentWidth;
+    parseUnsigned(node, "ContinuationIndentWidth", style.ContinuationIndentWidth);
+    style.ParameterPortListIndentWidth = style.ContinuationIndentWidth;
+    parseUnsigned(node, "ParameterPortListIndentWidth", style.ParameterPortListIndentWidth);
+    parseInsertBeginEnd(node, "InsertBeginEnd", style.InsertBeginEnd);
+    parseInsertParens(node, "InsertParens", style.InsertParens);
+    parseEnum(node, "LineEnding", style.LineEnding, AllLineEndingStyles, LineEndingStyle::DeriveLF);
+    parseUnsigned(node, "MaxEmptyLinesToKeep", style.MaxEmptyLinesToKeep);
+    parseString(node, "OneLineFormatOffRegex", style.OneLineFormatOffRegex);
     parseBool(node, "OneStatementPerLine", style.OneStatementPerLine);
-
-    if (auto v = node["PackedDimensionBounds"]) {
-        style.PackedDimensionBounds = parseDimensionBounds(v.as<std::string>());
-    }
-
-    if (auto v = node["RangeSpacing"]) {
-        style.RangeSpacing = parseRangeSpacing(v.as<std::string>());
-    }
-
+    parseEnum(node, "PackedDimensionBounds", style.PackedDimensionBounds, AllDimensionBoundsStyles,
+              DimensionBoundsStyle::Preserve);
+    parseEnum(node, "RangeSpacing", style.RangeSpacing, AllRangeSpacingStyles,
+              RangeSpacingStyle::MatchSource);
     parseBool(node, "RemoveEmptyLines", style.RemoveEmptyLines);
-
-    parseSpacingOptions(node, style);
-
-    if (auto v = node["UnpackedDimensionBounds"]) {
-        style.UnpackedDimensionBounds = parseDimensionBounds(v.as<std::string>());
-    }
-
-    parseBreakStyle(node, style);
-
-    if (auto n = node["InsertBeginEnd"]) {
-        parseInsertBeginEnd(n, style.InsertBeginEnd);
-    }
-
-    if (auto n = node["InsertParens"]) {
-        parseInsertParens(n, style.InsertParens);
-    }
-
-    if (auto n = node["SpaceAfterBrackets"]) {
-        parseSpaceAfterBrackets(n, style.SpaceAfterBrackets);
-    }
-
-    if (auto n = node["SpaceAfterParens"]) {
-        parseSpaceAfterParens(n, style.SpaceAfterParens);
-    }
-
-    if (auto n = node["SpaceBeforeBrackets"]) {
-        parseSpaceBeforeBrackets(n, style.SpaceBeforeBrackets);
-    }
-
-    if (auto n = node["SpaceBeforeParens"]) {
-        parseSpaceBeforeParens(n, style.SpaceBeforeParens);
-    }
+    parseBool(node, "SpaceAfterAlways", style.SpaceAfterAlways);
+    parseSpaceAfterBrackets(node, "SpaceAfterBrackets", style.SpaceAfterBrackets);
+    parseBool(node, "SpaceAfterCaseColon", style.SpaceAfterCaseColon);
+    parseBool(node, "SpaceAfterComma", style.SpaceAfterComma);
+    parseSpaceAfterParens(node, "SpaceAfterParens", style.SpaceAfterParens);
+    parseBool(node, "SpaceAfterSemicolon", style.SpaceAfterSemicolon);
+    parseBool(node, "SpaceAroundOperators", style.SpaceAroundOperators);
+    parseSpaceBeforeBrackets(node, "SpaceBeforeBrackets", style.SpaceBeforeBrackets);
+    parseBool(node, "SpaceBeforeCaseColon", style.SpaceBeforeCaseColon);
+    parseSpaceBeforeParens(node, "SpaceBeforeParens", style.SpaceBeforeParens);
+    parseUnsigned(node, "SpacesBeforeTrailingComments", style.SpacesBeforeTrailingComments);
+    parseBool(node, "SpacesInBraces", style.SpacesInBraces);
+    parseBool(node, "SpacesInBrackets", style.SpacesInBrackets);
+    parseBool(node, "SpacesInParens", style.SpacesInParens);
+    parseEnum(node, "UnpackedDimensionBounds", style.UnpackedDimensionBounds,
+              AllDimensionBoundsStyles, DimensionBoundsStyle::Preserve);
 }
 
 Style getStyle(const std::filesystem::path& searchDir, FileLoader loader) {
@@ -756,7 +538,7 @@ Style getStyle(const std::filesystem::path& searchDir, FileLoader loader) {
 
     auto& [path, content] = *result;
     try {
-        YAML::Node const node = YAML::Load(content);
+        const YAML::Node node = YAML::Load(content);
         auto style = getDefaultStyle();
         parseConfiguration(node, style);
         return style;

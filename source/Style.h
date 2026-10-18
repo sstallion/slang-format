@@ -145,21 +145,13 @@ struct SpaceAfterParensStyle {
 
 /// Defines all formatting style options.
 struct Style {
-    /// Controls alignment of arguments after an opening parenthesis in
-    /// function calls, system task calls, and constructor invocations.
+    /// Controls alignment of arguments after an opening parenthesis in function calls, system task
+    /// calls, and constructor invocations.
     BracketAlignmentStyle AlignAfterOpenParen = BracketAlignmentStyle::Align;
 
     /// Controls alignment of assignment operators in consecutive declarations.
     AlignConsecutiveStyle AlignConsecutiveAssignments{
         .Enabled = true, .InferFromSource = true, .MaxPadding = 2, .MinPadding = 2};
-
-    /// Controls alignment of opening parentheses in consecutive named port
-    /// connections.
-    AlignConsecutiveStyle AlignConsecutivePortConnections{
-        .Enabled = true, .InferFromSource = true, .MaxPadding = 2, .MinPadding = 2};
-
-    /// Controls alignment of trailing comments in consecutive lines.
-    AlignConsecutiveStyle AlignTrailingComments;
 
     /// Controls alignment of signal names in consecutive declarations.
     AlignConsecutiveStyle AlignConsecutiveDeclarations{.Enabled = true,
@@ -170,9 +162,15 @@ struct Style {
     AlignConsecutiveStyle AlignConsecutivePackedDimensions{
         .Enabled = true, .InferFromSource = true, .MaxPadding = 2, .PadLeft = true};
 
-    /// Controls alignment of signal names and assignment operators in
-    /// consecutive timing controls.
+    /// Controls alignment of opening parentheses in consecutive named port connections.
+    AlignConsecutiveStyle AlignConsecutivePortConnections{
+        .Enabled = true, .InferFromSource = true, .MaxPadding = 2, .MinPadding = 2};
+
+    /// Controls alignment of signal names and assignment operators in consecutive timing controls.
     AlignConsecutiveStyle AlignConsecutiveTimingControls;
+
+    /// Controls alignment of trailing comments in consecutive lines.
+    AlignConsecutiveStyle AlignTrailingComments;
 
     /// If true, constraint blocks with a single item are joined onto one line.
     bool AllowShortConstraintBlocksOnASingleLine = true;
@@ -180,55 +178,100 @@ struct Style {
     /// If true, coverpoint and cover cross bodies are joined onto one line when they fit.
     bool AllowShortCoverpointsOnASingleLine = true;
 
-    /// If true, arguments are bin-packed when they exceed the column limit.
-    /// If false, each argument is placed on its own line.
+    /// If true, arguments are bin-packed when they exceed the column limit. If false, each argument
+    /// is placed on its own line.
     bool BinPackArguments = true;
 
-    /// If true, function and task port parameters are bin-packed.
-    /// If false, each parameter is placed on its own line.
+    /// If true, function and task port parameters are bin-packed. If false, each parameter is
+    /// placed on its own line.
     bool BinPackParameters = true;
 
-    /// If true, instance port connections are bin-packed.
-    /// If false, each port connection is placed on its own line.
+    /// If true, instance port connections are bin-packed. If false, each port connection is placed
+    /// on its own line.
     bool BinPackPortConnections = false;
 
-    /// Maximum number of consecutive empty lines to keep.
-    unsigned MaxEmptyLinesToKeep = 1;
+    /// Controls insertion of a newline between always and its body.
+    BlockBreakStyle BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
-    /// If true, enforce one statement per line.
-    bool OneStatementPerLine = true;
+    /// If true, inserts a newline after assertion labels on concurrent assertions and immediate
+    /// assertions with else clauses.
+    bool BreakAfterAssertionLabel = true;
 
-    /// If true, enables enforcement of MaxEmptyLinesToKeep.
-    bool RemoveEmptyLines = false;
+    /// If true, enforce a newline after every begin statement.
+    bool BreakAfterBegin = true;
 
-    /// Number of spaces for each indentation level.
-    unsigned IndentWidth = 2;
+    /// Controls insertion of a newline between initial and its body.
+    BlockBreakStyle BreakAfterInitial = BlockBreakStyle::OnlyMultiline;
 
-    /// Number of spaces added for continuation lines relative to the
-    /// enclosing statement.
+    /// Controls insertion of a blank line before always and its body.
+    BlockBreakStyle BreakBeforeAlways = BlockBreakStyle::Never;
+
+    /// If true, enforce a newline before every end statement.
+    bool BreakBeforeEnd = true;
+
+    /// If true, insert a blank line before function declarations.
+    bool BreakBeforeFunction = false;
+
+    /// Controls insertion of a blank line before initial and its body.
+    BlockBreakStyle BreakBeforeInitial = BlockBreakStyle::Never;
+
+    /// If true, insert a blank line before specify blocks.
+    bool BreakBeforeSpecifyBlock = false;
+
+    /// If true, insert a blank line before task declarations.
+    bool BreakBeforeTask = false;
+
+    /// The column limit.
+    unsigned ColumnLimit = 100; // NOLINT
+
+    /// If true, compacts bare control statement bodies onto the same line when the result fits
+    /// within the column limit.
+    bool CompactControlStatements = true;
+
+    /// If true, keeps consecutive timeunit and timeprecision declarations on the same line.
+    bool CompactTimeUnits = true;
+
+    /// Number of spaces added for continuation lines relative to the enclosing statement.
     unsigned ContinuationIndentWidth = 4;
-
-    /// Number of spaces for parameter port list items in module declarations.
-    unsigned ParameterPortListIndentWidth = 4;
 
     /// Controls the separator used in event expressions.
     EventSeparatorStyle EventSeparator = EventSeparatorStyle::Preserve;
 
-    /// If true, indent statements following a case label when they appear on
-    /// the next line.
+    /// If true, indent statements following a case label when they appear on the next line.
     bool IndentCaseItem = false;
 
-    /// Disables formatting for any line matching this pattern.
-    std::string OneLineFormatOffRegex;
+    /// Number of spaces for each indentation level.
+    unsigned IndentWidth = 2;
+
+    /// Controls insertion of begin/end around bare statements.
+    InsertBeginEndStyle InsertBeginEnd;
+
+    /// Controls insertion of parentheses around timing constructs.
+    InsertParensStyle InsertParens;
 
     /// Controls line ending characters in formatted output.
     LineEndingStyle LineEnding = LineEndingStyle::DeriveLF;
 
+    /// Maximum number of consecutive empty lines to keep.
+    unsigned MaxEmptyLinesToKeep = 1;
+
+    /// Disables formatting for any line matching this pattern.
+    std::string OneLineFormatOffRegex;
+
+    /// If true, enforce one statement per line.
+    bool OneStatementPerLine = true;
+
     /// Controls the order of packed dimension bounds.
     DimensionBoundsStyle PackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
+    /// Number of spaces for parameter port list items in module declarations.
+    unsigned ParameterPortListIndentWidth = 4;
+
     /// Controls spacing around `:` in range expressions and declared dimensions.
     RangeSpacingStyle RangeSpacing = RangeSpacingStyle::MatchSource;
+
+    /// If true, enables enforcement of MaxEmptyLinesToKeep.
+    bool RemoveEmptyLines = false;
 
     /// Normalizes whitespace after an always keyword.
     bool SpaceAfterAlways = true;
@@ -248,6 +291,9 @@ struct Style {
     /// Normalizes whitespace around semicolons.
     bool SpaceAfterSemicolon = true;
 
+    /// Normalizes whitespace around assignment, binary, and ternary operators.
+    bool SpaceAroundOperators = true;
+
     /// Controls whitespace before an opening square bracket in declarations.
     SpaceBeforeBracketsStyle SpaceBeforeBrackets;
 
@@ -256,9 +302,6 @@ struct Style {
 
     /// Controls whitespace before an opening parenthesis.
     SpaceBeforeParensStyle SpaceBeforeParens;
-
-    /// Normalizes whitespace around assignment, binary, and ternary operators.
-    bool SpaceAroundOperators = true;
 
     /// Minimum number of spaces before a trailing comment.
     unsigned SpacesBeforeTrailingComments = 2;
@@ -269,59 +312,11 @@ struct Style {
     /// Normalizes whitespace inside square brackets in declarations.
     bool SpacesInBrackets = false;
 
-    /// Normalizes whitespace inside parentheses.
-    /// space after ( and before ).
+    /// Normalizes whitespace inside parentheses (space after `(` and before `)`).
     bool SpacesInParens = false;
 
     /// Controls the order of unpacked dimension bounds.
     DimensionBoundsStyle UnpackedDimensionBounds = DimensionBoundsStyle::Preserve;
-
-    /// Controls insertion of a newline between always and its body.
-    BlockBreakStyle BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
-
-    /// If true, inserts a newline after assertion labels on concurrent assertions and immediate
-    /// assertions with else clauses.
-    bool BreakAfterAssertionLabel = true;
-
-    /// Controls insertion of a newline between initial and its body.
-    BlockBreakStyle BreakAfterInitial = BlockBreakStyle::OnlyMultiline;
-
-    /// Controls insertion of a blank line before always and its body.
-    BlockBreakStyle BreakBeforeAlways = BlockBreakStyle::Never;
-
-    /// Controls insertion of a blank line before initial and its body.
-    BlockBreakStyle BreakBeforeInitial = BlockBreakStyle::Never;
-
-    /// If true, enforce a newline after every begin statement.
-    bool BreakAfterBegin = true;
-
-    /// If true, enforce a newline before every end statement.
-    bool BreakBeforeEnd = true;
-
-    /// If true, insert a blank line before function declarations.
-    bool BreakBeforeFunction = false;
-
-    /// If true, insert a blank line before specify blocks.
-    bool BreakBeforeSpecifyBlock = false;
-
-    /// If true, insert a blank line before task declarations.
-    bool BreakBeforeTask = false;
-
-    /// The column limit.
-    unsigned ColumnLimit = 100; // NOLINT
-
-    /// If true, compacts bare control statement bodies onto the same line when
-    /// the result fits within the column limit.
-    bool CompactControlStatements = true;
-
-    /// If true, keeps consecutive timeunit and timeprecision declarations on the same line.
-    bool CompactTimeUnits = true;
-
-    /// Controls insertion of begin/end around bare statements.
-    InsertBeginEndStyle InsertBeginEnd;
-
-    /// Controls insertion of parentheses around timing constructs.
-    InsertParensStyle InsertParens;
 
     bool operator==(const Style&) const = default;
 };

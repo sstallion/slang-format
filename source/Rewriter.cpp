@@ -79,9 +79,9 @@ public:
     }
 
     void handle(const ProceduralBlockSyntax& proc) {
-        bool const wrapAlways = style.InsertBeginEnd.AlwaysStatements &&
+        const bool wrapAlways = style.InsertBeginEnd.AlwaysStatements &&
                                 isAlwaysBlockKind(proc.kind);
-        bool const wrapInitial = style.InsertBeginEnd.InitialStatements &&
+        const bool wrapInitial = style.InsertBeginEnd.InitialStatements &&
                                  isInitialBlockKind(proc.kind);
         if (wrapAlways || wrapInitial) {
             const StatementSyntax* body = proc.statement;
@@ -113,7 +113,7 @@ private:
 
         SmallVector<SyntaxNode*> itemsBuffer;
         itemsBuffer.push_back(bodyCopy);
-        SyntaxList<SyntaxNode> const items(itemsBuffer.copy(alloc));
+        const SyntaxList<SyntaxNode> items(itemsBuffer.copy(alloc));
 
         auto& block = factory.blockStatement(SyntaxKind::SequentialBlockStatement, nullptr,
                                              SyntaxList<AttributeInstanceSyntax>(nullptr), beginTok,
@@ -142,7 +142,7 @@ public:
     explicit EventSeparatorRewriter(EventSeparatorStyle sepStyle) : sepStyle(sepStyle) {}
 
     void handle(const BinaryEventExpressionSyntax& expr) {
-        auto const opKind = expr.operatorToken.kind;
+        const auto opKind = expr.operatorToken.kind;
 
         parsing::TokenKind targetKind{};
         std::string_view targetText;
@@ -198,21 +198,21 @@ public:
             return;
         }
 
-        auto const& rangeSpec = dim.specifier->as<RangeDimensionSpecifierSyntax>();
+        const auto& rangeSpec = dim.specifier->as<RangeDimensionSpecifierSyntax>();
         if (rangeSpec.selector->kind != SyntaxKind::SimpleRangeSelect) {
             visitDefault(dim);
             return;
         }
 
-        auto const& sel = rangeSpec.selector->as<RangeSelectSyntax>();
+        const auto& sel = rangeSpec.selector->as<RangeSelectSyntax>();
         if (sel.left->kind != SyntaxKind::IntegerLiteralExpression ||
             sel.right->kind != SyntaxKind::IntegerLiteralExpression) {
             visitDefault(dim);
             return;
         }
 
-        auto const& leftLit = sel.left->as<LiteralExpressionSyntax>();
-        auto const& rightLit = sel.right->as<LiteralExpressionSyntax>();
+        const auto& leftLit = sel.left->as<LiteralExpressionSyntax>();
+        const auto& rightLit = sel.right->as<LiteralExpressionSyntax>();
 
         auto leftVal = leftLit.literal.intValue();
         auto rightVal = rightLit.literal.intValue();

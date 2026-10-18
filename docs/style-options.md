@@ -1464,23 +1464,6 @@ endmodule
 
 ---
 
-### LineEnding (LineEndingStyle)
-
-Controls the line ending characters used in formatted output. When set to a
-derive variant, slang-format counts `\r\n` and bare `\n` occurrences in the
-input to determine the dominant style.
-
-**Default:** `DeriveLF`
-
-| Value      | Behavior                                                   |
-| ---------- | ---------------------------------------------------------- |
-| CRLF       | Always use `\r\n`.                                         |
-| DeriveCRLF | Use `\r\n` unless the input has more `\n` than `\r\n`.     |
-| DeriveLF   | Use `\n` unless the input has more `\r\n` than `\n`.       |
-| LF         | Always use `\n`.                                           |
-
----
-
 ### InsertBeginEnd (InsertBeginEndStyle)
 
 Controls whether slang-format inserts `begin`/`end` blocks around bare
@@ -1662,6 +1645,23 @@ module foo;
   always @(signal) x = 1;
 endmodule
 ```
+
+---
+
+### LineEnding (LineEndingStyle)
+
+Controls the line ending characters used in formatted output. When set to a
+derive variant, slang-format counts `\r\n` and bare `\n` occurrences in the
+input to determine the dominant style.
+
+**Default:** `DeriveLF`
+
+| Value      | Behavior                                                   |
+| ---------- | ---------------------------------------------------------- |
+| CRLF       | Always use `\r\n`.                                         |
+| DeriveCRLF | Use `\r\n` unless the input has more `\n` than `\r\n`.     |
+| DeriveLF   | Use `\n` unless the input has more `\r\n` than `\n`.       |
+| LF         | Always use `\n`.                                           |
 
 ---
 

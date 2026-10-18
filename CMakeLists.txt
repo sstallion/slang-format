@@ -33,11 +33,26 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.h.in
 
 add_library(${PROJECT_NAME}-object OBJECT
             ${SOURCE_DIR}/Align.cpp
+            ${SOURCE_DIR}/AlignAssignment.cpp
+            ${SOURCE_DIR}/AlignClassifier.cpp
+            ${SOURCE_DIR}/AlignDeclaration.cpp
+            ${SOURCE_DIR}/AlignDimension.cpp
+            ${SOURCE_DIR}/AlignGroup.cpp
+            ${SOURCE_DIR}/AlignInference.cpp
+            ${SOURCE_DIR}/AlignTrailingComment.cpp
             ${SOURCE_DIR}/FileLoader.cpp
             ${SOURCE_DIR}/Format.cpp
+            ${SOURCE_DIR}/FormatClass.cpp
+            ${SOURCE_DIR}/FormatDeclaration.cpp
+            ${SOURCE_DIR}/FormatExpression.cpp
+            ${SOURCE_DIR}/FormatMember.cpp
+            ${SOURCE_DIR}/FormatPortList.cpp
+            ${SOURCE_DIR}/FormatPrinter.cpp
+            ${SOURCE_DIR}/FormatStatement.cpp
             ${SOURCE_DIR}/Ignore.cpp
             ${SOURCE_DIR}/Rewriter.cpp
-            ${SOURCE_DIR}/Style.cpp)
+            ${SOURCE_DIR}/Style.cpp
+            ${SOURCE_DIR}/TokenHelper.cpp)
 
 target_link_libraries(${PROJECT_NAME}-object
                       yaml-cpp::yaml-cpp

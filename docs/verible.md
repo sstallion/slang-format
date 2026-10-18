@@ -18,9 +18,11 @@ Declaration keyword padding aligns direction keywords (`input`, `output`,
 `inout`, `ref`) and parameter keywords (`parameter`, `localparam`) within a
 group by padding shorter keywords with spaces. The implementation:
 
-- `classifyLine` in `Align.cpp` tracks `keywordWidth` per line.
-- `computeDeclGroupSummary` computes `maxKeywordWidth` across the group.
-- `alignGroupDeclLine` emits the keyword, pads to `maxKeywordWidth`, then emits
+- `classifyLine` in `AlignClassifier.cpp` tracks `keywordWidth` per line.
+- `computeDeclGroupSummary` in `AlignDeclaration.cpp` computes `maxKeywordWidth`
+  across the group.
+- `alignGroupDeclLine` in `AlignDeclaration.cpp` emits the keyword, pads to
+  `maxKeywordWidth`, then emits
   the type body.
 
 Keyword padding is disabled when `maxKeywordWidth + 1 + maxBodyWidth` exceeds
@@ -34,7 +36,8 @@ from inflating the identifier column after keyword padding shifts the type body.
 
 ### minGuarantee
 
-The `minGuarantee` flag in `InferContext` causes `inferAlignPolicy` to return
+The `minGuarantee` flag in `InferContext` (in `AlignInference.cpp`) causes
+`inferAlignPolicy` to return
 `Align` for displacements of 1 or 2 regardless of InferFromSource excess. It is
 enabled only for declaration groups with no direction or parameter keywords
 (bare-type groups such as `logic x; logic [7:0] y;`). The flag is gated on the
@@ -44,22 +47,23 @@ whether the group semantically contains keywords.
 
 ### Range Excess in InferFromSource
 
-The `computeGroupMaxExcess` function includes range spacing excess from port
-list lines that are not adjacent to a parameter group with alignment evidence.
-This allows the InferFromSource heuristic to detect author intent from
-multi-space range spacing (e.g., `[W-1     :    0]`) in port declarations where
-token spacing alone would indicate flush-left alignment. The
-`computeRangeExcessLines` function determines which lines qualify.
+The `computeGroupMaxExcess` function in `AlignInference.cpp` includes range
+spacing excess from port list lines that are not adjacent to a parameter group
+with alignment evidence. This allows the InferFromSource heuristic to detect
+author intent from multi-space range spacing (e.g., `[W-1     :    0]`) in port
+declarations where token spacing alone would indicate flush-left alignment. The
+`computeRangeExcessLines` function in `AlignInference.cpp` determines which
+lines qualify.
 
 ### Struct and Union Member Classification
 
 `StructUnionMemberSyntax` nodes do not inherit from `DataDeclarationSyntax` in
-slang's syntax tree. A dedicated handler in `Format.cpp` sets
+slang's syntax tree. A dedicated handler in `FormatDeclaration.cpp` sets
 `nextLineKind = Declaration` so that the alignment pass correctly classifies
 members of `struct` and `union` types (including user-defined types like
 `beat_t`) as declarations.
 
-When the text-based classifier in `Align.cpp` cannot parse a line as a
+When the text-based classifier in `AlignClassifier.cpp` cannot parse a line as a
 declaration (e.g., unrecognized user-defined types), the
 `reclassifyAsDeclaration` helper extracts `typeWidth` and `identPos` from the
 first-word/second-word pattern, provided the metadata has flagged the line as a

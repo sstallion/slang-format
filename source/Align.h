@@ -3,14 +3,14 @@
 
 #pragma once
 
+#include "Style.h"
+
 #include <cstddef>
 #include <string>
 #include <string_view>
 #include <vector>
 
 namespace slang::format {
-
-struct Style;
 
 /// Metadata collected per output line during the formatting tree walk.
 struct LineMetadata {
@@ -30,22 +30,6 @@ struct LineMetadata {
     Kind kind = Kind::Other;
     size_t lineNumber = std::string_view::npos; ///< Output line index this metadata corresponds to.
     unsigned depth = 0;
-    size_t typeWidth = 0;
-    size_t identPos = std::string_view::npos;
-    size_t equalsPos = std::string_view::npos;
-    size_t dimPos = std::string_view::npos;
-    size_t trailingCommentPos = std::string_view::npos;
-
-    /// Per-dimension metadata for packed dimension alignment.
-    struct DimInfo {
-        size_t openPos;
-        size_t closePos;
-        size_t leftWidth;
-        size_t rightWidth;
-        bool hasColon;
-    };
-
-    std::vector<DimInfo> dims;
 
     /// Spacing data for a single inter-token gap on this line.
     struct TokenSpacing {

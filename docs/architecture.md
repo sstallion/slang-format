@@ -16,20 +16,44 @@ systems are supported, including Linux, macOS, and Windows.
 ```
 slang-format/
 ├── source/
-│   ├── Align.cpp         # Alignment post-processing
-│   ├── Align.h           # Public interface for alignment post-processing
-│   ├── FileLoader.cpp    # Directory hierarchy file search
-│   ├── FileLoader.h      # FileLoader type alias and directory walk utility
-│   ├── Format.cpp        # Single-pass formatting and post-processing
-│   ├── Format.h          # Public interface for formatting and post-processing
-│   ├── Ignore.cpp        # Ignore file lookup and pattern matching
-│   ├── Ignore.h          # Public interface for ignore file support
-│   ├── Rewriter.cpp      # Iterative syntax rewriting
-│   ├── Rewriter.h        # Public interface for syntax rewriting
-│   ├── Style.cpp         # Style configuration and YAML parsing
-│   ├── Style.h           # Public interface for style configuration
-│   ├── SyntaxHelper.h    # Shared predicates for syntax node classification
-│   └── main.cpp          # Entry point; command-line processing and output
+│   ├── Align.cpp              # Alignment pass driver
+│   ├── Align.h                # Public interface for alignment post-processing
+│   ├── AlignAssignment.cpp    # Assignment and port connection alignment pass
+│   ├── AlignAssignment.h      # Public interface for assignment alignment
+│   ├── AlignClassifier.cpp    # Output line classification for alignment
+│   ├── AlignClassifier.h      # Public interface for line classification
+│   ├── AlignDeclaration.cpp   # Declaration and timing control alignment pass
+│   ├── AlignDeclaration.h     # Public interface for declaration alignment
+│   ├── AlignDimension.cpp     # Packed dimension alignment and range normalization
+│   ├── AlignDimension.h       # Public interface for dimension alignment
+│   ├── AlignGroup.cpp         # Group formation engine for alignment passes
+│   ├── AlignGroup.h           # Public interface for group formation
+│   ├── AlignInference.cpp     # Source spacing inference for alignment decisions
+│   ├── AlignInference.h       # Public interface for alignment inference
+│   ├── AlignTrailingComment.cpp # Trailing comment alignment pass
+│   ├── AlignTrailingComment.h # Public interface for trailing comment alignment
+│   ├── FileLoader.cpp         # Directory hierarchy file search
+│   ├── FileLoader.h           # FileLoader type alias and directory walk utility
+│   ├── Format.cpp             # Single-pass formatting and post-processing
+│   ├── Format.h               # Public interface for formatting and post-processing
+│   ├── FormatClass.cpp        # Constraint and covergroup handler definitions
+│   ├── FormatDeclaration.cpp  # Declaration and typedef handler definitions
+│   ├── FormatExpression.cpp   # Expression and argument list handler definitions
+│   ├── FormatMember.cpp       # Module, function, and generate handler definitions
+│   ├── FormatPortList.cpp     # Port list and parameter list handler definitions
+│   ├── FormatPrinter.cpp      # Core formatting helpers and token emission
+│   ├── FormatPrinter.h        # FormatPrinter class declaration
+│   ├── FormatStatement.cpp    # Statement and case item handler definitions
+│   ├── Ignore.cpp             # Ignore file lookup and pattern matching
+│   ├── Ignore.h               # Public interface for ignore file support
+│   ├── Rewriter.cpp           # Iterative syntax rewriting
+│   ├── Rewriter.h             # Public interface for syntax rewriting
+│   ├── Style.cpp              # Style configuration and YAML parsing
+│   ├── Style.h                # Public interface for style configuration
+│   ├── SyntaxHelper.h         # Shared predicates for syntax node classification
+│   ├── TokenHelper.cpp        # Token inspection utilities
+│   ├── TokenHelper.h          # Public interface for token inspection
+│   └── main.cpp               # Entry point; command-line processing and output
 └── tests/
     ├── fixtures/         # CTest integration test scripts
     ├── AlignTest.cpp     # Alignment post-processing tests
@@ -74,6 +98,16 @@ flowchart LR
 ```
 
 ## Architectural Decisions
+
+### Formatter Source Organization
+
+The formatting pass is a single `FormatPrinter` class declared in
+`FormatPrinter.h`. Its handlers are defined across six `Format*.cpp` files
+grouped by SystemVerilog construct (class, declaration, expression, member, port
+list, statement). The CRTP visitor only needs the declarations in the class, and
+handlers are independent, so splitting them avoids a single multi-thousand-line
+translation unit. `FormatPrinter.h` serves as the header for all six handler
+files and for `FormatPrinter.cpp`, which contains the core formatting helpers.
 
 ### Configuration Search
 
@@ -148,32 +182,32 @@ normalization.
 
 #### Alignment
 
-`Align.cpp` implements alignment and exposes it to the formatter through
-`applyAlignment`. Alignment requires knowledge of multiple adjacent lines to
-compute the maximum column width, which is incompatible with the single-pass
-tree walk where each token is emitted independently. The tree walk populates a
-per-line `LineMetadata` record as a side channel alongside the formatted output.
-Each record carries the line's syntactic kind, AST nesting depth, and trailing
-comment position. The alignment passes consume this metadata for line
-classification and group formation, falling back to text-based classification
-for line types not yet covered by metadata handlers. Position extraction for
-column alignment is still performed by text scanning, since preceding alignment
-passes may insert padding that shifts column positions from their original
-values.
+`Align.cpp` drives the alignment passes implemented in the `Align*.cpp` files
+and exposes them to the formatter through `applyAlignment`. Alignment requires
+knowledge of multiple adjacent lines to compute the maximum column width, which
+is incompatible with the single-pass tree walk where each token is emitted
+independently. The tree walk populates a per-line `LineMetadata` record as a
+side channel alongside the formatted output. Each record carries the line's
+syntactic kind and AST nesting depth. The alignment passes consume this metadata
+for line classification and group formation, falling back to text-based
+classification for line types not yet covered by metadata handlers. Position
+extraction for column alignment is still performed by text scanning, since
+preceding alignment passes may insert padding that shifts column positions from
+their original values.
 
-`applyAlignConsecutive` is a function template that drives group formation while
-delegating break, start, and alignment decisions to per-alignment-type callbacks.
-It drives all seven alignment passes: packed dimensions, declarations, timing
-controls, assignments, dist items, port connections, and trailing comments.
-Assignment, dist item, and port connection alignment groups are scoped by AST
-depth to avoid breaking groups at control-flow boundaries such as `if`/`else`
-and `case`/`endcase`; assignments at different depths within a group are aligned
-independently. Within each depth, assignments are further split into sub-runs:
-two consecutive assignments at depth D belong to the same sub-run only if no
-intervening line has a depth strictly less than D. This prevents
-cross-alignment across `begin`/`end` boundaries inside `fork`/`join` blocks
-while preserving alignment across control-flow constructs like `if`/`else` and
-`case`/`endcase`.
+`applyAlignConsecutive` drives group formation while delegating break, start,
+and alignment decisions to per-alignment-type callbacks passed as
+`function_ref`. It drives all seven alignment passes: packed dimensions,
+declarations, timing controls, assignments, dist items, port connections, and
+trailing comments. Assignment, dist item, and port connection alignment groups
+are scoped by AST depth to avoid breaking groups at control-flow boundaries such
+as `if`/`else` and `case`/`endcase`; assignments at different depths within a
+group are aligned independently. Within each depth, assignments are further
+split into sub-runs: two consecutive assignments at depth D belong to the same
+sub-run only if no intervening line has a depth strictly less than D. This
+prevents cross-alignment across `begin`/`end` boundaries inside `fork`/`join`
+blocks while preserving alignment across control-flow constructs like
+`if`/`else` and `case`/`endcase`.
 
 When `InferFromSource` is enabled for an alignment style, the formatter captures
 per-token spacing data during the tree walk. Each inter-token gap records both
