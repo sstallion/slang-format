@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-17
+
+### Added
+
+- `--no-config` and `--no-ignored` command-line flags.
+- `AlignAfterOpenParen` style option.
+- `AlignConsecutivePortConnections` style option.
+- `BinPackArguments` style option.
+- `ColumnLimit` style option.
+- `CompactConditionals` style option.
+- `CompactTimeUnits` style option.
+- `LineEnding` style option.
+- `MaxPadding` alignment option.
+- `MinPadding` alignment option.
+- `OneStatementPerLine` style option.
+- `RangeSpacing` style option.
+- `RemoveEmptyLines` style option.
+- `SpaceAfterAlways` style option.
+- `SpaceAfterCaseColon` style option.
+- `SpaceAfterComma` style option.
+- `SpaceAfterParens` style option.
+- `SpaceAfterSemicolon` style option.
+- `SpaceAroundOperators` style option.
+- `SpaceBeforeCaseColon` style option.
+- `SpaceBeforeParameterList` style option.
+- `SpaceBeforeParens` style option.
+- `SpaceBeforePortList` style option.
+- `SpacesBeforeTrailingComments` style option.
+- `SpacesInBraces` style option.
+- `SpacesInBrackets` style option.
+- `SpacesInParens` style option.
+- Verible `verilog_format` pragma compatibility.
+
+### Changed
+
+- Changed `IndentCaseItem` default to `false`.
+- Changed default style to match Verible defaults.
+
 ## [0.3.0] - 2026-09-03
 
 ### Added
@@ -43,7 +81,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release
 
-[Unreleased]: https://github.com/sstallion/slang-format/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/sstallion/slang-format/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/sstallion/slang-format/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/sstallion/slang-format/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/sstallion/slang-format/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/sstallion/slang-format/releases/tag/v0.1.0
