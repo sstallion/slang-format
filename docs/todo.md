@@ -40,7 +40,7 @@
   - [x] Mandatory line break before bare `else`
   - [x] Scope construct coverage (`class`, `covergroup`)
   - [x] Hierarchical instance formatting
-  - [ ] Format-off pragma compatibility (`verilog_format`)
+  - [x] Format-off pragma compatibility (`verilog_format`)
   - [ ] Line terminator auto-detection
   - [x] Preprocessor directive line breaks
 - [ ] Add style presets (i.e. `--style=<string>`

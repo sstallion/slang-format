@@ -724,6 +724,41 @@ TEST(ApplyEmptyLineLimits, FormatOffSkipsCollapse) {
     // clang-format on
 }
 
+TEST(ApplyEmptyLineLimits, FormatOffVeribleSkipsCollapse) {
+    Style style;
+    style.RemoveEmptyLines = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign a = 1;
+        // verilog_format: off
+
+
+
+        assign b = 2;
+        // verilog_format: on
+
+
+
+        assign c = 3;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign a = 1;
+          // verilog_format: off
+
+
+
+        assign b = 2;
+        // verilog_format: on
+
+          assign c = 3;
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyEmptyLineLimits, LimitZeroRemovesAllEmptyLines) {
     Style style;
     style.MaxEmptyLinesToKeep = 0;
@@ -2640,6 +2675,50 @@ TEST(ApplyIndentation, FormatOffSkipsReindent) {
     // clang-format on
 }
 
+TEST(ApplyIndentation, FormatOffVeribleBlockComment) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        /* verilog_format: off */
+        assign x = 1;
+        /* verilog_format: on */
+        assign y = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          /* verilog_format: off */
+        assign x = 1;
+        /* verilog_format: on */
+          assign y = 2;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ApplyIndentation, FormatOffVeribleSkipsReindent) {
+    Style const style{};
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        // verilog_format: off
+        assign x = 1;
+        // verilog_format: on
+        assign y = 2;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // verilog_format: off
+        assign x = 1;
+        // verilog_format: on
+          assign y = 2;
+        endmodule
+    )"));
+    // clang-format on
+}
+
 TEST(ApplyIndentation, HierarchyInstantiationMultilineNamedPorts) {
     Style style;
     style.BinPackPortConnections = true;
@@ -4455,6 +4534,33 @@ TEST(RemoveEmptyLines, FormatOffPreservesEmptyLines) {
 
         assign x = 1;
         // slang-format on
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(RemoveEmptyLines, FormatOffVeriblePreservesEmptyLines) {
+    Style style;
+    style.RemoveEmptyLines = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        // verilog_format: off
+
+
+
+        assign x = 1;
+        // verilog_format: on
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          // verilog_format: off
+
+
+
+        assign x = 1;
+        // verilog_format: on
         endmodule
     )"));
     // clang-format on

@@ -3222,8 +3222,10 @@ private:
         auto raw = t.getRawText();
 
         if (t.kind == TriviaKind::LineComment || t.kind == TriviaKind::BlockComment) {
-            bool const isOff = formatEnabled && matchesPragma(raw, "slang-format off");
-            bool const isOn = !formatEnabled && matchesPragma(raw, "slang-format on");
+            bool const isOff = formatEnabled && (matchesPragma(raw, "slang-format off") ||
+                                                 matchesPragma(raw, "verilog_format: off"));
+            bool const isOn = !formatEnabled && (matchesPragma(raw, "slang-format on") ||
+                                                 matchesPragma(raw, "verilog_format: on"));
 
             if (atLineStart) {
                 currentLineMeta.kind = LineMetadata::Kind::Comment;

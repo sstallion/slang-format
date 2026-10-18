@@ -29,6 +29,10 @@ range. Use `// slang-format off` to disable and `// slang-format on` to
 re-enable. Block comment forms (`/* slang-format off */` and
 `/* slang-format on */`) are also supported.
 
+For compatibility with [Verible][2], the `// verilog_format: off` and
+`// verilog_format: on` pragmas (and their block comment equivalents) are also
+recognized.
+
 ```sv
 module foo;
   // slang-format off
@@ -2591,3 +2595,4 @@ endmodule
 ```
 
 [1]: https://clang.llvm.org/docs/ClangFormatStyleOptions.html#columnlimit
+[2]: https://github.com/chipsalliance/verible
