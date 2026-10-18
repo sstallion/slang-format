@@ -184,7 +184,10 @@ is suppressed to preserve the author's flush-left intent; if the excess is
 large, the engine aligns to reproduce the author's aligned layout. The
 `MinPadding` option provides a floor guarantee: groups with alignment
 displacement at or below `MinPadding` are always aligned regardless of
-inference, ensuring small groups receive consistent treatment.
+inference, ensuring small groups receive consistent treatment. For port list
+declarations, range spacing excess from non-adjacent lines also contributes to
+the inference decision, allowing multi-space range colons to signal alignment
+intent even when token spacing alone would indicate flush-left layout.
 
 When `RangeSpacing` is set to `MatchSource`, the formatting pass preserves exact
 source whitespace around range colons. A normalization pass runs before the

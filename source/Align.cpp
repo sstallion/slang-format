@@ -530,12 +530,32 @@ void alignGroupDeclLine(std::string& result, std::string_view line, const LineIn
 
         auto typeBodyStart = skipSpaces(line, keywordEnd);
         auto typeTextEnd = trimTrailingSpaces(line, identPos);
-        if (typeBodyStart < typeTextEnd) {
-            result.append(line.substr(typeBodyStart, typeTextEnd - typeBodyStart));
+
+        if (info.dimPos != npos && info.dimPos > typeBodyStart) {
+            auto nameEnd = trimTrailingSpaces(line, info.dimPos);
+            auto nameWidth = nameEnd > typeBodyStart ? nameEnd - typeBodyStart : size_t{0};
+            auto dimEnd = trimTrailingSpaces(line, identPos);
+
+            if (nameWidth > 0) {
+                result.append(line.substr(typeBodyStart, nameWidth));
+                result += ' ';
+            }
+            result.append(line.substr(info.dimPos, dimEnd - info.dimPos));
+
+            auto emitted = metrics.maxKeywordWidth + 1 + nameWidth + (nameWidth > 0 ? 1 : 0) +
+                           (dimEnd - info.dimPos);
+            auto remaining = targetPos - indent - emitted;
+            result.append(remaining, ' ');
         }
-        result.append(targetPos - (metrics.maxKeywordWidth + 1) -
-                          (typeTextEnd > typeBodyStart ? typeTextEnd - typeBodyStart : 0) - indent,
-                      ' ');
+        else {
+            if (typeBodyStart < typeTextEnd) {
+                result.append(line.substr(typeBodyStart, typeTextEnd - typeBodyStart));
+            }
+            result.append(targetPos - (metrics.maxKeywordWidth + 1) -
+                              (typeTextEnd > typeBodyStart ? typeTextEnd - typeBodyStart : 0) -
+                              indent,
+                          ' ');
+        }
     }
     else {
         auto typeTextEnd = trimTrailingSpaces(line, identPos);
@@ -597,8 +617,8 @@ AlignPolicy inferAlignPolicy(unsigned displacement, const InferContext& ctx) {
 }
 
 unsigned computeGroupMaxExcess(const std::vector<LineMetadata>& lineMetadata,
-                               const std::unordered_map<size_t, size_t>& metaByLine, size_t start,
-                               size_t end) {
+                               const std::unordered_map<size_t, size_t>& metaByLine,
+                               const std::set<size_t>& rangeExcessLines, size_t start, size_t end) {
     unsigned maxExcess = 0;
     for (auto i = start; i < end; i++) {
         auto it = metaByLine.find(i);
@@ -606,9 +626,21 @@ unsigned computeGroupMaxExcess(const std::vector<LineMetadata>& lineMetadata,
             continue;
         }
 
-        for (const auto& ts : lineMetadata[it->second].tokenSpacings) {
+        const auto& meta = lineMetadata[it->second];
+        for (const auto& ts : meta.tokenSpacings) {
             if (ts.sourceSpaces > ts.outputSpaces) {
                 maxExcess = std::max(maxExcess, ts.sourceSpaces - ts.outputSpaces);
+            }
+        }
+
+        if (rangeExcessLines.contains(i)) {
+            for (const auto& rs : meta.rangeSpacings) {
+                if (rs.sourceLeftSpaces > 1) {
+                    maxExcess = std::max(maxExcess, rs.sourceLeftSpaces - 1);
+                }
+                if (rs.sourceRightSpaces > 1) {
+                    maxExcess = std::max(maxExcess, rs.sourceRightSpaces - 1);
+                }
             }
         }
     }
@@ -637,7 +669,8 @@ struct DeclGroupSummary {
     std::optional<size_t> groupIndent;
 };
 
-DeclGroupSummary computeDeclGroupSummary(const std::vector<LineInfo>& infos, GroupRange range) {
+DeclGroupSummary computeDeclGroupSummary(const std::vector<std::string_view>& lines,
+                                         const std::vector<LineInfo>& infos, GroupRange range) {
     DeclGroupSummary summary;
     size_t minNameWidth = npos;
     size_t maxNameWidth = 0;
@@ -664,7 +697,16 @@ DeclGroupSummary computeDeclGroupSummary(const std::vector<LineInfo>& infos, Gro
             auto nw = typeNameWidth(infos[i]);
             maxNameWidth = std::max(maxNameWidth, nw);
             minNameWidth = std::min(minNameWidth, nw);
-            maxBodyWidth = std::max(maxBodyWidth, typeBodyWidth(infos[i]));
+
+            auto bw = typeBodyWidth(infos[i]);
+            if (infos[i].dimPos != npos && infos[i].keywordWidth > 0) {
+                auto typeBodyStart = infos[i].indent + infos[i].keywordWidth + 1;
+                auto nameEnd = trimTrailingSpaces(lines[i], infos[i].dimPos);
+                auto nameWidth = nameEnd > typeBodyStart ? nameEnd - typeBodyStart : size_t{0};
+                auto dimWidth = infos[i].identPos - infos[i].dimPos;
+                bw = nameWidth + 1 + dimWidth;
+            }
+            maxBodyWidth = std::max(maxBodyWidth, bw);
         }
         else if (infos[i].kind == Kind::Continuation) {
             summary.declCount++;
@@ -683,7 +725,7 @@ DeclGroupSummary computeDeclGroupSummary(const std::vector<LineInfo>& infos, Gro
 void alignGroup(std::string& result, const std::vector<std::string_view>& lines,
                 const std::vector<LineInfo>& infos, GroupRange range, const InferContext& ctx) {
     auto [metrics, declCount, displacement, hasKeywords,
-          groupIndent] = computeDeclGroupSummary(infos, range);
+          groupIndent] = computeDeclGroupSummary(lines, infos, range);
 
     auto declCtx = ctx;
     if (!hasKeywords) {
@@ -1520,8 +1562,8 @@ template<typename AlignFn>
 std::string applyAlignConsecutive(const std::string& output,
                                   const AlignConsecutiveStyle& alignStyle,
                                   const GroupBreakConfig& config, BreakPred breakPred,
-                                  AlignFn alignFn,
-                                  const std::vector<LineMetadata>& lineMetadata = {},
+                                  AlignFn alignFn, const std::vector<LineMetadata>& lineMetadata,
+                                  const std::set<size_t>& rangeExcessLines,
                                   unsigned continuationIndentWidth = 4, bool minGuarantee = false) {
     if (!alignStyle.Enabled) {
         return output;
@@ -1560,8 +1602,8 @@ std::string applyAlignConsecutive(const std::string& output,
                             .maxPadding = alignStyle.MaxPadding,
                             .minPadding = alignStyle.MinPadding,
                             .maxDisplacement = alignStyle.MaxPadding * continuationIndentWidth,
-                            .groupMaxExcess = computeGroupMaxExcess(lineMetadata, metaByLine, start,
-                                                                    end)};
+                            .groupMaxExcess = computeGroupMaxExcess(lineMetadata, metaByLine,
+                                                                    rangeExcessLines, start, end)};
     };
 
     std::string result;
@@ -1665,6 +1707,37 @@ std::set<size_t> computePortListAdjacentLines(const std::vector<LineMetadata>& l
     return adjacentLines;
 }
 
+/// Computes the set of port list lines whose range excess should contribute to InferFromSource
+/// decisions. A line qualifies if it is inside a port list (after any PortListBoundary) and is not
+/// in \p adjacentLines.
+std::set<size_t> computeRangeExcessLines(const std::vector<LineMetadata>& lineMetadata,
+                                         const std::set<size_t>& adjacentLines) {
+    std::set<size_t> rangeExcessLines;
+    bool inPortList = false;
+
+    for (const auto& meta : lineMetadata) {
+        if (meta.kind == Kind::PortListBoundary) {
+            inPortList = true;
+            continue;
+        }
+
+        if (meta.kind == Kind::Empty) {
+            inPortList = false;
+            continue;
+        }
+
+        if (meta.kind == Kind::Comment) {
+            continue;
+        }
+
+        if (inPortList && !adjacentLines.contains(meta.lineNumber)) {
+            rangeExcessLines.insert(meta.lineNumber);
+        }
+    }
+
+    return rangeExcessLines;
+}
+
 std::string normalizeBracketRange(std::string_view content) {
     auto colonPos = content.find(':');
     if (colonPos == npos) {
@@ -1719,12 +1792,11 @@ std::string normalizeLineRanges(std::string_view line) {
 
 std::string normalizeRangeSpacing(const std::string& output,
                                   const std::vector<LineMetadata>& lineMetadata,
+                                  const std::set<size_t>& adjacentLines,
                                   RangeSpacingStyle rangeSpacing) {
     if (rangeSpacing != RangeSpacingStyle::MatchSource) {
         return output;
     }
-
-    auto const adjacentLines = computePortListAdjacentLines(lineMetadata);
 
     std::unordered_map<size_t, size_t> metaByLine;
     for (size_t j = 0; j < lineMetadata.size(); j++) {
@@ -1789,8 +1861,12 @@ std::string applyAlignment(const std::string& output, const Style& style,
     static constexpr GroupBreakConfig trailingConfig{.memberKinds = trailingKinds,
                                                      .continuationPassThrough = false};
 
+    auto const adjacentLines = computePortListAdjacentLines(lineMetadata);
+    auto const rangeExcessLines = computeRangeExcessLines(lineMetadata, adjacentLines);
+
     auto normalized = (style.AlignConsecutivePackedDimensions.InferFromSource)
-                          ? normalizeRangeSpacing(output, lineMetadata, style.RangeSpacing)
+                          ? normalizeRangeSpacing(output, lineMetadata, adjacentLines,
+                                                  style.RangeSpacing)
                           : output;
 
     auto dimAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
@@ -1818,18 +1894,18 @@ std::string applyAlignment(const std::string& output, const Style& style,
     };
     auto result = applyAlignConsecutive(normalized, style.AlignConsecutivePackedDimensions,
                                         dimConfig, shouldBreakDimGroup, dimAlignFn, lineMetadata,
-                                        style.ContinuationIndentWidth);
+                                        rangeExcessLines, style.ContinuationIndentWidth);
     result = applyAlignConsecutive(result, style.AlignConsecutiveDeclarations, declConfig,
-                                   shouldBreakGroup, alignGroup, lineMetadata,
+                                   shouldBreakGroup, alignGroup, lineMetadata, rangeExcessLines,
                                    style.ContinuationIndentWidth);
     result = applyAlignConsecutive(result, style.AlignConsecutiveTimingControls, timingConfig,
                                    shouldBreakGroup, alignGroupTiming, lineMetadata,
-                                   style.ContinuationIndentWidth);
+                                   rangeExcessLines, style.ContinuationIndentWidth);
     auto assignAlignFn = [](std::string& r, const std::vector<std::string_view>& l,
                             const std::vector<LineInfo>& inf, GroupRange rng,
                             const InferContext& ctx) { alignGroupEquals(r, l, inf, rng, ctx); };
     result = applyAlignConsecutive(result, style.AlignConsecutiveAssignments, assignConfig,
-                                   shouldBreakGroup, assignAlignFn, lineMetadata,
+                                   shouldBreakGroup, assignAlignFn, lineMetadata, rangeExcessLines,
                                    style.ContinuationIndentWidth);
     auto portConnAlignFn = [](std::string& r, const std::vector<std::string_view>& l,
                               const std::vector<LineInfo>& inf, GroupRange rng,
@@ -1838,7 +1914,7 @@ std::string applyAlignment(const std::string& output, const Style& style,
     };
     result = applyAlignConsecutive(result, style.AlignConsecutivePortConnections,
                                    portConnectionConfig, shouldBreakGroup, portConnAlignFn,
-                                   lineMetadata, style.ContinuationIndentWidth);
+                                   lineMetadata, rangeExcessLines, style.ContinuationIndentWidth);
     auto trailingAlignFn = [&style](std::string& r, const std::vector<std::string_view>& l,
                                     const std::vector<LineInfo>& inf, GroupRange rng,
                                     const InferContext& /*ctx*/) {
@@ -1846,7 +1922,7 @@ std::string applyAlignment(const std::string& output, const Style& style,
     };
     result = applyAlignConsecutive(result, style.AlignTrailingComments, trailingConfig,
                                    shouldBreakGroup, trailingAlignFn, lineMetadata,
-                                   style.ContinuationIndentWidth);
+                                   rangeExcessLines, style.ContinuationIndentWidth);
 
     return result;
 }

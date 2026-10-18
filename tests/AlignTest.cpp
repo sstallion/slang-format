@@ -2336,6 +2336,31 @@ TEST(MatchSource, PreservesPortListAdjacentMultiSpaceRange) {
         endmodule
     )"));
 }
+
+TEST(MatchSource, RangeExcessActivatesKeywordPaddingAndDimPadLeft) {
+    Style style;
+    style.RangeSpacing = RangeSpacingStyle::MatchSource;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module adder #(
+            parameter int W = 8
+        ) (
+            input wire [W-1:0] a,
+            input wire [W-1     :    0] b,
+            output wire [W-1:0] sum
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module adder #(
+            parameter int W = 8
+        ) (
+            input  wire [  W-1:0] a,
+            input  wire [W-1 : 0] b,
+            output wire [  W-1:0] sum
+        );
+        endmodule
+    )"));
+}
 // clang-format on
 
 TEST(AlignTrailingComments, None) {

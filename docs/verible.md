@@ -8,74 +8,12 @@ formatting behavior and slang-format's output. The golden reference file is
 
 ## Status
 
-660 of 661 tests pass. The single remaining failure is the Verible fixture test,
+667 of 668 tests pass. The single remaining failure is the Verible fixture test,
 which has 1 differing hunk across 1 root cause category:
 
-| Category                                | Hunks | Lines   |
-| --------------------------------------- | ----- | ------- |
-| Missing keyword padding and dim PadLeft | 1     | 301-303 |
-
-The category is described below with root cause analysis and the refactoring
-required to resolve it.
-
-## Deviation: Missing Keyword Padding and Dim PadLeft
-
-### Affected Lines
-
-| Line | Actual                     | Expected                    |
-| ---- | -------------------------- | --------------------------- |
-| 301  | `input wire [W-1:0] a,`    | `input  wire [  W-1:0] a,`  |
-| 302  | `input wire [W-1 : 0] b,`  | `input  wire [W-1 : 0] b,`  |
-| 303  | `output wire [W-1:0] sum`  | `output wire [  W-1:0] sum` |
-
-### Root Cause
-
-The expected output requires two simultaneous alignment features:
-
-1. **Keyword padding**: `input` (5 chars) padded to `output` (6 chars) width,
-   producing `input  wire` (2 spaces between keyword and type body).
-2. **Dim PadLeft**: `[W-1:0]` padded to `[  W-1:0]` to align `:` positions
-   across the group.
-
-Both features exist in slang-format, but the `InferFromSource` policy prevents
-them from activating for this group. The adder module's source has multi-space
-range spacing (`[W-1     :    0]`) whose excess is captured by
-`captureTokenSpacing`. However, the `skipSpacingCapture` flag - which prevents
-range normalization from inflating `groupMaxExcess` - also hides this excess
-from the InferFromSource decision.
-
-Without source excess, InferFromSource returns `FlushLeft` for both the packed
-dimension alignment pass and the subsequent declaration alignment pass.
-
-### Why Not Fixed
-
-The `skipSpacingCapture` mechanism is load-bearing for other groups. Removing it
-causes the counter module (dff) port list to incorrectly align declarations
-because the range spacing excess would inflate `groupMaxExcess` above the
-InferFromSource threshold.
-
-The fundamental tension: range spacing excess is relevant for dimension
-alignment decisions (where it indicates the author intended dimensional
-structure) but irrelevant for declaration alignment decisions (where only
-type-to-identifier spacing matters).
-
-### Required Refactoring
-
-Resolve the tension by tracking range and non-range excess separately:
-
-1. Add a `rangeExcess` field to `LineMetadata::TokenSpacing` (or a parallel
-   `rangeTokenSpacings` vector) that captures excess specifically from range
-   operator tokens.
-2. Compute `groupMaxExcess` separately for range tokens and non-range tokens.
-3. Use range excess for packed dimension alignment decisions
-   (`AlignConsecutivePackedDimensions`).
-4. Use non-range excess for declaration alignment decisions
-   (`AlignConsecutiveDeclarations`).
-
-This separation allows the dim alignment pass to detect author intent from range
-spacing while preventing range spacing from polluting declaration alignment
-decisions. The implementation touches `captureTokenSpacing` in `Format.cpp` and
-`computeGroupMaxExcess` in `Align.cpp`.
+| Category                 | Hunks | Lines |
+| ------------------------ | ----- | ----- |
+| Incorrect dim column     | 1     | 31    |
 
 ## Implementation Details
 
@@ -95,6 +33,10 @@ the natural `maxTypeWidth` (the largest `typeWidth` observed in the group). This
 prevents keyword padding from inflating the identifier column beyond what the
 widest line requires.
 
+When keyword padding is active on lines with packed dimensions, the pre-dim
+spacing is normalized to a single space. This prevents dim-alignment padding
+from inflating the identifier column after keyword padding shifts the type body.
+
 ### minGuarantee
 
 The `minGuarantee` flag in `InferContext` causes `inferAlignPolicy` to return
@@ -104,6 +46,15 @@ enabled only for declaration groups with no direction or parameter keywords
 `hasKeywords` field of `DeclGroupSummary`, not on `maxKeywordWidth`, because
 keyword padding may disable `maxKeywordWidth` for space reasons without changing
 whether the group semantically contains keywords.
+
+### Range Excess in InferFromSource
+
+The `computeGroupMaxExcess` function includes range spacing excess from port
+list lines that are not adjacent to a parameter group with alignment evidence.
+This allows the InferFromSource heuristic to detect author intent from
+multi-space range spacing (e.g., `[W-1     :    0]`) in port declarations where
+token spacing alone would indicate flush-left alignment. The
+`computeRangeExcessLines` function determines which lines qualify.
 
 ### Struct and Union Member Classification
 
