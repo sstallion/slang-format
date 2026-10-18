@@ -15,8 +15,8 @@ OPTIONS:
                       Blank lines and lines starting with '#' are ignored.
   -i                  Inplace edit <file>s, if specified.
   --list-ignored      List ignored files.
-  --no-config         Do not search for the .slang-format file.
-  --no-ignored        Do not search for the .slang-format-ignore file.
+  --no-config         Do not search for .slang-format files.
+  --no-ignored        Do not search for .slang-format-ignore files.
   -h,--help           Display available options.
   --version           Display version information and exit.
 ```

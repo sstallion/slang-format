@@ -168,8 +168,8 @@ int main(int argc, char* argv[]) {
                 "<filename>");
     cmdLine.add("-i", inplace, "Inplace edit <file>s, if specified.");
     cmdLine.add("--list-ignored", listIgnored, "List ignored files.");
-    cmdLine.add("--no-config", noConfig, "Do not search for the .slang-format file.");
-    cmdLine.add("--no-ignored", noIgnored, "Do not search for the .slang-format-ignore file.");
+    cmdLine.add("--no-config", noConfig, "Do not search for .slang-format files.");
+    cmdLine.add("--no-ignored", noIgnored, "Do not search for .slang-format-ignore files.");
     cmdLine.add("-h,--help", help, "Display available options.");
     cmdLine.add("--version", version, "Display version information and exit.");
     cmdLine.setPositional(positionalFiles, "[@<file>] [<file>]");

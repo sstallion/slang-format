@@ -31,13 +31,21 @@
     - [x] Commas vs. `or`
 - [x] Installation and packaging using CMake
 - [x] Full releases including packaging
-- [ ] Verible compatibility
-  - [ ] Token spacing normalization
-  - [ ] `end else begin` compaction
-  - [ ] Join `begin` to controlling keyword
-  - [ ] Mandatory line break before bare `else`
+- [ ] Build slang-format as a library (cf. [LibFormat][1])
+- [ ] Publish API documentation
+- [ ] Verible compatibility:
+  - [x] Token spacing normalization
+  - [x] `end else begin` compaction
+  - [x] Join `begin` to controlling keyword
+  - [x] Mandatory line break before bare `else`
   - [x] Scope construct coverage (`class`, `covergroup`)
   - [x] Hierarchical instance formatting
   - [ ] Format-off pragma compatibility (`verilog_format`)
   - [ ] Line terminator auto-detection
   - [x] Preprocessor directive line breaks
+- [ ] Add style presets (i.e. `--style=<string>`
+- [ ] Define builtin styles using YAML
+- [ ] Add `--dry-run` / `-n` support
+- [ ] Add `--fail-on-incomplete-format` support
+
+[1]: https://clang.llvm.org/docs/LibFormat.html

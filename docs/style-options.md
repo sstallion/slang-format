@@ -116,12 +116,12 @@ remaining sub-options take effect only when `Enabled` is `true`.
 ```yaml
 AlignConsecutiveAssignments:
   Enabled: true
-  InferFromSource: true
-  MaxPadding: 2
-  MinPadding: 2
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
+  InferFromSource: true
+  MaxPadding: 2
+  MinPadding: 2
 ```
 
 #### Enabled (bool)
@@ -168,6 +168,24 @@ module foo;
   logic [7:0] b = 2;
 endmodule
 ```
+
+#### AcrossComments (bool)
+
+If `true`, comments do not break alignment groups.
+
+**Default:** `false`
+
+#### AcrossEmptyLines (bool)
+
+If `true`, empty lines do not break alignment groups.
+
+**Default:** `false`
+
+#### AcrossParameterPortList (bool)
+
+If `true`, port list boundaries do not break alignment groups.
+
+**Default:** `false`
 
 #### InferFromSource (bool)
 
@@ -248,24 +266,6 @@ always_comb begin
 end
 ```
 
-#### AcrossComments (bool)
-
-If `true`, comments do not break alignment groups.
-
-**Default:** `false`
-
-#### AcrossEmptyLines (bool)
-
-If `true`, empty lines do not break alignment groups.
-
-**Default:** `false`
-
-#### AcrossParameterPortList (bool)
-
-If `true`, port list boundaries do not break alignment groups.
-
-**Default:** `false`
-
 ---
 
 ### AlignConsecutiveDeclarations (AlignConsecutiveStyle)
@@ -282,12 +282,13 @@ sub-options take effect only when `Enabled` is `true`.
 ```yaml
 AlignConsecutiveDeclarations:
   Enabled: true
-  InferFromSource: true
-  MaxPadding: 2
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
+  InferFromSource: true
+  MaxPadding: 2
 ```
+
 #### Enabled (bool)
 
 If `false`, disables all alignment regardless of other options.
@@ -316,12 +317,6 @@ module foo;
   logic [15:0] c;
 endmodule
 ```
-
-#### InferFromSource (bool)
-
-See `AlignConsecutiveAssignments.InferFromSource`.
-
-**Default:** `true`
 
 #### AcrossComments (bool)
 
@@ -355,6 +350,18 @@ module foo #(
 endmodule
 ```
 
+#### InferFromSource (bool)
+
+See `AlignConsecutiveAssignments.InferFromSource`.
+
+**Default:** `true`
+
+#### MaxPadding (unsigned)
+
+See `AlignConsecutiveAssignments.MaxPadding`.
+
+**Default:** `2`
+
 ---
 
 ### AlignConsecutivePackedDimensions (AlignConsecutiveStyle)
@@ -373,12 +380,12 @@ take effect only when `Enabled` is `true`.
 ```yaml
 AlignConsecutivePackedDimensions:
   Enabled: true
-  InferFromSource: true
-  MaxPadding: 2
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
   AlignColon: false
+  InferFromSource: true
+  MaxPadding: 2
   PadLeft: true
   PadRight: false
 ```
@@ -402,12 +409,6 @@ module foo;
   logic [7:0] b;
 endmodule
 ```
-
-#### InferFromSource (bool)
-
-See `AlignConsecutiveAssignments.InferFromSource`.
-
-**Default:** `true`
 
 #### AcrossComments (bool)
 
@@ -450,6 +451,18 @@ module foo;
   logic [15: 0] b;
 endmodule
 ```
+
+#### InferFromSource (bool)
+
+See `AlignConsecutiveAssignments.InferFromSource`.
+
+**Default:** `true`
+
+#### MaxPadding (unsigned)
+
+See `AlignConsecutiveAssignments.MaxPadding`.
+
+**Default:** `2`
 
 #### PadLeft (bool)
 
@@ -501,12 +514,12 @@ sub-options take effect only when `Enabled` is `true`.
 ```yaml
 AlignConsecutivePortConnections:
   Enabled: true
-  InferFromSource: true
-  MaxPadding: 2
-  MinPadding: 2
   AcrossComments: false
   AcrossEmptyLines: false
   AcrossParameterPortList: false
+  InferFromSource: true
+  MaxPadding: 2
+  MinPadding: 2
 ```
 
 #### Enabled (bool)
@@ -532,6 +545,24 @@ dff u_chk (
     .gnt(gnt_int)
 );
 ```
+
+#### AcrossComments (bool)
+
+If `true`, comments do not break alignment groups.
+
+**Default:** `false`
+
+#### AcrossEmptyLines (bool)
+
+If `true`, empty lines do not break alignment groups.
+
+**Default:** `false`
+
+#### AcrossParameterPortList (bool)
+
+If `true`, port list boundaries do not break alignment groups.
+
+**Default:** `false`
 
 #### InferFromSource (bool)
 
@@ -569,24 +600,6 @@ dff u_dff_named (
 See `AlignConsecutiveAssignments.MinPadding`.
 
 **Default:** `2`
-
-#### AcrossComments (bool)
-
-If `true`, comments do not break alignment groups.
-
-**Default:** `false`
-
-#### AcrossEmptyLines (bool)
-
-If `true`, empty lines do not break alignment groups.
-
-**Default:** `false`
-
-#### AcrossParameterPortList (bool)
-
-If `true`, port list boundaries do not break alignment groups.
-
-**Default:** `false`
 
 ---
 
@@ -700,10 +713,67 @@ If `true`, port list boundaries do not break alignment groups.
 
 ---
 
+### AllowShortConstraintBlocksOnASingleLine (bool)
+
+If `true`, constraint blocks with a single item are joined onto one line when the
+result fits within [`ColumnLimit`](#columnlimit-unsigned). Multi-item constraint
+blocks are always expanded regardless of this setting. Applies to both named
+constraints and `randomize() with` blocks.
+
+**Default:** `true`
+
+`AllowShortConstraintBlocksOnASingleLine: true` (default):
+
+```sv
+class packet;
+  constraint c {kind inside {[0:7]};}
+endclass
+```
+
+`AllowShortConstraintBlocksOnASingleLine: false`:
+
+```sv
+class packet;
+  constraint c {
+    kind inside {[0:7]};
+  }
+endclass
+```
+
+---
+
+### AllowShortCoverpointsOnASingleLine (bool)
+
+If `true`, coverpoint and cover cross bodies are joined onto one line when the
+result fits within [`ColumnLimit`](#columnlimit-unsigned). Multi-item bodies that
+exceed the column limit are always expanded regardless of this setting.
+
+**Default:** `true`
+
+`AllowShortCoverpointsOnASingleLine: true` (default):
+
+```sv
+covergroup cg;
+  cp_addr: coverpoint addr {option.auto_bin_max = 8;}
+endgroup
+```
+
+`AllowShortCoverpointsOnASingleLine: false`:
+
+```sv
+covergroup cg;
+  cp_addr: coverpoint addr {
+    option.auto_bin_max = 8;
+  }
+endgroup
+```
+
+---
+
 ### BinPackArguments (bool)
 
 Controls whether arguments are bin-packed or placed one per line when wrapping
-is triggered by [`AlignAfterOpenParen`](#alignafteropenparent-bracketalignmentstyle).
+is triggered by [`AlignAfterOpenParen`](#alignafteropenparen-bracketalignmentstyle).
 When `true`, the formatter packs as many arguments as fit within
 [`ColumnLimit`](#columnlimit-unsigned) on each line. When `false`, each argument
 is placed on its own line.
@@ -728,6 +798,71 @@ $display("alpha",
          charlie,
          delta,
          echo_val);
+```
+
+---
+
+### BinPackParameters (bool)
+
+Controls whether function and task port parameters are bin-packed or placed one
+per line when wrapping is triggered by
+[`AlignAfterOpenParen`](#alignafteropenparen-bracketalignmentstyle). When `true`,
+the formatter packs as many parameters as fit within
+[`ColumnLimit`](#columnlimit-unsigned) on each line. When `false`, each parameter
+is placed on its own line.
+
+This option has no effect when `AlignAfterOpenParen` is `DontAlign` or when
+`ColumnLimit` is `0`.
+
+**Default:** `true`
+
+`BinPackParameters: true` (default):
+
+```sv
+function automatic logic [DW-1:0] mask_bytes(
+    input logic [DW-1:0] value, input logic [STRB_W-1:0] strb,
+    input bit invert = 1'b0);
+endfunction
+```
+
+`BinPackParameters: false`:
+
+```sv
+function automatic logic [DW-1:0] mask_bytes(
+    input logic [DW-1:0] value,
+    input logic [STRB_W-1:0] strb,
+    input bit invert = 1'b0
+);
+endfunction
+```
+
+---
+
+### BinPackPortConnections (bool)
+
+Controls whether instance port connections are bin-packed or placed one per line.
+When `true`, named port connections in module instantiations are packed on as few
+lines as possible. When `false`, each port connection is placed on its own line.
+
+**Default:** `false`
+
+`BinPackPortConnections: false` (default):
+
+```sv
+dff u_dff (
+    .clk(clk),
+    .rst_n(rst_n),
+    .d(data_i),
+    .q(dff_q)
+);
+```
+
+`BinPackPortConnections: true`:
+
+```sv
+dff u_dff (
+    .clk(clk), .rst_n(rst_n), .d(data_i), .q(dff_q)
+);
 ```
 
 ---
@@ -775,6 +910,39 @@ endmodule
 
 ---
 
+### BreakAfterAssertionLabel (bool)
+
+If `true`, insert a newline after assertion labels on concurrent assertions
+(`assert property`, `assume property`, `cover property`, etc.) and immediate
+assertions with `else` clauses. Immediate assertions without an `else` clause
+are not affected.
+
+**Default:** `true`
+
+`BreakAfterAssertionLabel: true` (default):
+
+```sv
+// Concurrent assertion
+check_valid:
+  assert property (@(posedge clk) req |-> ack) else $error("fail");
+
+// Immediate assertion with else
+check_valid:
+  assert (valid) else $error("invalid");
+
+// Immediate assertion without else (no break)
+check_valid: assert (valid);
+```
+
+`BreakAfterAssertionLabel: false`:
+
+```sv
+check_valid: assert property (@(posedge clk) req |-> ack) else $error("fail");
+check_valid: assert (valid) else $error("invalid");
+```
+
+---
+
 ### BreakAfterBegin (bool)
 
 If `true`, enforce a newline immediately after every `begin` token whose first
@@ -806,7 +974,7 @@ endmodule
 
 Controls whether slang-format inserts a newline between an `initial` or `final`
 header and its body. Accepts the same values as
-[`BreakAfterAlways`](#breakafteralways-breakafterblockstyle).
+[`BreakAfterAlways`](#breakafteralways-blockbreakstyle).
 
 **Default:** `OnlyMultiline`
 
@@ -847,9 +1015,9 @@ Controls whether slang-format inserts a blank line before an `always`,
 `always_comb`, `always_ff`, or `always_latch` block. Comments immediately
 preceding the block are kept together with it; the blank line is inserted before
 the first attached comment. Accepts the same values as
-[`BreakAfterAlways`](#breakafteralways-breakafterblockstyle).
+[`BreakAfterAlways`](#breakafteralways-blockbreakstyle).
 
-**Default:** `OnlyMultiline`
+**Default:** `Never`
 
 `Always` - blank line always inserted:
 
@@ -862,7 +1030,7 @@ module foo;
 endmodule
 ```
 
-`Never` - no blank line inserted:
+`Never` (default) - no blank line inserted:
 
 ```sv
 module foo;
@@ -873,7 +1041,7 @@ module foo;
 endmodule
 ```
 
-`OnlyMultiline` (default) - blank line inserted before a multi-statement body:
+`OnlyMultiline` - blank line inserted before a multi-statement body:
 
 ```sv
 module foo;
@@ -887,15 +1055,75 @@ endmodule
 
 ---
 
+### BreakBeforeEnd (bool)
+
+If `true`, enforce a newline before every `end` token that is not already on its
+own line.
+
+**Default:** `true`
+
+`BreakBeforeEnd: false`:
+
+```sv
+module foo;
+  always_comb begin x = 1; end
+endmodule
+```
+
+`BreakBeforeEnd: true` (default):
+
+```sv
+module foo;
+  always_comb begin
+    x = 1;
+  end
+endmodule
+```
+
+---
+
+### BreakBeforeFunction (bool)
+
+If `true`, insert a blank line before `function` declarations. Comments
+immediately preceding the declaration are kept together with it; the blank line
+is inserted before the first attached comment.
+
+**Default:** `false`
+
+`BreakBeforeFunction: false` (default):
+
+```sv
+module foo;
+  assign x = 1;
+  function void bar;
+    x = 1;
+  endfunction
+endmodule
+```
+
+`BreakBeforeFunction: true`:
+
+```sv
+module foo;
+  assign x = 1;
+
+  function void bar;
+    x = 1;
+  endfunction
+endmodule
+```
+
+---
+
 ### BreakBeforeInitial (BlockBreakStyle)
 
 Controls whether slang-format inserts a blank line before an `initial` or
 `final` block. Comments immediately preceding the block are kept together with
 it; the blank line is inserted before the first attached comment. Accepts the
 same values as
-[`BreakAfterAlways`](#breakafteralways-breakafterblockstyle).
+[`BreakAfterAlways`](#breakafteralways-blockbreakstyle).
 
-**Default:** `OnlyMultiline`
+**Default:** `Never`
 
 `Always` - blank line always inserted:
 
@@ -908,7 +1136,7 @@ module foo;
 endmodule
 ```
 
-`Never` - no blank line inserted:
+`Never` (default) - no blank line inserted:
 
 ```sv
 module foo;
@@ -919,7 +1147,7 @@ module foo;
 endmodule
 ```
 
-`OnlyMultiline` (default) - blank line inserted before a multi-statement body:
+`OnlyMultiline` - blank line inserted before a multi-statement body:
 
 ```sv
 module foo;
@@ -999,111 +1227,22 @@ endmodule
 
 ---
 
-### BreakBeforeEnd (bool)
-
-If `true`, enforce a newline before every `end` token that is not already on its
-own line.
-
-**Default:** `true`
-
-`BreakBeforeEnd: false`:
-
-```sv
-module foo;
-  always_comb begin x = 1; end
-endmodule
-```
-
-`BreakBeforeEnd: true` (default):
-
-```sv
-module foo;
-  always_comb begin
-    x = 1;
-  end
-endmodule
-```
-
----
-
-### BreakBeforeFunction (bool)
-
-If `true`, insert a blank line before `function` declarations. Comments
-immediately preceding the declaration are kept together with it; the blank line
-is inserted before the first attached comment.
-
-**Default:** `false`
-
-`BreakBeforeFunction: false` (default):
-
-```sv
-module foo;
-  assign x = 1;
-  function void bar;
-    x = 1;
-  endfunction
-endmodule
-```
-
-`BreakBeforeFunction: true`:
-
-```sv
-module foo;
-  assign x = 1;
-
-  function void bar;
-    x = 1;
-  endfunction
-endmodule
-```
-
----
-
-### ContinuationIndentWidth (unsigned)
-
-Number of spaces added for continuation lines - lines that syntactically
-continue the previous line (for example, an operand in a multi-line expression)
-- relative to the enclosing statement.
-
-If not explicitly set, defaults to `IndentWidth`.
-
-**Default:** Inherits from `IndentWidth`
-
-`ContinuationIndentWidth: 2`:
-
-```sv
-module foo;
-  assign x = a +
-    b;
-endmodule
-```
-
-`ContinuationIndentWidth: 4`:
-
-```sv
-module foo;
-  assign x = a +
-      b;
-endmodule
-```
-
----
-
 ### ColumnLimit (unsigned)
 
 The column limit. A column limit of `0` means that no column limit is applied.
 
-This option functions the same as the clang-format option of the [same name][3].
+This option functions the same as the clang-format option of the [same name][1].
 It is consumed by
-[`AlignAfterOpenParen`](#alignafteropenparent-bracketalignmentstyle) for argument
+[`AlignAfterOpenParen`](#alignafteropenparen-bracketalignmentstyle) for argument
 list wrapping and by
-[`CompactConditionals`](#compactconditionals-bool) for conditional compaction.
+[`CompactControlStatements`](#compactcontrolstatements-bool) for conditional
+compaction.
 
 **Default:** `100`
 
 ---
 
-### CompactConditionals (bool)
+### CompactControlStatements (bool)
 
 Compacts bare conditional statement bodies onto the same line as their `if`,
 `else if`, or `else` keyword when the resulting line fits within
@@ -1111,9 +1250,11 @@ Compacts bare conditional statement bodies onto the same line as their `if`,
 (not `begin`/`end` blocks). Requires
 [`OneStatementPerLine`](#onestatementperline-bool) to be enabled.
 
+`CompactConditionals` is accepted as a configuration alias for this option.
+
 **Default:** `true`
 
-`CompactConditionals: true` (default):
+`CompactControlStatements: true` (default):
 
 ```sv
 always_comb
@@ -1122,7 +1263,7 @@ always_comb
   else z = 3;
 ```
 
-`CompactConditionals: false`:
+`CompactControlStatements: false`:
 
 ```sv
 always_comb
@@ -1167,6 +1308,36 @@ endmodule
 module foo;
   timeunit 1ns;
   timeprecision 1ps;
+endmodule
+```
+
+---
+
+### ContinuationIndentWidth (unsigned)
+
+Number of spaces added for continuation lines - lines that syntactically
+continue the previous line (for example, an operand in a multi-line expression)
+- relative to the enclosing statement.
+
+If not explicitly set, defaults to `IndentWidth`.
+
+**Default:** Inherits from `IndentWidth`
+
+`ContinuationIndentWidth: 2`:
+
+```sv
+module foo;
+  assign x = a +
+    b;
+endmodule
+```
+
+`ContinuationIndentWidth: 4`:
+
+```sv
+module foo;
+  assign x = a +
+      b;
 endmodule
 ```
 
@@ -1304,6 +1475,12 @@ InsertBeginEnd:
   ControlStatements: false
   InitialStatements: false
 ```
+
+#### Enabled (bool)
+
+If `false`, disables all insertion regardless of other options.
+
+**Default:** `false`
 
 #### AlwaysStatements (bool)
 
@@ -1617,6 +1794,42 @@ endmodule
 
 ---
 
+### ParameterPortListIndentWidth (unsigned)
+
+Number of spaces used to indent items in a module ANSI port declaration. When
+the module has a parameter port list (`#( ... )`), this value governs both the
+parameter list and the following port list. When only a port list is present,
+`IndentWidth` applies instead.
+
+If not explicitly set, defaults to `ContinuationIndentWidth`, which in turn
+defaults to `IndentWidth`.
+
+**Default:** Inherits from `ContinuationIndentWidth`
+
+`ParameterPortListIndentWidth: 2`:
+
+```sv
+module foo #(
+  parameter N = 4
+) (
+  input a
+);
+endmodule
+```
+
+`ParameterPortListIndentWidth: 4`:
+
+```sv
+module foo #(
+    parameter N = 4
+) (
+    input a
+);
+endmodule
+```
+
+---
+
 ### RangeSpacing (RangeSpacingStyle)
 
 Controls whitespace around the colon in packed dimension range expressions such
@@ -1680,42 +1893,6 @@ single-space:
 module foo;
   logic [7:0] x;
   logic [15 : 0] y;
-endmodule
-```
-
----
-
-### ParameterPortListIndentWidth (unsigned)
-
-Number of spaces used to indent items in a module ANSI port declaration. When
-the module has a parameter port list (`#( ... )`), this value governs both the
-parameter list and the following port list. When only a port list is present,
-`IndentWidth` applies instead.
-
-If not explicitly set, defaults to `ContinuationIndentWidth`, which in turn
-defaults to `IndentWidth`.
-
-**Default:** Inherits from `ContinuationIndentWidth`
-
-`ParameterPortListIndentWidth: 2`:
-
-```sv
-module foo #(
-  parameter N = 4
-) (
-  input a
-);
-endmodule
-```
-
-`ParameterPortListIndentWidth: 4`:
-
-```sv
-module foo #(
-    parameter N = 4
-) (
-    input a
-);
 endmodule
 ```
 
@@ -1795,6 +1972,7 @@ affected.
 ```yaml
 SpaceAfterBrackets:
   PackedDimensions: true
+  UnpackedDimensions: false
 ```
 
 #### PackedDimensions (bool)
@@ -2013,6 +2191,35 @@ endmodule
 
 ---
 
+### SpaceAroundOperators (bool)
+
+Normalizes whitespace around assignment, binary, and ternary operators. If
+`true`, a single space is inserted before and after the operator; multiple spaces
+are collapsed to a single space. If `false`, whitespace before and after the
+operator is removed. Newlines are not affected.
+
+**Default:** `true`
+
+`SpaceAroundOperators: false`:
+
+```sv
+module foo;
+  assign x=a+b;
+  assign y=a?b:c;
+endmodule
+```
+
+`SpaceAroundOperators: true` (default):
+
+```sv
+module foo;
+  assign x = a + b;
+  assign y = a ? b : c;
+endmodule
+```
+
+---
+
 ### SpaceBeforeBrackets (SpaceBeforeBracketsStyle)
 
 Controls whitespace before an opening square bracket in declarations. Each
@@ -2024,6 +2231,7 @@ affected.
 ```yaml
 SpaceBeforeBrackets:
   PackedDimensions: true
+  UnpackedDimensions: false
 ```
 
 #### PackedDimensions (bool)
@@ -2209,35 +2417,6 @@ endmodule
 
 ---
 
-### SpaceAroundOperators (bool)
-
-Normalizes whitespace around assignment, binary, and ternary operators. If
-`true`, a single space is inserted before and after the operator; multiple spaces
-are collapsed to a single space. If `false`, whitespace before and after the
-operator is removed. Newlines are not affected.
-
-**Default:** `true`
-
-`SpaceAroundOperators: false`:
-
-```sv
-module foo;
-  assign x=a+b;
-  assign y=a?b:c;
-endmodule
-```
-
-`SpaceAroundOperators: true` (default):
-
-```sv
-module foo;
-  assign x = a + b;
-  assign y = a ? b : c;
-endmodule
-```
-
----
-
 ### SpacesBeforeTrailingComments (unsigned)
 
 Minimum number of spaces before a trailing end-of-line comment. Both `//` and
@@ -2259,40 +2438,6 @@ endmodule
 ```sv
 module foo;
   assign x = 1;  // comment
-endmodule
-```
-
----
-
-### SpacesInParens (bool)
-
-Normalizes whitespace inside parentheses. If `true`, whitespace following an
-opening parenthesis is replaced with a single space and a single space is
-inserted before a closing parenthesis; multiple spaces are collapsed to a single
-space. If `false`, whitespace following an opening parenthesis and preceding a
-closing parenthesis is removed. Newlines are not affected.
-
-**Default:** `false`
-
-`SpacesInParens: false` (default):
-
-```sv
-module foo;
-  initial begin
-    if (a) begin
-    end
-  end
-endmodule
-```
-
-`SpacesInParens: true`:
-
-```sv
-module foo;
-  initial begin
-    if ( a ) begin
-    end
-  end
 endmodule
 ```
 
@@ -2358,6 +2503,40 @@ endmodule
 
 ---
 
+### SpacesInParens (bool)
+
+Normalizes whitespace inside parentheses. If `true`, whitespace following an
+opening parenthesis is replaced with a single space and a single space is
+inserted before a closing parenthesis; multiple spaces are collapsed to a single
+space. If `false`, whitespace following an opening parenthesis and preceding a
+closing parenthesis is removed. Newlines are not affected.
+
+**Default:** `false`
+
+`SpacesInParens: false` (default):
+
+```sv
+module foo;
+  initial begin
+    if (a) begin
+    end
+  end
+endmodule
+```
+
+`SpacesInParens: true`:
+
+```sv
+module foo;
+  initial begin
+    if ( a ) begin
+    end
+  end
+endmodule
+```
+
+---
+
 ### UnpackedDimensionBounds (DimensionBoundsStyle)
 
 Controls the ordering of bounds in unpacked dimension ranges. When set to
@@ -2411,5 +2590,4 @@ module foo;
 endmodule
 ```
 
-[1]: https://sv-lang.com/
-[2]: https://clang.llvm.org/docs/ClangFormat.html
+[1]: https://clang.llvm.org/docs/ClangFormatStyleOptions.html#columnlimit
