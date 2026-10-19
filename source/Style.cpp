@@ -131,7 +131,7 @@ void parseEnum(const YAML::Node& node, std::string_view key, T& target,
     }
 
     const auto text = v.as<std::string>();
-    const auto* const it = std::ranges::find_if(values,
+    const auto it = std::ranges::find_if(values,
                                                 [&](T value) { return toString(value) == text; });
     target = it != values.end() ? *it : fallback;
 }

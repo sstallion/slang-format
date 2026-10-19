@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <set>
-#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -16,8 +15,6 @@ using namespace slang::format;
 namespace {
 
 using Kind = LineMetadata::Kind;
-
-constexpr auto npos = std::string_view::npos;
 
 } // namespace
 

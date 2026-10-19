@@ -30,8 +30,8 @@ slang-format/
 │   ├── AlignGroup.h           # Public interface for group formation
 │   ├── AlignInference.cpp     # Source spacing inference for alignment decisions
 │   ├── AlignInference.h       # Public interface for alignment inference
-│   ├── AlignTrailingComment.cpp # Trailing comment alignment pass
-│   ├── AlignTrailingComment.h # Public interface for trailing comment alignment
+│   ├── AlignComment.cpp       # Comment alignment pass
+│   ├── AlignComment.h         # Public interface for comment alignment
 │   ├── FileLoader.cpp         # Directory hierarchy file search
 │   ├── FileLoader.h           # FileLoader type alias and directory walk utility
 │   ├── Format.cpp             # Single-pass formatting and post-processing

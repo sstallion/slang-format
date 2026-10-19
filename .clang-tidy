@@ -18,4 +18,5 @@ Checks: >
     -performance-enum-size,
     -portability-avoid-pragma-once,
     -readability-identifier-length,
+    -readability-qualified-auto,
 WarningsAsErrors: '*'

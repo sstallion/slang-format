@@ -1,7 +1,7 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
-#include "AlignTrailingComment.h"
+#include "AlignComment.h"
 #include "Align.h"
 #include "AlignClassifier.h"
 #include "AlignGroup.h"

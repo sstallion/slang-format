@@ -39,7 +39,7 @@ add_library(${PROJECT_NAME}-object OBJECT
             ${SOURCE_DIR}/AlignDimension.cpp
             ${SOURCE_DIR}/AlignGroup.cpp
             ${SOURCE_DIR}/AlignInference.cpp
-            ${SOURCE_DIR}/AlignTrailingComment.cpp
+            ${SOURCE_DIR}/AlignComment.cpp
             ${SOURCE_DIR}/FileLoader.cpp
             ${SOURCE_DIR}/Format.cpp
             ${SOURCE_DIR}/FormatClass.cpp

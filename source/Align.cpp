@@ -4,11 +4,11 @@
 #include "Align.h"
 #include "AlignAssignment.h"
 #include "AlignClassifier.h"
+#include "AlignComment.h"
 #include "AlignDeclaration.h"
 #include "AlignDimension.h"
 #include "AlignGroup.h"
 #include "AlignInference.h"
-#include "AlignTrailingComment.h"
 #include "Style.h"
 
 #include <array>
