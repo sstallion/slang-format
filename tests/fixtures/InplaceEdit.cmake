@@ -1,20 +1,9 @@
 # Copyright 2026 Steven Stallion
 # SPDX-License-Identifier: MIT
 
-file(COPY ${FIXTURES_DIR}/inplace.sv DESTINATION ${WORK_DIR})
+include(FixtureTest)
 
-execute_process(COMMAND ${SLANG_FORMAT} --no-config -i ${WORK_DIR}/inplace.sv
-                RESULT_VARIABLE result)
+file(COPY ${FIXTURES_DIR}/inplace.sv DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-if(NOT result EQUAL 0)
-  message(FATAL_ERROR "slang-format failed with exit code ${result}")
-endif()
-
-execute_process(COMMAND ${CMAKE_COMMAND} -E compare_files
-                        ${WORK_DIR}/inplace.sv
-                        ${FIXTURES_DIR}/inplace.sv.expected
-                RESULT_VARIABLE result)
-
-if(NOT result EQUAL 0)
-  message(FATAL_ERROR "slang-format produced unexpected output: ${output}")
-endif()
+fixture_run(output -i ${CMAKE_CURRENT_BINARY_DIR}/inplace.sv)
+fixture_expect_file(${CMAKE_CURRENT_BINARY_DIR}/inplace.sv ${FIXTURES_DIR}/inplace.sv.expected)

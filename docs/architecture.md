@@ -55,13 +55,24 @@ slang-format/
 │   ├── TokenHelper.h          # Public interface for token inspection
 │   └── main.cpp               # Entry point; command-line processing and output
 └── tests/
-    ├── fixtures/         # CTest integration test scripts
-    ├── AlignTest.cpp     # Alignment post-processing tests
-    ├── FormatTest.cpp    # Formatting and post-processing tests
-    ├── IgnoreTest.cpp    # Ignore file lookup and pattern matching tests
-    ├── RewriterTest.cpp  # Syntax rewriting tests
-    ├── StyleTest.cpp     # Style configuration and YAML parsing tests
-    └── TestHelper.h      # Utilities for writing tests
+    ├── fixtures/                  # CTest integration test scripts
+    ├── AlignAssignmentTest.cpp    # Assignment and port connection alignment tests
+    ├── AlignCommentTest.cpp       # Comment alignment tests
+    ├── AlignDeclarationTest.cpp   # Declaration and timing control alignment tests
+    ├── AlignDimensionTest.cpp     # Packed dimension alignment tests
+    ├── AlignInferenceTest.cpp     # Source spacing inference tests
+    ├── FormatClassTest.cpp        # Constraint and covergroup formatting tests
+    ├── FormatDeclarationTest.cpp  # Declaration and typedef formatting tests
+    ├── FormatExpressionTest.cpp   # Expression and argument list formatting tests
+    ├── FormatMemberTest.cpp       # Module, function, and generate formatting tests
+    ├── FormatPortListTest.cpp     # Port list and parameter list formatting tests
+    ├── FormatPrinterTest.cpp      # Core formatting and token emission tests
+    ├── FormatStatementTest.cpp    # Statement and case item formatting tests
+    ├── FormatTest.cpp             # Line ending and post-processing tests
+    ├── IgnoreTest.cpp             # Ignore file lookup and pattern matching tests
+    ├── RewriterTest.cpp           # Syntax rewriting tests
+    ├── StyleTest.cpp              # Style configuration and YAML parsing tests
+    └── TestHelper.h               # Utilities for writing tests
 ```
 
 ## Formatting Flow

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "Ignore.h"
+#include "TestHelper.h"
 
 #include <filesystem>
 #include <optional>
@@ -11,98 +12,51 @@
 
 using namespace slang::format;
 
-TEST(IsIgnored, ReturnsFalseWhenNoIgnoreFile) {
-    auto loader = [](const std::filesystem::path&) -> std::optional<std::string> {
-        return std::nullopt;
-    };
+TEST(IsIgnored, FindsIgnoreInAncestorDir) {
+    const auto loader = makeFileLoader({{"/a/.slang-format-ignore", "**/*.sv"}});
+    EXPECT_TRUE(isIgnored("/a/b/c/d/foo.sv", loader));
+}
 
-    EXPECT_FALSE(isIgnored("/a/b/c/foo.sv", loader));
+TEST(IsIgnored, LastMatchWins) {
+    const auto loader = makeFileLoader({{"/a/b/.slang-format-ignore", "*.sv\n!*.sv"}});
+    EXPECT_FALSE(isIgnored("/a/b/foo.sv", loader));
+}
+
+TEST(IsIgnored, MatchesDoubleStar) {
+    const auto loader = makeFileLoader({{"/a/.slang-format-ignore", "**/test/*.sv"}});
+    EXPECT_TRUE(isIgnored("/a/b/test/foo.sv", loader));
+}
+
+TEST(IsIgnored, MatchesEllipsis) {
+    const auto loader = makeFileLoader({{"/a/.slang-format-ignore", ".../test/*.sv"}});
+    EXPECT_TRUE(isIgnored("/a/b/test/foo.sv", loader));
 }
 
 TEST(IsIgnored, MatchesSimpleGlob) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/b/.slang-format-ignore")) {
-            return "*.sv";
-        }
-
-        return std::nullopt;
-    };
-
+    const auto loader = makeFileLoader({{"/a/b/.slang-format-ignore", "*.sv"}});
     EXPECT_TRUE(isIgnored("/a/b/foo.sv", loader));
 }
 
-TEST(IsIgnored, MatchesRecursiveGlobWithDoubleStar) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/.slang-format-ignore")) {
-            return "**/test/*.sv";
-        }
-
-        return std::nullopt;
-    };
-
-    EXPECT_TRUE(isIgnored("/a/b/test/foo.sv", loader));
-}
-
-TEST(IsIgnored, MatchesRecursiveGlobWithEllipsis) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/.slang-format-ignore")) {
-            return ".../test/*.sv";
-        }
-
-        return std::nullopt;
-    };
-
-    EXPECT_TRUE(isIgnored("/a/b/test/foo.sv", loader));
-}
-
 TEST(IsIgnored, NegationReIncludes) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/b/.slang-format-ignore")) {
-            return "*.sv\n!important.sv";
-        }
-
-        return std::nullopt;
-    };
-
+    const auto loader = makeFileLoader({{"/a/b/.slang-format-ignore", "*.sv\n!important.sv"}});
     EXPECT_TRUE(isIgnored("/a/b/foo.sv", loader));
     EXPECT_FALSE(isIgnored("/a/b/important.sv", loader));
 }
 
-TEST(IsIgnored, LastMatchWins) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/b/.slang-format-ignore")) {
-            return "*.sv\n!*.sv";
-        }
+TEST(IsIgnored, NoIgnoreFile) {
+    const auto loader = makeFileLoader({});
+    EXPECT_FALSE(isIgnored("/a/b/c/foo.sv", loader));
+}
 
-        return std::nullopt;
-    };
-
+TEST(IsIgnored, NoMatch) {
+    const auto loader = makeFileLoader({{"/a/b/.slang-format-ignore", "*.v"}});
     EXPECT_FALSE(isIgnored("/a/b/foo.sv", loader));
 }
 
 TEST(IsIgnored, PatternRelativeToIgnoreFileDir) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/.slang-format-ignore")) {
-            return "b/c/*.sv";
-        }
-
-        return std::nullopt;
-    };
-
+    const auto loader = makeFileLoader({{"/a/.slang-format-ignore", "b/c/*.sv"}});
     EXPECT_TRUE(isIgnored("/a/b/c/foo.sv", loader));
     EXPECT_FALSE(isIgnored("/a/b/foo.sv", loader));
-}
-
-TEST(IsIgnored, FindsIgnoreInAncestorDir) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/.slang-format-ignore")) {
-            return "**/*.sv";
-        }
-
-        return std::nullopt;
-    };
-
-    EXPECT_TRUE(isIgnored("/a/b/c/d/foo.sv", loader));
 }
 
 TEST(IsIgnored, PrefersFirstNameVariant) {
@@ -124,67 +78,27 @@ TEST(IsIgnored, PrefersFirstNameVariant) {
     EXPECT_EQ(dotCalls, 1);
 }
 
+TEST(IsIgnored, SkipsBlankLines) {
+    const auto loader = makeFileLoader({{"/a/b/.slang-format-ignore", "\n\n*.sv\n\n"}});
+    EXPECT_TRUE(isIgnored("/a/b/foo.sv", loader));
+}
+
+TEST(IsIgnored, SkipsCommentLines) {
+    const auto loader = makeFileLoader(
+        {{"/a/b/.slang-format-ignore", "# This is a comment\n*.sv"}});
+    EXPECT_TRUE(isIgnored("/a/b/foo.sv", loader));
+}
+
 TEST(IsIgnored, StopsAtFirstIgnoreFile) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/b/.slang-format-ignore")) {
-            return "*.v";
-        }
-
-        if (p == std::filesystem::path("/a/.slang-format-ignore")) {
-            return "*.sv";
-        }
-
-        return std::nullopt;
-    };
-
+    const auto loader = makeFileLoader({
+        {"/a/.slang-format-ignore", "*.sv"},
+        {"/a/b/.slang-format-ignore", "*.v"},
+    });
     EXPECT_FALSE(isIgnored("/a/b/foo.sv", loader));
     EXPECT_TRUE(isIgnored("/a/b/foo.v", loader));
 }
 
-TEST(IsIgnored, SkipsCommentLines) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/b/.slang-format-ignore")) {
-            return "# This is a comment\n*.sv";
-        }
-
-        return std::nullopt;
-    };
-
-    EXPECT_TRUE(isIgnored("/a/b/foo.sv", loader));
-}
-
-TEST(IsIgnored, SkipsBlankLines) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/b/.slang-format-ignore")) {
-            return "\n\n*.sv\n\n";
-        }
-
-        return std::nullopt;
-    };
-
-    EXPECT_TRUE(isIgnored("/a/b/foo.sv", loader));
-}
-
 TEST(IsIgnored, TrimsWhitespace) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/b/.slang-format-ignore")) {
-            return "  *.sv  ";
-        }
-
-        return std::nullopt;
-    };
-
+    const auto loader = makeFileLoader({{"/a/b/.slang-format-ignore", "  *.sv  "}});
     EXPECT_TRUE(isIgnored("/a/b/foo.sv", loader));
-}
-
-TEST(IsIgnored, NoMatchReturnsFalse) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/b/.slang-format-ignore")) {
-            return "*.v";
-        }
-
-        return std::nullopt;
-    };
-
-    EXPECT_FALSE(isIgnored("/a/b/foo.sv", loader));
 }

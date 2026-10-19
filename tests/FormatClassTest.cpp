@@ -1,0 +1,262 @@
+// Copyright 2026 Steven Stallion
+// SPDX-License-Identifier: MIT
+
+#include "Format.h"
+#include "Style.h"
+#include "TestHelper.h"
+
+#include <gtest/gtest.h>
+
+using namespace slang::format;
+
+// clang-format off
+TEST(AllowShortConstraintBlocksOnASingleLine, Disabled) {
+    Style style;
+    style.AllowShortConstraintBlocksOnASingleLine = false;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        constraint c {kind inside {[0:7]};}
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          constraint c {
+            kind inside {[0:7]};
+          }
+        endclass
+    )"));
+}
+
+TEST(AllowShortConstraintBlocksOnASingleLine, ExpandsMultipleItems) {
+    Style style;
+    style.AllowShortConstraintBlocksOnASingleLine = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        constraint c {len inside {[1:16]}; data.size() == len;}
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          constraint c {
+            len inside {[1:16]};
+            data.size() == len;
+          }
+        endclass
+    )"));
+}
+
+TEST(AllowShortConstraintBlocksOnASingleLine, JoinsSingleItem) {
+    Style style;
+    style.AllowShortConstraintBlocksOnASingleLine = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        constraint c {
+        kind inside {[0:7]};
+        }
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          constraint c {kind inside {[0:7]};}
+        endclass
+    )"));
+}
+
+TEST(AllowShortConstraintBlocksOnASingleLine, RandomizeWithMultipleItems) {
+    Style style;
+    style.AllowShortConstraintBlocksOnASingleLine = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin
+        if (!u_bar.randomize() with {
+        len == 4;
+        op inside {OP_A0, OP_A1};
+        }) begin
+        $error("failed");
+        end
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            if (!u_bar.randomize() with {
+                  len == 4;
+                  op inside {OP_A0, OP_A1};
+                }) begin
+              $error("failed");
+            end
+          end
+        endmodule
+    )"));
+}
+
+TEST(AllowShortConstraintBlocksOnASingleLine, RandomizeWithSingleItem) {
+    Style style;
+    style.AllowShortConstraintBlocksOnASingleLine = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin
+        void'(std::randomize(counter) with {
+        counter inside {[1:10]};
+        });
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            void'(std::randomize(counter) with {counter inside {[1:10]};});
+          end
+        endmodule
+    )"));
+}
+
+TEST(AllowShortCoverpointsOnASingleLine, Disabled) {
+    Style style;
+    style.AllowShortCoverpointsOnASingleLine = false;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        covergroup cg;
+        cp_addr: coverpoint addr {option.auto_bin_max = 8;}
+        endgroup
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          covergroup cg;
+            cp_addr: coverpoint addr {
+              option.auto_bin_max = 8;
+            }
+          endgroup
+        endclass
+    )"));
+}
+
+TEST(AllowShortCoverpointsOnASingleLine, ExpandsWhenExceedingColumnLimit) {
+    const Style style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        covergroup cg;
+        cp_op: coverpoint op {
+        bins a_ops[] = {OP_A0, OP_A1, OP_A2, OP_A3};
+        bins b_ops = {OP_B2, OP_B3};
+        ignore_bins ig = {OP_A0};
+        }
+        endgroup
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          covergroup cg;
+            cp_op: coverpoint op {
+              bins a_ops[] = {OP_A0, OP_A1, OP_A2, OP_A3};
+              bins b_ops = {OP_B2, OP_B3};
+              ignore_bins ig = {OP_A0};
+            }
+          endgroup
+        endclass
+    )"));
+}
+
+TEST(AllowShortCoverpointsOnASingleLine, JoinsCoverCross) {
+    Style style;
+    style.AllowShortCoverpointsOnASingleLine = true;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+          covergroup cg;
+            x_op_len : cross cp_op, cp_len {
+                 ignore_bins skip = binsof(cp_len.lg) && binsof(cp_op.b_ops);
+            }
+          endgroup
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          covergroup cg;
+            x_op_len : cross cp_op, cp_len {ignore_bins skip = binsof (cp_len.lg) && binsof (cp_op.b_ops);}
+          endgroup
+        endclass
+    )"));
+}
+
+TEST(AllowShortCoverpointsOnASingleLine, JoinsWhenFits) {
+    const Style style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        covergroup cg;
+        cp_len: coverpoint len {
+        bins sm = {[1:4]};
+        bins md = {[5:12]};
+        bins lg = {[13:16]};
+        }
+        endgroup
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          covergroup cg;
+            cp_len: coverpoint len {bins sm = {[1:4]}; bins md = {[5:12]}; bins lg = {[13:16]};}
+          endgroup
+        endclass
+    )"));
+}
+
+TEST(ClassDeclaration, Members) {
+    const Style style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        int x;
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          int x;
+        endclass
+    )"));
+}
+
+TEST(CovergroupDeclaration, Members) {
+    const Style style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        class foo;
+        covergroup cg;
+        option.per_instance = 1;
+        endgroup
+        endclass
+    )"), style), dedent(R"(
+        class foo;
+          covergroup cg;
+            option.per_instance = 1;
+          endgroup
+        endclass
+    )"));
+}
+
+TEST(DistConstraintList, ExpandsItems) {
+    const Style style;
+
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin
+        assert(u_bar.randomize() with {
+        op dist {OP_A0 := 40, OP_A1 := 30, [OP_A2 : OP_B3] :/ 30};
+        });
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            assert (u_bar.randomize() with {
+              op dist {
+                OP_A0 := 40,
+                OP_A1 := 30,
+                [OP_A2 : OP_B3] :/ 30
+              };
+            });
+          end
+        endmodule
+    )"));
+}
+// clang-format on
