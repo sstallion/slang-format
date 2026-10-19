@@ -4,7 +4,6 @@
 #include "TokenHelper.h"
 
 #include <algorithm>
-#include <cstddef>
 
 #include <slang/parsing/LexerFacts.h>
 #include <slang/parsing/Token.h>
@@ -26,7 +25,9 @@ bool isIdentChar(char c) {
 
 } // namespace
 
-bool slang::format::hasLeadingNewline(Token tok) {
+namespace slang::format {
+
+bool hasLeadingNewline(Token tok) {
     if (!tok) {
         return false;
     }
@@ -35,7 +36,7 @@ bool slang::format::hasLeadingNewline(Token tok) {
                                [](const auto& t) { return t.kind == TriviaKind::EndOfLine; });
 }
 
-bool slang::format::hasLeadingComment(Token tok) {
+bool hasLeadingComment(Token tok) {
     if (!tok) {
         return false;
     }
@@ -45,7 +46,7 @@ bool slang::format::hasLeadingComment(Token tok) {
     });
 }
 
-bool slang::format::hasLeadingTrailingComment(Token tok) {
+bool hasLeadingTrailingComment(Token tok) {
     if (!tok) {
         return false;
     }
@@ -61,7 +62,7 @@ bool slang::format::hasLeadingTrailingComment(Token tok) {
     return false;
 }
 
-bool slang::format::hasLeadingBlankLine(Token tok) {
+bool hasLeadingBlankLine(Token tok) {
     if (!tok) {
         return false;
     }
@@ -81,7 +82,7 @@ bool slang::format::hasLeadingBlankLine(Token tok) {
     return false;
 }
 
-size_t slang::format::leadingWhitespaceLength(Token tok) {
+size_t leadingWhitespaceLength(Token tok) {
     if (!tok) {
         return 0;
     }
@@ -95,11 +96,11 @@ size_t slang::format::leadingWhitespaceLength(Token tok) {
     return len;
 }
 
-bool slang::format::needsSeparator(char last, char next) {
+bool needsSeparator(char last, char next) {
     return isIdentChar(last) && isIdentChar(next);
 }
 
-bool slang::format::needsSpaceBetween(TokenKind prev, TokenKind curr) {
+bool needsSpaceBetween(TokenKind prev, TokenKind curr) {
     if (prev == TokenKind::Unknown) {
         return false;
     }
@@ -148,7 +149,7 @@ bool slang::format::needsSpaceBetween(TokenKind prev, TokenKind curr) {
     return false;
 }
 
-size_t slang::format::flatWidth(const SyntaxNode& node, bool ignoreNewlines) {
+size_t flatWidth(const SyntaxNode& node, bool ignoreNewlines) {
     size_t width = 0;
     char lastChar = 0;
     auto prevKind = TokenKind::Unknown;
@@ -178,3 +179,5 @@ size_t slang::format::flatWidth(const SyntaxNode& node, bool ignoreNewlines) {
     }
     return width;
 }
+
+} // namespace slang::format
