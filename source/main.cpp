@@ -3,8 +3,8 @@
 
 #include "Config.h"
 #include "ConfigHelper.h"
-#include "Format.h"
 #include "Ignore.h"
+#include "slang/format/Format.h"
 #include "slang/format/styles/Default.h"
 
 #include <cerrno>

@@ -1,8 +1,8 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
-#include "Format.h"
 #include "TestHelper.h"
+#include "slang/format/Format.h"
 #include "slang/format/Style.h"
 #include "slang/format/styles/Default.h"
 

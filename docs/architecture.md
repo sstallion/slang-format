@@ -18,6 +18,7 @@ slang-format/
 ├── include/slang/format/
 │   ├── styles/
 │   │   └── Default.h              # Default predefined style definition
+│   ├── Format.h                   # Public interface for formatting and post-processing
 │   └── Style.h                    # Style types and canonical option documentation
 ├── source/
 │   ├── Align.cpp                  # Alignment pass driver
@@ -41,7 +42,6 @@ slang-format/
 │   ├── FileLoader.cpp             # Directory hierarchy file search
 │   ├── FileLoader.h               # FileLoader type alias and directory walk utility
 │   ├── Format.cpp                 # Single-pass formatting and post-processing
-│   ├── Format.h                   # Public interface for formatting and post-processing
 │   ├── FormatClass.cpp            # Constraint and covergroup handler definitions
 │   ├── FormatDeclaration.cpp      # Declaration and typedef handler definitions
 │   ├── FormatExpression.cpp       # Expression and argument list handler definitions
@@ -158,13 +158,11 @@ table is the single registration point and is intended to back a future
 
 ### Public Headers
 
-`include/slang/format/` holds the headers intended for the eventual library API:
-`Style.h` (types and documentation only, depending on nothing but `<string>`)
-and `styles/`. They are included with quotes and a path relative to `include/`
-(`"slang/format/Style.h"`) so they are visually distinct from upstream
-`<slang/...>` headers. Configuration handling (`ConfigHelper.{h,cpp}`),
-`FileLoader.h`, and the other headers in `source/` are internal; moving
-`Format.h` and `Ignore.h` belongs to the library work tracked in `docs/todo.md`.
+`include/slang/format/` holds the headers intended for the library API:
+`Format.h` (the public formatting interface), `Style.h` (types and documentation
+only, depending on nothing but `<string>`) and `styles/`. They are included with
+quotes and a path relative to `include/` (`"slang/format/Style.h"`) so they are
+visually distinct from upstream `<slang/...>` headers.
 
 ### Ignore File Lookup
 

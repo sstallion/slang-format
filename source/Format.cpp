@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 #include "Align.h"
-#include "Format.h"
 #include "FormatPrinter.h"
 #include "Rewriter.h"
+#include "slang/format/Format.h"
 #include "slang/format/Style.h"
 
 #include <cstddef>
