@@ -1,5 +1,6 @@
 ---
 paths:
+  - 'include/**/*.h'
   - 'source/**/*.{cpp,h}'
   - 'tests/**/*.{cpp,h}'
 ---
@@ -11,6 +12,8 @@ paths:
 - Naming conventions for files, interfaces, and user-defined types follows the
   same conventions as the upstream [slang][1] project.
 - Public interfaces are declared inside the `slang::format` namespace.
+- Predefined style headers under `include/slang/format/styles/` are declared
+  inside the `slang::format::style` namespace.
 - Each translation unit has a corresponding header that declares
   its public interface (e.g. `Unit.h` for `Unit.cpp`).
 - Use unnamed namespaces for file-scoped declarations.

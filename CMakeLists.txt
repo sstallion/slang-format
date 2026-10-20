@@ -23,10 +23,11 @@ include(Version)
 
 find_package(ClangTidy)
 
+set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
 set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
-include_directories(${SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${INCLUDE_DIR} ${SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/Config.h)
@@ -40,6 +41,7 @@ add_library(${PROJECT_NAME}-object OBJECT
             ${SOURCE_DIR}/AlignGroup.cpp
             ${SOURCE_DIR}/AlignInference.cpp
             ${SOURCE_DIR}/AlignComment.cpp
+            ${SOURCE_DIR}/ConfigHelper.cpp
             ${SOURCE_DIR}/FileLoader.cpp
             ${SOURCE_DIR}/Format.cpp
             ${SOURCE_DIR}/FormatClass.cpp
@@ -51,7 +53,6 @@ add_library(${PROJECT_NAME}-object OBJECT
             ${SOURCE_DIR}/FormatStatement.cpp
             ${SOURCE_DIR}/Ignore.cpp
             ${SOURCE_DIR}/Rewriter.cpp
-            ${SOURCE_DIR}/Style.cpp
             ${SOURCE_DIR}/TokenHelper.cpp)
 
 target_link_libraries(${PROJECT_NAME}-object
@@ -76,6 +77,7 @@ if(BUILD_TESTING)
                  ${TESTS_DIR}/AlignDeclarationTest.cpp
                  ${TESTS_DIR}/AlignDimensionTest.cpp
                  ${TESTS_DIR}/AlignInferenceTest.cpp
+                 ${TESTS_DIR}/ConfigHelperTest.cpp
                  ${TESTS_DIR}/FormatClassTest.cpp
                  ${TESTS_DIR}/FormatDeclarationTest.cpp
                  ${TESTS_DIR}/FormatExpressionTest.cpp
@@ -85,8 +87,7 @@ if(BUILD_TESTING)
                  ${TESTS_DIR}/FormatStatementTest.cpp
                  ${TESTS_DIR}/FormatTest.cpp
                  ${TESTS_DIR}/IgnoreTest.cpp
-                 ${TESTS_DIR}/RewriterTest.cpp
-                 ${TESTS_DIR}/StyleTest.cpp)
+                 ${TESTS_DIR}/RewriterTest.cpp)
 
   target_link_libraries(${PROJECT_NAME}-tests
                         ${PROJECT_NAME}-object

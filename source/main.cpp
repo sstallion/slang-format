@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: MIT
 
 #include "Config.h"
+#include "ConfigHelper.h"
 #include "Format.h"
 #include "Ignore.h"
-#include "Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <cerrno>
 #include <cstdlib>
@@ -110,8 +111,8 @@ int formatFiles(std::string_view programName, const std::vector<std::string>& fi
                 if (inplace) {
                     continue;
                 }
-                auto style = noConfig ? getDefaultStyle()
-                                      : getStyle(std::filesystem::current_path());
+                auto style = noConfig ? style::getDefaultStyle()
+                                      : loadConfig(std::filesystem::current_path());
                 std::cout << reformat(std::cin, style);
                 continue;
             }
@@ -121,7 +122,7 @@ int formatFiles(std::string_view programName, const std::vector<std::string>& fi
                 continue;
             }
 
-            auto style = noConfig ? getDefaultStyle() : getStyle(path.parent_path());
+            auto style = noConfig ? style::getDefaultStyle() : loadConfig(path.parent_path());
 
             if (inplace) {
                 auto source = readFile(path);
@@ -192,9 +193,9 @@ int main(int argc, char* argv[]) {
     }
 
     if (dumpConfig.value_or(false)) {
-        auto style = noConfig.value_or(false) ? getDefaultStyle()
-                                              : getStyle(std::filesystem::current_path());
-        std::cout << dumpConfiguration(style) << "\n";
+        auto style = noConfig.value_or(false) ? style::getDefaultStyle()
+                                              : loadConfig(std::filesystem::current_path());
+        std::cout << slang::format::dumpConfig(style) << "\n";
         return EXIT_SUCCESS;
     }
 

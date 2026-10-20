@@ -2,17 +2,19 @@
 // SPDX-License-Identifier: MIT
 
 #include "Format.h"
-#include "Style.h"
 #include "TestHelper.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <string_view>
 
 #include <gtest/gtest.h>
 
 using namespace slang::format;
+using namespace slang::format::style;
 
 TEST(EventSeparator, CommaIffClause) {
-    Style style;
+    auto style = getDefaultStyle();
     style.EventSeparator = EventSeparatorStyle::Comma;
 
     // clang-format off
@@ -31,7 +33,7 @@ TEST(EventSeparator, CommaIffClause) {
 }
 
 TEST(EventSeparator, CommaMixedSeparators) {
-    Style style;
+    auto style = getDefaultStyle();
     style.EventSeparator = EventSeparatorStyle::Comma;
 
     // clang-format off
@@ -50,7 +52,7 @@ TEST(EventSeparator, CommaMixedSeparators) {
 }
 
 TEST(EventSeparator, CommaMultipleSignals) {
-    Style style;
+    auto style = getDefaultStyle();
     style.EventSeparator = EventSeparatorStyle::Comma;
 
     // clang-format off
@@ -69,7 +71,7 @@ TEST(EventSeparator, CommaMultipleSignals) {
 }
 
 TEST(EventSeparator, CommaPreservesComma) {
-    Style style;
+    auto style = getDefaultStyle();
     style.EventSeparator = EventSeparatorStyle::Comma;
 
     // clang-format off
@@ -88,7 +90,7 @@ TEST(EventSeparator, CommaPreservesComma) {
 }
 
 TEST(EventSeparator, CommaRewritesOr) {
-    Style style;
+    auto style = getDefaultStyle();
     style.EventSeparator = EventSeparatorStyle::Comma;
 
     // clang-format off
@@ -107,7 +109,7 @@ TEST(EventSeparator, CommaRewritesOr) {
 }
 
 TEST(EventSeparator, OrPreservesOr) {
-    Style style;
+    auto style = getDefaultStyle();
     style.EventSeparator = EventSeparatorStyle::Or;
 
     // clang-format off
@@ -126,7 +128,7 @@ TEST(EventSeparator, OrPreservesOr) {
 }
 
 TEST(EventSeparator, OrRewritesComma) {
-    Style style;
+    auto style = getDefaultStyle();
     style.EventSeparator = EventSeparatorStyle::Or;
 
     // clang-format off
@@ -145,7 +147,7 @@ TEST(EventSeparator, OrRewritesComma) {
 }
 
 TEST(EventSeparator, Preserve) {
-    Style style;
+    auto style = getDefaultStyle();
     style.EventSeparator = EventSeparatorStyle::Preserve;
 
     // clang-format off
@@ -164,7 +166,7 @@ TEST(EventSeparator, Preserve) {
 }
 
 TEST(InsertBeginEnd, AlwaysAlreadyWrapped) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -186,7 +188,7 @@ TEST(InsertBeginEnd, AlwaysAlreadyWrapped) {
 }
 
 TEST(InsertBeginEnd, AlwaysComb) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -207,7 +209,7 @@ TEST(InsertBeginEnd, AlwaysComb) {
 }
 
 TEST(InsertBeginEnd, AlwaysFF) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -228,7 +230,7 @@ TEST(InsertBeginEnd, AlwaysFF) {
 }
 
 TEST(InsertBeginEnd, AlwaysStatementsDisabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.Enabled = true;
 
     // clang-format off
@@ -247,7 +249,7 @@ TEST(InsertBeginEnd, AlwaysStatementsDisabled) {
 }
 
 TEST(InsertBeginEnd, AlwaysWithControlStatement) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
@@ -272,7 +274,7 @@ TEST(InsertBeginEnd, AlwaysWithControlStatement) {
 }
 
 TEST(InsertBeginEnd, AlwaysWithNestedControl) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
@@ -297,7 +299,7 @@ TEST(InsertBeginEnd, AlwaysWithNestedControl) {
 }
 
 TEST(InsertBeginEnd, CaseItem) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -327,7 +329,7 @@ TEST(InsertBeginEnd, CaseItem) {
 }
 
 TEST(InsertBeginEnd, CaseItemAlreadyWrapped) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -355,7 +357,7 @@ TEST(InsertBeginEnd, CaseItemAlreadyWrapped) {
 }
 
 TEST(InsertBeginEnd, ControlStatementAlreadyWrapped) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -381,7 +383,7 @@ TEST(InsertBeginEnd, ControlStatementAlreadyWrapped) {
 }
 
 TEST(InsertBeginEnd, ControlStatementsDisabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.Enabled = true;
 
     // clang-format off
@@ -402,7 +404,7 @@ TEST(InsertBeginEnd, ControlStatementsDisabled) {
 }
 
 TEST(InsertBeginEnd, DeepNesting) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -431,7 +433,7 @@ TEST(InsertBeginEnd, DeepNesting) {
 }
 
 TEST(InsertBeginEnd, Disabled) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -451,7 +453,7 @@ TEST(InsertBeginEnd, Disabled) {
 }
 
 TEST(InsertBeginEnd, DoWhile) {
-    Style style;
+    auto style = getDefaultStyle();
     style.ContinuationIndentWidth = 2;
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
@@ -477,7 +479,7 @@ TEST(InsertBeginEnd, DoWhile) {
 }
 
 TEST(InsertBeginEnd, ElseIf) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -510,7 +512,7 @@ TEST(InsertBeginEnd, ElseIf) {
 }
 
 TEST(InsertBeginEnd, Final) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.InitialStatements = true;
 
@@ -531,7 +533,7 @@ TEST(InsertBeginEnd, Final) {
 }
 
 TEST(InsertBeginEnd, ForLoop) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -554,7 +556,7 @@ TEST(InsertBeginEnd, ForLoop) {
 }
 
 TEST(InsertBeginEnd, If) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -577,7 +579,7 @@ TEST(InsertBeginEnd, If) {
 }
 
 TEST(InsertBeginEnd, IfElse) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -605,7 +607,7 @@ TEST(InsertBeginEnd, IfElse) {
 }
 
 TEST(InsertBeginEnd, Initial) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.InitialStatements = true;
 
@@ -626,7 +628,7 @@ TEST(InsertBeginEnd, Initial) {
 }
 
 TEST(InsertBeginEnd, InitialAlreadyWrapped) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.InitialStatements = true;
 
@@ -648,7 +650,7 @@ TEST(InsertBeginEnd, InitialAlreadyWrapped) {
 }
 
 TEST(InsertBeginEnd, InitialStatementsDisabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertBeginEnd.Enabled = true;
 
     // clang-format off
@@ -667,7 +669,7 @@ TEST(InsertBeginEnd, InitialStatementsDisabled) {
 }
 
 TEST(InsertParens, Delays) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertParens.Delays = true;
 
     // clang-format off
@@ -684,7 +686,7 @@ TEST(InsertParens, Delays) {
 }
 
 TEST(InsertParens, DelaysPreservesParens) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertParens.Delays = true;
 
     // clang-format off
@@ -701,7 +703,7 @@ TEST(InsertParens, DelaysPreservesParens) {
 }
 
 TEST(InsertParens, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertParens = {};
 
     // clang-format off
@@ -722,7 +724,7 @@ TEST(InsertParens, Disabled) {
 }
 
 TEST(InsertParens, ExpressionEvents) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertParens.ExpressionEvents = true;
 
     // clang-format off
@@ -741,7 +743,7 @@ TEST(InsertParens, ExpressionEvents) {
 }
 
 TEST(InsertParens, ExpressionEventsPreservesParens) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertParens.ExpressionEvents = true;
 
     // clang-format off
@@ -760,7 +762,7 @@ TEST(InsertParens, ExpressionEventsPreservesParens) {
 }
 
 TEST(InsertParens, ImplicitEvents) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertParens.ImplicitEvents = true;
 
     // clang-format off
@@ -777,7 +779,7 @@ TEST(InsertParens, ImplicitEvents) {
 }
 
 TEST(InsertParens, ImplicitEventsPreservesParens) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertParens.ImplicitEvents = true;
 
     // clang-format off
@@ -794,7 +796,7 @@ TEST(InsertParens, ImplicitEventsPreservesParens) {
 }
 
 TEST(InsertParens, NamedEvents) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertParens.NamedEvents = true;
 
     // clang-format off
@@ -811,7 +813,7 @@ TEST(InsertParens, NamedEvents) {
 }
 
 TEST(InsertParens, NamedEventsPreservesParens) {
-    Style style;
+    auto style = getDefaultStyle();
     style.InsertParens.NamedEvents = true;
 
     // clang-format off
@@ -828,7 +830,7 @@ TEST(InsertParens, NamedEventsPreservesParens) {
 }
 
 TEST(PackedDimensionBounds, EqualBoundsPreserved) {
-    Style style;
+    auto style = getDefaultStyle();
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -845,7 +847,7 @@ TEST(PackedDimensionBounds, EqualBoundsPreserved) {
 }
 
 TEST(PackedDimensionBounds, IgnoresUnpackedDimensions) {
-    Style style;
+    auto style = getDefaultStyle();
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -862,7 +864,7 @@ TEST(PackedDimensionBounds, IgnoresUnpackedDimensions) {
 }
 
 TEST(PackedDimensionBounds, ImplicitType) {
-    Style style;
+    auto style = getDefaultStyle();
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
     style.ParameterPortListIndentWidth = 2;
 
@@ -882,7 +884,7 @@ TEST(PackedDimensionBounds, ImplicitType) {
 }
 
 TEST(PackedDimensionBounds, LSBFirstPreservesOrder) {
-    Style style;
+    auto style = getDefaultStyle();
     style.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
 
     // clang-format off
@@ -899,7 +901,7 @@ TEST(PackedDimensionBounds, LSBFirstPreservesOrder) {
 }
 
 TEST(PackedDimensionBounds, LSBFirstSwaps) {
-    Style style;
+    auto style = getDefaultStyle();
     style.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
 
     // clang-format off
@@ -916,7 +918,7 @@ TEST(PackedDimensionBounds, LSBFirstSwaps) {
 }
 
 TEST(PackedDimensionBounds, MSBFirstPreservesOrder) {
-    Style style;
+    auto style = getDefaultStyle();
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -933,7 +935,7 @@ TEST(PackedDimensionBounds, MSBFirstPreservesOrder) {
 }
 
 TEST(PackedDimensionBounds, MSBFirstSwaps) {
-    Style style;
+    auto style = getDefaultStyle();
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -950,7 +952,7 @@ TEST(PackedDimensionBounds, MSBFirstSwaps) {
 }
 
 TEST(PackedDimensionBounds, MultipleDimensions) {
-    Style style;
+    auto style = getDefaultStyle();
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -967,7 +969,7 @@ TEST(PackedDimensionBounds, MultipleDimensions) {
 }
 
 TEST(PackedDimensionBounds, NonLiteralBounds) {
-    Style style;
+    auto style = getDefaultStyle();
     style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -984,7 +986,7 @@ TEST(PackedDimensionBounds, NonLiteralBounds) {
 }
 
 TEST(PackedDimensionBounds, Preserve) {
-    Style style;
+    auto style = getDefaultStyle();
     style.PackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
     // clang-format off
@@ -1001,7 +1003,7 @@ TEST(PackedDimensionBounds, Preserve) {
 }
 
 TEST(UnpackedDimensionBounds, EqualBoundsPreserved) {
-    Style style;
+    auto style = getDefaultStyle();
     style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -1018,7 +1020,7 @@ TEST(UnpackedDimensionBounds, EqualBoundsPreserved) {
 }
 
 TEST(UnpackedDimensionBounds, IgnoresPackedDimensions) {
-    Style style;
+    auto style = getDefaultStyle();
     style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -1035,7 +1037,7 @@ TEST(UnpackedDimensionBounds, IgnoresPackedDimensions) {
 }
 
 TEST(UnpackedDimensionBounds, LSBFirstPreservesOrder) {
-    Style style;
+    auto style = getDefaultStyle();
     style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
 
     // clang-format off
@@ -1052,7 +1054,7 @@ TEST(UnpackedDimensionBounds, LSBFirstPreservesOrder) {
 }
 
 TEST(UnpackedDimensionBounds, LSBFirstSwaps) {
-    Style style;
+    auto style = getDefaultStyle();
     style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
 
     // clang-format off
@@ -1069,7 +1071,7 @@ TEST(UnpackedDimensionBounds, LSBFirstSwaps) {
 }
 
 TEST(UnpackedDimensionBounds, MSBFirstPreservesOrder) {
-    Style style;
+    auto style = getDefaultStyle();
     style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -1086,7 +1088,7 @@ TEST(UnpackedDimensionBounds, MSBFirstPreservesOrder) {
 }
 
 TEST(UnpackedDimensionBounds, MSBFirstSwaps) {
-    Style style;
+    auto style = getDefaultStyle();
     style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -1103,7 +1105,7 @@ TEST(UnpackedDimensionBounds, MSBFirstSwaps) {
 }
 
 TEST(UnpackedDimensionBounds, MultipleDimensions) {
-    Style style;
+    auto style = getDefaultStyle();
     style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -1120,7 +1122,7 @@ TEST(UnpackedDimensionBounds, MultipleDimensions) {
 }
 
 TEST(UnpackedDimensionBounds, NonLiteralBounds) {
-    Style style;
+    auto style = getDefaultStyle();
     style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
     // clang-format off
@@ -1137,7 +1139,7 @@ TEST(UnpackedDimensionBounds, NonLiteralBounds) {
 }
 
 TEST(UnpackedDimensionBounds, Preserve) {
-    Style style;
+    auto style = getDefaultStyle();
     style.UnpackedDimensionBounds = DimensionBoundsStyle::Preserve;
 
     // clang-format off

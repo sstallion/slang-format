@@ -2,17 +2,21 @@
 // SPDX-License-Identifier: MIT
 
 #include "Format.h"
-#include "Style.h"
 #include "TestHelper.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <gtest/gtest.h>
 
 using namespace slang::format;
+using namespace slang::format::style;
 
 // clang-format off
 TEST(AlignTrailingComments, AcrossComments) {
-    Style style;
-    style.AlignTrailingComments = {.Enabled = true, .AcrossComments = true};
+    auto style = getDefaultStyle();
+    style.AlignTrailingComments = {};
+    style.AlignTrailingComments.Enabled = true;
+    style.AlignTrailingComments.AcrossComments = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -32,8 +36,10 @@ TEST(AlignTrailingComments, AcrossComments) {
 }
 
 TEST(AlignTrailingComments, AcrossEmptyLines) {
-    Style style;
-    style.AlignTrailingComments = {.Enabled = true, .AcrossEmptyLines = true};
+    auto style = getDefaultStyle();
+    style.AlignTrailingComments = {};
+    style.AlignTrailingComments.Enabled = true;
+    style.AlignTrailingComments.AcrossEmptyLines = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -53,10 +59,12 @@ TEST(AlignTrailingComments, AcrossEmptyLines) {
 }
 
 TEST(AlignTrailingComments, AcrossParameterPortList) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
-    style.AlignTrailingComments = {.Enabled = true, .AcrossParameterPortList = true};
+    style.AlignTrailingComments = {};
+    style.AlignTrailingComments.Enabled = true;
+    style.AlignTrailingComments.AcrossParameterPortList = true;
     style.ParameterPortListIndentWidth = 2;
 
     // clang-format off
@@ -81,8 +89,9 @@ TEST(AlignTrailingComments, AcrossParameterPortList) {
 }
 
 TEST(AlignTrailingComments, Aligns) {
-    Style style;
-    style.AlignTrailingComments = {.Enabled = true};
+    auto style = getDefaultStyle();
+    style.AlignTrailingComments = {};
+    style.AlignTrailingComments.Enabled = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -100,9 +109,10 @@ TEST(AlignTrailingComments, Aligns) {
 }
 
 TEST(AlignTrailingComments, CommentBreaksGroup) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveAssignments = {};
-    style.AlignTrailingComments = {.Enabled = true};
+    style.AlignTrailingComments = {};
+    style.AlignTrailingComments.Enabled = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -126,7 +136,7 @@ TEST(AlignTrailingComments, CommentBreaksGroup) {
 }
 
 TEST(AlignTrailingComments, Disabled) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -144,9 +154,10 @@ TEST(AlignTrailingComments, Disabled) {
 }
 
 TEST(AlignTrailingComments, EmptyLineBreaksGroup) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveAssignments = {};
-    style.AlignTrailingComments = {.Enabled = true};
+    style.AlignTrailingComments = {};
+    style.AlignTrailingComments.Enabled = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -170,8 +181,9 @@ TEST(AlignTrailingComments, EmptyLineBreaksGroup) {
 }
 
 TEST(AlignTrailingComments, FormatOff) {
-    Style style;
-    style.AlignTrailingComments = {.Enabled = true};
+    auto style = getDefaultStyle();
+    style.AlignTrailingComments = {};
+    style.AlignTrailingComments.Enabled = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -193,8 +205,9 @@ TEST(AlignTrailingComments, FormatOff) {
 }
 
 TEST(AlignTrailingComments, LineWithoutCommentBreaksGroup) {
-    Style style;
-    style.AlignTrailingComments = {.Enabled = true};
+    auto style = getDefaultStyle();
+    style.AlignTrailingComments = {};
+    style.AlignTrailingComments.Enabled = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -214,8 +227,9 @@ TEST(AlignTrailingComments, LineWithoutCommentBreaksGroup) {
 }
 
 TEST(AlignTrailingComments, MixedLineAndBlockComments) {
-    Style style;
-    style.AlignTrailingComments = {.Enabled = true};
+    auto style = getDefaultStyle();
+    style.AlignTrailingComments = {};
+    style.AlignTrailingComments.Enabled = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -233,8 +247,9 @@ TEST(AlignTrailingComments, MixedLineAndBlockComments) {
 }
 
 TEST(AlignTrailingComments, SingleLine) {
-    Style style;
-    style.AlignTrailingComments = {.Enabled = true};
+    auto style = getDefaultStyle();
+    style.AlignTrailingComments = {};
+    style.AlignTrailingComments.Enabled = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -250,10 +265,13 @@ TEST(AlignTrailingComments, SingleLine) {
 }
 
 TEST(AlignTrailingComments, WithAssignmentAlignment) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .MaxPadding = 0};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
-    style.AlignTrailingComments = {.Enabled = true};
+    style.AlignTrailingComments = {};
+    style.AlignTrailingComments.Enabled = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;

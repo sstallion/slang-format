@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: MIT
 
 #include "Format.h"
-#include "Style.h"
 #include "TestHelper.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <gtest/gtest.h>
 
 using namespace slang::format;
+using namespace slang::format::style;
 
 // clang-format off
 TEST(BinPackParameters, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BinPackParameters = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -32,7 +34,7 @@ TEST(BinPackParameters, Disabled) {
 }
 
 TEST(BinPackParameters, Fits) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -48,7 +50,7 @@ TEST(BinPackParameters, Fits) {
 }
 
 TEST(BinPackParameters, WrapsAtColumnLimit) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -67,7 +69,7 @@ TEST(BinPackParameters, WrapsAtColumnLimit) {
 }
 
 TEST(BinPackPortConnections, DisabledExpandsParameters) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BinPackPortConnections = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -91,7 +93,7 @@ TEST(BinPackPortConnections, DisabledExpandsParameters) {
 }
 
 TEST(BinPackPortConnections, DisabledMultilineWildcard) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -109,7 +111,7 @@ TEST(BinPackPortConnections, DisabledMultilineWildcard) {
 }
 
 TEST(BinPackPortConnections, DisabledPositionalParameters) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -129,7 +131,7 @@ TEST(BinPackPortConnections, DisabledPositionalParameters) {
 }
 
 TEST(BinPackPortConnections, DisabledSingleNamedParameter) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -151,7 +153,7 @@ TEST(BinPackPortConnections, DisabledSingleNamedParameter) {
 }
 
 TEST(BinPackPortConnections, DisabledSinglePositionalParameter) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -165,7 +167,7 @@ TEST(BinPackPortConnections, DisabledSinglePositionalParameter) {
 }
 
 TEST(BinPackPortConnections, DisabledWildcard) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -179,7 +181,7 @@ TEST(BinPackPortConnections, DisabledWildcard) {
 }
 
 TEST(BinPackPortConnections, EnabledFits) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BinPackPortConnections = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -194,7 +196,7 @@ TEST(BinPackPortConnections, EnabledFits) {
 }
 
 TEST(BinPackPortConnections, EnabledPositional) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BinPackPortConnections = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -221,7 +223,7 @@ TEST(BinPackPortConnections, EnabledPositional) {
 }
 
 TEST(BinPackPortConnections, EnabledPreservesNewlines) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BinPackPortConnections = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -252,7 +254,7 @@ TEST(BinPackPortConnections, EnabledPreservesNewlines) {
 }
 
 TEST(ModportItem, NoSpaceBeforeParen) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         interface foo;
@@ -268,7 +270,7 @@ TEST(ModportItem, NoSpaceBeforeParen) {
 }
 
 TEST(ModportItem, PortLists) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         interface foo;
@@ -292,7 +294,7 @@ TEST(ModportItem, PortLists) {
 }
 
 TEST(SpaceBeforeParensParameterList, Collapses) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
     style.SpaceBeforeParens.ParameterList = true;
@@ -315,7 +317,7 @@ TEST(SpaceBeforeParensParameterList, Collapses) {
 }
 
 TEST(SpaceBeforeParensParameterList, FormatOff) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         // slang-format off
@@ -339,7 +341,7 @@ TEST(SpaceBeforeParensParameterList, FormatOff) {
 }
 
 TEST(SpaceBeforeParensParameterList, Inserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
@@ -361,7 +363,7 @@ TEST(SpaceBeforeParensParameterList, Inserts) {
 }
 
 TEST(SpaceBeforeParensParameterList, InstantiationInserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeParens.ParameterList = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -384,7 +386,7 @@ TEST(SpaceBeforeParensParameterList, InstantiationInserts) {
 }
 
 TEST(SpaceBeforeParensParameterList, InstantiationRemoves) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeParens.ParameterList = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -407,7 +409,7 @@ TEST(SpaceBeforeParensParameterList, InstantiationRemoves) {
 }
 
 TEST(SpaceBeforeParensParameterList, PreservesNewlines) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
@@ -431,7 +433,7 @@ TEST(SpaceBeforeParensParameterList, PreservesNewlines) {
 }
 
 TEST(SpaceBeforeParensParameterList, Removes) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
     style.SpaceBeforeParens.ParameterList = false;
@@ -454,7 +456,7 @@ TEST(SpaceBeforeParensParameterList, Removes) {
 }
 
 TEST(SpaceBeforeParensPortList, Collapses) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeParens.PortList = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -471,7 +473,7 @@ TEST(SpaceBeforeParensPortList, Collapses) {
 }
 
 TEST(SpaceBeforeParensPortList, FormatOff) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         // slang-format off
@@ -491,7 +493,7 @@ TEST(SpaceBeforeParensPortList, FormatOff) {
 }
 
 TEST(SpaceBeforeParensPortList, Inserts) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo(
@@ -507,7 +509,7 @@ TEST(SpaceBeforeParensPortList, Inserts) {
 }
 
 TEST(SpaceBeforeParensPortList, InstantiationInserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeParens.PortList = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -526,7 +528,7 @@ TEST(SpaceBeforeParensPortList, InstantiationInserts) {
 }
 
 TEST(SpaceBeforeParensPortList, InstantiationRemoves) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeParens.PortList = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -545,7 +547,7 @@ TEST(SpaceBeforeParensPortList, InstantiationRemoves) {
 }
 
 TEST(SpaceBeforeParensPortList, PreservesNewlines) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo
@@ -563,7 +565,7 @@ TEST(SpaceBeforeParensPortList, PreservesNewlines) {
 }
 
 TEST(SpaceBeforeParensPortList, Removes) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeParens.PortList = false;
 
     EXPECT_EQ(reformat(dedent(R"(

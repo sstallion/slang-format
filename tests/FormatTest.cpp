@@ -2,15 +2,17 @@
 // SPDX-License-Identifier: MIT
 
 #include "Format.h"
-#include "Style.h"
 #include "TestHelper.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <gtest/gtest.h>
 
 using namespace slang::format;
+using namespace slang::format::style;
 
 TEST(LineEnding, CRLF) {
-    Style style;
+    auto style = getDefaultStyle();
     style.LineEnding = LineEndingStyle::CRLF;
 
     EXPECT_EQ(reformat("module foo;\nassign x = 1;\nendmodule\n", style),
@@ -18,7 +20,7 @@ TEST(LineEnding, CRLF) {
 }
 
 TEST(LineEnding, DeriveCRLF) {
-    Style style;
+    auto style = getDefaultStyle();
     style.LineEnding = LineEndingStyle::DeriveCRLF;
 
     EXPECT_EQ(reformat("module foo;\r\nassign x = 1;\r\nendmodule\r\n", style),
@@ -26,7 +28,7 @@ TEST(LineEnding, DeriveCRLF) {
 }
 
 TEST(LineEnding, DeriveCRLFPrefersLF) {
-    Style style;
+    auto style = getDefaultStyle();
     style.LineEnding = LineEndingStyle::DeriveCRLF;
 
     EXPECT_EQ(reformat("module foo;\r\nassign x = 1;\nendmodule\n", style),
@@ -34,7 +36,7 @@ TEST(LineEnding, DeriveCRLFPrefersLF) {
 }
 
 TEST(LineEnding, DeriveLF) {
-    Style style;
+    auto style = getDefaultStyle();
     style.LineEnding = LineEndingStyle::DeriveLF;
 
     EXPECT_EQ(reformat("module foo;\nassign x = 1;\nendmodule\n", style),
@@ -42,7 +44,7 @@ TEST(LineEnding, DeriveLF) {
 }
 
 TEST(LineEnding, DeriveLFPrefersCRLF) {
-    Style style;
+    auto style = getDefaultStyle();
     style.LineEnding = LineEndingStyle::DeriveLF;
 
     EXPECT_EQ(reformat("module foo;\nassign x = 1;\r\nendmodule\r\n", style),
@@ -50,7 +52,7 @@ TEST(LineEnding, DeriveLFPrefersCRLF) {
 }
 
 TEST(LineEnding, LF) {
-    Style style;
+    auto style = getDefaultStyle();
     style.LineEnding = LineEndingStyle::LF;
 
     EXPECT_EQ(reformat("module foo;\r\nassign x = 1;\r\nendmodule\r\n", style),
@@ -59,7 +61,7 @@ TEST(LineEnding, LF) {
 
 // clang-format off
 TEST(OneLineFormatOffRegex, SkipsMatchingLine) {
-    Style style;
+    auto style = getDefaultStyle();
     style.OneLineFormatOffRegex = ".*STATE_.*";
 
     EXPECT_EQ(reformat(dedent(R"(

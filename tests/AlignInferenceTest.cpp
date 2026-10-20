@@ -2,17 +2,20 @@
 // SPDX-License-Identifier: MIT
 
 #include "Format.h"
-#include "Style.h"
 #include "TestHelper.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <gtest/gtest.h>
 
 using namespace slang::format;
+using namespace slang::format::style;
 
 // clang-format off
 TEST(InferFromSource, Disabled) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -28,8 +31,11 @@ TEST(InferFromSource, Disabled) {
 }
 
 TEST(InferFromSource, FlushLeftSource) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .InferFromSource = true, .MaxPadding = 2};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -45,8 +51,11 @@ TEST(InferFromSource, FlushLeftSource) {
 }
 
 TEST(InferFromSource, LargeExcessAligns) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .InferFromSource = true, .MaxPadding = 2};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -62,8 +71,11 @@ TEST(InferFromSource, LargeExcessAligns) {
 }
 
 TEST(InferFromSource, SmallDisplacementAligns) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .InferFromSource = true, .MaxPadding = 4};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 4;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -79,8 +91,10 @@ TEST(InferFromSource, SmallDisplacementAligns) {
 }
 
 TEST(MaxPadding, Exceeded) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .MaxPadding = 2};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -96,8 +110,10 @@ TEST(MaxPadding, Exceeded) {
 }
 
 TEST(MaxPadding, MixedDepths) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .MaxPadding = 2};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -125,8 +141,10 @@ TEST(MaxPadding, MixedDepths) {
 }
 
 TEST(MaxPadding, WithinLimit) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true, .MaxPadding = 2};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 2;
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
@@ -150,11 +168,12 @@ TEST(MaxPadding, WithinLimit) {
 }
 
 TEST(MinPadding, BypassesInference) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true,
-                                         .InferFromSource = true,
-                                         .MaxPadding = 2,
-                                         .MinPadding = 2};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 2;
+    style.AlignConsecutiveAssignments.MinPadding = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -170,11 +189,12 @@ TEST(MinPadding, BypassesInference) {
 }
 
 TEST(MinPadding, ExceedsThreshold) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true,
-                                         .InferFromSource = true,
-                                         .MaxPadding = 4,
-                                         .MinPadding = 1};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 4;
+    style.AlignConsecutiveAssignments.MinPadding = 1;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -190,11 +210,12 @@ TEST(MinPadding, ExceedsThreshold) {
 }
 
 TEST(MinPadding, InterveningStatementsBreakSubRun) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true,
-                                         .InferFromSource = true,
-                                         .MaxPadding = 2,
-                                         .MinPadding = 2};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 2;
+    style.AlignConsecutiveAssignments.MinPadding = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -222,11 +243,12 @@ TEST(MinPadding, InterveningStatementsBreakSubRun) {
 }
 
 TEST(MinPadding, PortConnections) {
-    Style style;
-    style.AlignConsecutivePortConnections = {.Enabled = true,
-                                              .InferFromSource = true,
-                                              .MaxPadding = 2,
-                                              .MinPadding = 2};
+    auto style = getDefaultStyle();
+    style.AlignConsecutivePortConnections = {};
+    style.AlignConsecutivePortConnections.Enabled = true;
+    style.AlignConsecutivePortConnections.InferFromSource = true;
+    style.AlignConsecutivePortConnections.MaxPadding = 2;
+    style.AlignConsecutivePortConnections.MinPadding = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -246,10 +268,11 @@ TEST(MinPadding, PortConnections) {
 }
 
 TEST(MinPadding, Zero) {
-    Style style;
-    style.AlignConsecutiveAssignments = {.Enabled = true,
-                                         .InferFromSource = true,
-                                         .MaxPadding = 2};
+    auto style = getDefaultStyle();
+    style.AlignConsecutiveAssignments = {};
+    style.AlignConsecutiveAssignments.Enabled = true;
+    style.AlignConsecutiveAssignments.InferFromSource = true;
+    style.AlignConsecutiveAssignments.MaxPadding = 2;
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;

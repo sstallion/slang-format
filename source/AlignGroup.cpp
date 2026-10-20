@@ -5,7 +5,7 @@
 #include "Align.h"
 #include "AlignClassifier.h"
 #include "AlignInference.h"
-#include "Style.h"
+#include "slang/format/Style.h"
 
 #include <algorithm>
 #include <cstddef>

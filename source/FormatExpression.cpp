@@ -3,8 +3,8 @@
 
 #include "Align.h"
 #include "FormatPrinter.h"
-#include "Style.h"
 #include "TokenHelper.h"
+#include "slang/format/Style.h"
 
 #include <algorithm>
 

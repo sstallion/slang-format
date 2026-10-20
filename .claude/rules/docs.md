@@ -19,8 +19,8 @@ The file contains the following sections, in order:
 - **Dependencies** - A bulleted list of third-party libraries with a one-line
   description of what it provides.
 - **Directory Structure** - An ASCII tree listing every source file under
-  `source/` and `tests/` with a one-line description of each file's role. Add or
-  remove entries whenever source code and tests are added or removed.
+  `include/`, `source/`, and `tests/` with a one-line description of each file's
+  role. Add or remove entries whenever source code and tests are changed.
 - **Formatting Flow** - A Mermaid flowchart tracing the path from input through
   output. Update the diagram whenever a pass is added, removed, or reordered.
 - **Architectural Decisions** - Prose sections, one per decision, explaining the
@@ -50,6 +50,14 @@ The file contains the following sections, in order:
 [ClangFormatStyleOptions][2]. It must be kept in sync with the source code as
 the implementation evolves. Read this document only when making user-facing
 configuration changes.
+
+Predefined style headers under `include/slang/format/styles/` list every option
+explicitly and are part of the user-facing configuration. Whenever a user-facing
+option is added, removed, renamed, or has its default value changed, update
+every style header (adding the field to each style with the value appropriate
+for that style) in the same change as `Style.h`, `ConfigHelper.cpp`, the tests,
+and this document. `Style.h` carries documentation and types only; default
+values live exclusively in the style headers.
 
 The file contains the following sections, in order:
 

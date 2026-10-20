@@ -9,7 +9,7 @@
 #include "AlignDimension.h"
 #include "AlignGroup.h"
 #include "AlignInference.h"
-#include "Style.h"
+#include "slang/format/Style.h"
 
 #include <array>
 #include <cstddef>
