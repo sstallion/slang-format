@@ -52,6 +52,14 @@ IndentWidth: 4
 MaxEmptyLinesToKeep: 2
 ```
 
+A configuration file may start from a predefined style by naming it with
+`BasedOnStyle`; any options that follow override the predefined values:
+
+```yaml
+BasedOnStyle: Default
+IndentWidth: 4
+```
+
 To generate a configuration file from the current defaults, issue:
 
 ```shell

@@ -22,6 +22,14 @@ IndentWidth: 4
 MaxEmptyLinesToKeep: 2
 ```
 
+A configuration file may start from a predefined style by naming it with
+`BasedOnStyle`; any options that follow override the predefined values:
+
+```yaml
+BasedOnStyle: Default
+IndentWidth: 4
+```
+
 ## Disabling Formatting
 
 slang-format understands special comments that suspend formatting in a delimited
@@ -29,7 +37,7 @@ range. Use `// slang-format off` to disable and `// slang-format on` to
 re-enable. Block comment forms (`/* slang-format off */` and
 `/* slang-format on */`) are also supported.
 
-For compatibility with [Verible][2], the `// verilog_format: off` and
+For compatibility with [Verible][1], the `// verilog_format: off` and
 `// verilog_format: on` pragmas (and their block comment equivalents) are also
 recognized.
 
@@ -774,6 +782,32 @@ endgroup
 
 ---
 
+### BasedOnStyle (string)
+
+The style used for all options not specifically set in the configuration file.
+The named style is applied first; every other option in the file then overrides
+it. Style names are matched case-insensitively. An unknown style name is
+reported as a configuration error.
+
+This option is accepted only in configuration files and is not emitted by
+`--dump-config`.
+
+**Default:** `Default`
+
+| Value     | Description                                                  |
+| --------- | ------------------------------------------------------------ |
+| `Default` | The built-in style used when no configuration file is found. |
+
+`BasedOnStyle: Default` with `IndentWidth: 4` - the default style with a
+wider indent:
+
+```yaml
+BasedOnStyle: Default
+IndentWidth: 4
+```
+
+---
+
 ### BinPackArguments (bool)
 
 Controls whether arguments are bin-packed or placed one per line when wrapping
@@ -1235,8 +1269,7 @@ endmodule
 
 The column limit. A column limit of `0` means that no column limit is applied.
 
-This option functions the same as the clang-format option of the [same name][1].
-It is consumed by
+This option is consumed by
 [`AlignAfterOpenParen`](#alignafteropenparen-bracketalignmentstyle) for argument
 list wrapping and by
 [`CompactControlStatements`](#compactcontrolstatements-bool) for conditional
@@ -2611,5 +2644,4 @@ module foo;
 endmodule
 ```
 
-[1]: https://clang.llvm.org/docs/ClangFormatStyleOptions.html#columnlimit
-[2]: https://github.com/chipsalliance/verible
+[1]: https://github.com/chipsalliance/verible

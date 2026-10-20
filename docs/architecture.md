@@ -15,45 +15,49 @@ systems are supported, including Linux, macOS, and Windows.
 
 ```
 slang-format/
+├── include/slang/format/
+│   ├── styles/
+│   │   └── Default.h              # Default predefined style definition
+│   └── Style.h                    # Style types and canonical option documentation
 ├── source/
-│   ├── Align.cpp              # Alignment pass driver
-│   ├── Align.h                # Public interface for alignment post-processing
-│   ├── AlignAssignment.cpp    # Assignment and port connection alignment pass
-│   ├── AlignAssignment.h      # Public interface for assignment alignment
-│   ├── AlignClassifier.cpp    # Output line classification for alignment
-│   ├── AlignClassifier.h      # Public interface for line classification
-│   ├── AlignDeclaration.cpp   # Declaration and timing control alignment pass
-│   ├── AlignDeclaration.h     # Public interface for declaration alignment
-│   ├── AlignDimension.cpp     # Packed dimension alignment and range normalization
-│   ├── AlignDimension.h       # Public interface for dimension alignment
-│   ├── AlignGroup.cpp         # Group formation engine for alignment passes
-│   ├── AlignGroup.h           # Public interface for group formation
-│   ├── AlignInference.cpp     # Source spacing inference for alignment decisions
-│   ├── AlignInference.h       # Public interface for alignment inference
-│   ├── AlignComment.cpp       # Comment alignment pass
-│   ├── AlignComment.h         # Public interface for comment alignment
-│   ├── FileLoader.cpp         # Directory hierarchy file search
-│   ├── FileLoader.h           # FileLoader type alias and directory walk utility
-│   ├── Format.cpp             # Single-pass formatting and post-processing
-│   ├── Format.h               # Public interface for formatting and post-processing
-│   ├── FormatClass.cpp        # Constraint and covergroup handler definitions
-│   ├── FormatDeclaration.cpp  # Declaration and typedef handler definitions
-│   ├── FormatExpression.cpp   # Expression and argument list handler definitions
-│   ├── FormatMember.cpp       # Module, function, and generate handler definitions
-│   ├── FormatPortList.cpp     # Port list and parameter list handler definitions
-│   ├── FormatPrinter.cpp      # Core formatting helpers and token emission
-│   ├── FormatPrinter.h        # FormatPrinter class declaration
-│   ├── FormatStatement.cpp    # Statement and case item handler definitions
-│   ├── Ignore.cpp             # Ignore file lookup and pattern matching
-│   ├── Ignore.h               # Public interface for ignore file support
-│   ├── Rewriter.cpp           # Iterative syntax rewriting
-│   ├── Rewriter.h             # Public interface for syntax rewriting
-│   ├── Style.cpp              # Style configuration and YAML parsing
-│   ├── Style.h                # Public interface for style configuration
-│   ├── SyntaxHelper.h         # Shared predicates for syntax node classification
-│   ├── TokenHelper.cpp        # Token inspection utilities
-│   ├── TokenHelper.h          # Public interface for token inspection
-│   └── main.cpp               # Entry point; command-line processing and output
+│   ├── Align.cpp                  # Alignment pass driver
+│   ├── Align.h                    # Public interface for alignment post-processing
+│   ├── AlignAssignment.cpp        # Assignment and port connection alignment pass
+│   ├── AlignAssignment.h          # Public interface for assignment alignment
+│   ├── AlignClassifier.cpp        # Output line classification for alignment
+│   ├── AlignClassifier.h          # Public interface for line classification
+│   ├── AlignDeclaration.cpp       # Declaration and timing control alignment pass
+│   ├── AlignDeclaration.h         # Public interface for declaration alignment
+│   ├── AlignDimension.cpp         # Packed dimension alignment and range normalization
+│   ├── AlignDimension.h           # Public interface for dimension alignment
+│   ├── AlignGroup.cpp             # Group formation engine for alignment passes
+│   ├── AlignGroup.h               # Public interface for group formation
+│   ├── AlignInference.cpp         # Source spacing inference for alignment decisions
+│   ├── AlignInference.h           # Public interface for alignment inference
+│   ├── AlignComment.cpp           # Comment alignment pass
+│   ├── AlignComment.h             # Public interface for comment alignment
+│   ├── ConfigHelper.cpp           # Configuration file loading, YAML parsing, and dumping
+│   ├── ConfigHelper.h             # Interface for configuration loading, parsing, and dumping
+│   ├── FileLoader.cpp             # Directory hierarchy file search
+│   ├── FileLoader.h               # FileLoader type alias and directory walk utility
+│   ├── Format.cpp                 # Single-pass formatting and post-processing
+│   ├── Format.h                   # Public interface for formatting and post-processing
+│   ├── FormatClass.cpp            # Constraint and covergroup handler definitions
+│   ├── FormatDeclaration.cpp      # Declaration and typedef handler definitions
+│   ├── FormatExpression.cpp       # Expression and argument list handler definitions
+│   ├── FormatMember.cpp           # Module, function, and generate handler definitions
+│   ├── FormatPortList.cpp         # Port list and parameter list handler definitions
+│   ├── FormatPrinter.cpp          # Core formatting helpers and token emission
+│   ├── FormatPrinter.h            # FormatPrinter class declaration
+│   ├── FormatStatement.cpp        # Statement and case item handler definitions
+│   ├── Ignore.cpp                 # Ignore file lookup and pattern matching
+│   ├── Ignore.h                   # Public interface for ignore file support
+│   ├── Rewriter.cpp               # Iterative syntax rewriting
+│   ├── Rewriter.h                 # Public interface for syntax rewriting
+│   ├── SyntaxHelper.h             # Shared predicates for syntax node classification
+│   ├── TokenHelper.cpp            # Token inspection utilities
+│   ├── TokenHelper.h              # Public interface for token inspection
+│   └── main.cpp                   # Entry point; command-line processing and output
 └── tests/
     ├── fixtures/                  # CTest integration test scripts
     ├── AlignAssignmentTest.cpp    # Assignment and port connection alignment tests
@@ -61,6 +65,7 @@ slang-format/
     ├── AlignDeclarationTest.cpp   # Declaration and timing control alignment tests
     ├── AlignDimensionTest.cpp     # Packed dimension alignment tests
     ├── AlignInferenceTest.cpp     # Source spacing inference tests
+    ├── ConfigHelperTest.cpp       # Configuration loading and YAML parsing tests
     ├── FormatClassTest.cpp        # Constraint and covergroup formatting tests
     ├── FormatDeclarationTest.cpp  # Declaration and typedef formatting tests
     ├── FormatExpressionTest.cpp   # Expression and argument list formatting tests
@@ -71,7 +76,6 @@ slang-format/
     ├── FormatTest.cpp             # Line ending and post-processing tests
     ├── IgnoreTest.cpp             # Ignore file lookup and pattern matching tests
     ├── RewriterTest.cpp           # Syntax rewriting tests
-    ├── StyleTest.cpp              # Style configuration and YAML parsing tests
     └── TestHelper.h               # Utilities for writing tests
 ```
 
@@ -80,10 +84,12 @@ slang-format/
 ```mermaid
 flowchart LR
     input([Unformatted Input])
-    format_in --> formatter
+    based_on --> formatter
 
     subgraph config [Configuration]
         format_in[Walk directory hierarchy\nfor configuration]
+        based_on[Inherit style then\napply remaining options]
+        format_in --> based_on
     end
 
     subgraph formatter [Formatter]
@@ -122,11 +128,43 @@ files and for `FormatPrinter.cpp`, which contains the core formatting helpers.
 
 ### Configuration Search
 
-The configuration loader walks upward from the directory containing the source
-file until it finds a `.slang-format` file or reaches the filesystem root,
-returning default settings if none is found. This mirrors clang-format's
-`.clang-format` lookup strategy, allowing per-project configuration without
-explicit path arguments.
+`loadConfig()` walks upward from the directory containing the source file until
+it finds a `.slang-format` file or reaches the filesystem root, returning
+default settings if none is found. This mirrors clang-format's `.clang-format`
+lookup strategy, allowing per-project configuration without explicit path
+arguments.
+
+### Predefined Styles
+
+Predefined styles live in `include/slang/format/styles/<Name>.h`, one header per
+style, inside the `slang::format::style` namespace. Each header exposes `inline
+Style get<Name>Style()` returning an aggregate built with designated
+initializers that lists every field, so a header is a complete specification
+readable without `Style.h`. Style headers carry no member documentation;
+`Style.h` is the canonical documentation for every option.
+
+`Style.h` has no default member initializers. `Style{}` is value-initialized and
+is not a usable style; code and tests obtain defaults from
+`style::getDefaultStyle()`. Because the fields have no initializers, Clang 18
+and later report a missing field in any style header as an error under
+`-Wextra`, which keeps style headers complete as options are added.
+
+`parseConfig()` resolves `BasedOnStyle` before any other key through a constexpr
+name table in `ConfigHelper.cpp` that maps names to the style header functions.
+Matching is case-insensitive, as in clang-format. The base style replaces the
+whole style and the remaining keys override it; an unknown name throws. The
+table is the single registration point and is intended to back a future
+`--style` option.
+
+### Public Headers
+
+`include/slang/format/` holds the headers intended for the eventual library API:
+`Style.h` (types and documentation only, depending on nothing but `<string>`)
+and `styles/`. They are included with quotes and a path relative to `include/`
+(`"slang/format/Style.h"`) so they are visually distinct from upstream
+`<slang/...>` headers. Configuration handling (`ConfigHelper.{h,cpp}`),
+`FileLoader.h`, and the other headers in `source/` are internal; moving
+`Format.h` and `Ignore.h` belongs to the library work tracked in `docs/todo.md`.
 
 ### Ignore File Lookup
 
@@ -143,13 +181,17 @@ last-match-wins semantics.
 ### Configuration Dump
 
 When adding a new configuration option, insert its key at the correct
-alphabetical position in `dumpConfiguration()` and add a corresponding
-round-trip test. When a shared struct contains fields that are unused by a
+alphabetical position in `dumpConfig()` and add a corresponding round-trip test.
+Add the option's default value to every style header under
+`include/slang/format/styles/`; `Style.h` carries documentation and types only,
+never values. On Clang 18 and later a missing field in a style header is a
+compile error. When a shared struct contains fields that are unused by a
 particular option, those fields must not be emitted.
 
 The `--dump-config` option serializes the resolved style to a YAML document on
-stdout, matching the behavior of `clang-format --dump-config`. Fields are emitted
-in alphabetical order, wrapped with `---` and `...` document markers.
+stdout, matching the behavior of `clang-format --dump-config`. Fields are
+emitted in alphabetical order, wrapped with `---` and `...` document markers.
+`BasedOnStyle` is an input-only key and is never emitted, matching clang-format.
 
 ### Separate Structural and Formatting Passes
 

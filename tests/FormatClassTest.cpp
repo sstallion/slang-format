@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: MIT
 
 #include "Format.h"
-#include "Style.h"
 #include "TestHelper.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <gtest/gtest.h>
 
 using namespace slang::format;
+using namespace slang::format::style;
 
 // clang-format off
 TEST(AllowShortConstraintBlocksOnASingleLine, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AllowShortConstraintBlocksOnASingleLine = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -28,7 +30,7 @@ TEST(AllowShortConstraintBlocksOnASingleLine, Disabled) {
 }
 
 TEST(AllowShortConstraintBlocksOnASingleLine, ExpandsMultipleItems) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AllowShortConstraintBlocksOnASingleLine = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -46,7 +48,7 @@ TEST(AllowShortConstraintBlocksOnASingleLine, ExpandsMultipleItems) {
 }
 
 TEST(AllowShortConstraintBlocksOnASingleLine, JoinsSingleItem) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AllowShortConstraintBlocksOnASingleLine = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -63,7 +65,7 @@ TEST(AllowShortConstraintBlocksOnASingleLine, JoinsSingleItem) {
 }
 
 TEST(AllowShortConstraintBlocksOnASingleLine, RandomizeWithMultipleItems) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AllowShortConstraintBlocksOnASingleLine = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -92,7 +94,7 @@ TEST(AllowShortConstraintBlocksOnASingleLine, RandomizeWithMultipleItems) {
 }
 
 TEST(AllowShortConstraintBlocksOnASingleLine, RandomizeWithSingleItem) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AllowShortConstraintBlocksOnASingleLine = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -113,7 +115,7 @@ TEST(AllowShortConstraintBlocksOnASingleLine, RandomizeWithSingleItem) {
 }
 
 TEST(AllowShortCoverpointsOnASingleLine, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AllowShortCoverpointsOnASingleLine = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -134,7 +136,7 @@ TEST(AllowShortCoverpointsOnASingleLine, Disabled) {
 }
 
 TEST(AllowShortCoverpointsOnASingleLine, ExpandsWhenExceedingColumnLimit) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
@@ -160,7 +162,7 @@ TEST(AllowShortCoverpointsOnASingleLine, ExpandsWhenExceedingColumnLimit) {
 }
 
 TEST(AllowShortCoverpointsOnASingleLine, JoinsCoverCross) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AllowShortCoverpointsOnASingleLine = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -181,7 +183,7 @@ TEST(AllowShortCoverpointsOnASingleLine, JoinsCoverCross) {
 }
 
 TEST(AllowShortCoverpointsOnASingleLine, JoinsWhenFits) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
@@ -203,7 +205,7 @@ TEST(AllowShortCoverpointsOnASingleLine, JoinsWhenFits) {
 }
 
 TEST(ClassDeclaration, Members) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
@@ -217,7 +219,7 @@ TEST(ClassDeclaration, Members) {
 }
 
 TEST(CovergroupDeclaration, Members) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
@@ -235,7 +237,7 @@ TEST(CovergroupDeclaration, Members) {
 }
 
 TEST(DistConstraintList, ExpandsItems) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;

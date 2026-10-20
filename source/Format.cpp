@@ -5,7 +5,7 @@
 #include "Format.h"
 #include "FormatPrinter.h"
 #include "Rewriter.h"
-#include "Style.h"
+#include "slang/format/Style.h"
 
 #include <cstddef>
 #include <istream>

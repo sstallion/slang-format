@@ -1,11 +1,14 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
+#include "ConfigHelper.h"
 #include "FileLoader.h"
-#include "Style.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <cstddef>
 #include <exception>
 #include <filesystem>
@@ -13,12 +16,14 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include <yaml-cpp/emitter.h>
 #include <yaml-cpp/emittermanip.h>
 #include <yaml-cpp/yaml.h>
 
 using namespace slang::format;
+using namespace std::literals;
 
 namespace {
 
@@ -26,6 +31,26 @@ constexpr std::array<std::string_view, 2> ConfigFileNames{
     ".slang-format",
     "_slang-format",
 };
+
+using StyleFactory = Style (*)();
+
+constexpr std::array PredefinedStyles{
+    std::pair<std::string_view, StyleFactory>{"Default"sv, &style::getDefaultStyle},
+};
+
+bool equalsInsensitive(std::string_view lhs, std::string_view rhs) {
+    constexpr auto toLower = [](unsigned char c) { return std::tolower(c); };
+    return std::ranges::equal(lhs, rhs, {}, toLower, toLower);
+}
+
+/// Returns the factory for the predefined style named \p name, or nullptr if no such style
+/// exists.
+StyleFactory findPredefinedStyle(std::string_view name) {
+    const auto it = std::ranges::find_if(PredefinedStyles, [&](const auto& entry) {
+        return equalsInsensitive(entry.first, name);
+    });
+    return it != PredefinedStyles.end() ? it->second : nullptr;
+}
 
 constexpr std::string_view toString(BracketAlignmentStyle style) {
     switch (style) {
@@ -131,8 +156,7 @@ void parseEnum(const YAML::Node& node, std::string_view key, T& target,
     }
 
     const auto text = v.as<std::string>();
-    const auto it = std::ranges::find_if(values,
-                                                [&](T value) { return toString(value) == text; });
+    const auto it = std::ranges::find_if(values, [&](T value) { return toString(value) == text; });
     target = it != values.end() ? *it : fallback;
 }
 
@@ -337,11 +361,7 @@ void emitSpaceBeforeParens(YAML::Emitter& out, const SpaceBeforeParensStyle& con
 
 namespace slang::format {
 
-Style getDefaultStyle() {
-    return {};
-}
-
-std::string dumpConfiguration(const Style& style) {
+std::string dumpConfig(const Style& style) {
     constexpr AlignConsecutiveFields assignFields{.acrossParameterPortList = true,
                                                   .inferFromSource = true,
                                                   .maxPadding = true,
@@ -440,9 +460,19 @@ std::string dumpConfiguration(const Style& style) {
     return out.c_str();
 }
 
-void parseConfiguration(const YAML::Node& node, Style& style) {
+void parseConfig(const YAML::Node& node, Style& style) {
     if (!node.IsMap()) {
         throw std::runtime_error("configuration must be a YAML mapping");
+    }
+
+    if (const auto v = node["BasedOnStyle"]) {
+        const auto name = v.as<std::string>();
+        const auto factory = findPredefinedStyle(name);
+        if (factory == nullptr) {
+            throw std::runtime_error("unknown value for BasedOnStyle: " + name);
+        }
+
+        style = factory();
     }
 
     parseEnum(node, "AlignAfterOpenParen", style.AlignAfterOpenParen, AllBracketAlignmentStyles,
@@ -519,7 +549,7 @@ void parseConfiguration(const YAML::Node& node, Style& style) {
               AllDimensionBoundsStyles, DimensionBoundsStyle::Preserve);
 }
 
-Style getStyle(const std::filesystem::path& searchDir, FileLoader loader) {
+Style loadConfig(const std::filesystem::path& searchDir, FileLoader loader) {
     if (!loader) {
         loader = [](const std::filesystem::path& path) -> std::optional<std::string> {
             try {
@@ -533,14 +563,14 @@ Style getStyle(const std::filesystem::path& searchDir, FileLoader loader) {
 
     auto result = findFileInHierarchy(searchDir, ConfigFileNames, loader);
     if (!result) {
-        return getDefaultStyle();
+        return style::getDefaultStyle();
     }
 
     auto& [path, content] = *result;
     try {
         const YAML::Node node = YAML::Load(content);
-        auto style = getDefaultStyle();
-        parseConfiguration(node, style);
+        auto style = style::getDefaultStyle();
+        parseConfig(node, style);
         return style;
     }
     catch (const std::exception& e) {

@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: MIT
 
 #include "Format.h"
-#include "Style.h"
 #include "TestHelper.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <gtest/gtest.h>
 
 using namespace slang::format;
+using namespace slang::format::style;
 
 // clang-format off
 TEST(BreakAfterAlways, AlwaysBareStatement) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Always;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -27,7 +29,7 @@ TEST(BreakAfterAlways, AlwaysBareStatement) {
 }
 
 TEST(BreakAfterAlways, AlwaysInlineBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Always;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -45,7 +47,7 @@ TEST(BreakAfterAlways, AlwaysInlineBlock) {
 }
 
 TEST(BreakAfterAlways, AlwaysMultilineBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Always;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -64,7 +66,7 @@ TEST(BreakAfterAlways, AlwaysMultilineBlock) {
 }
 
 TEST(BreakAfterAlways, AlwaysTimingControl) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Always;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -80,7 +82,7 @@ TEST(BreakAfterAlways, AlwaysTimingControl) {
 }
 
 TEST(BreakAfterAlways, Never) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -100,7 +102,7 @@ TEST(BreakAfterAlways, Never) {
 }
 
 TEST(BreakAfterAlways, OnlyMultilineBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -121,7 +123,7 @@ TEST(BreakAfterAlways, OnlyMultilineBlock) {
 }
 
 TEST(BreakAfterAlways, OnlyMultilineConditional) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
     style.CompactControlStatements = false;
 
@@ -141,7 +143,7 @@ TEST(BreakAfterAlways, OnlyMultilineConditional) {
 }
 
 TEST(BreakAfterAlways, OnlyMultilineConditionalBlocks) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -161,7 +163,7 @@ TEST(BreakAfterAlways, OnlyMultilineConditionalBlocks) {
 }
 
 TEST(BreakAfterAlways, OnlyMultilineSingleLineBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
     style.OneStatementPerLine = false;
 
@@ -179,7 +181,7 @@ TEST(BreakAfterAlways, OnlyMultilineSingleLineBlock) {
 }
 
 TEST(BreakAfterAlways, OnlyMultilineSingleLineConditional) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
     style.OneStatementPerLine = false;
 
@@ -195,7 +197,7 @@ TEST(BreakAfterAlways, OnlyMultilineSingleLineConditional) {
 }
 
 TEST(BreakAfterAlways, OnlyMultilineSingleStatementBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -212,7 +214,7 @@ TEST(BreakAfterAlways, OnlyMultilineSingleStatementBlock) {
 }
 
 TEST(BreakAfterAlways, PreservesNewlines) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -229,7 +231,7 @@ TEST(BreakAfterAlways, PreservesNewlines) {
 }
 
 TEST(BreakAfterInitial, Never) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::Never;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -249,7 +251,7 @@ TEST(BreakAfterInitial, Never) {
 }
 
 TEST(BreakAfterInitial, OnlyMultilineBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::OnlyMultiline;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -270,7 +272,7 @@ TEST(BreakAfterInitial, OnlyMultilineBlock) {
 }
 
 TEST(BreakBeforeAlways, Always) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
 
@@ -291,7 +293,7 @@ TEST(BreakBeforeAlways, Always) {
 }
 
 TEST(BreakBeforeAlways, AlwaysPreservesBlankLine) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
 
@@ -313,7 +315,7 @@ TEST(BreakBeforeAlways, AlwaysPreservesBlankLine) {
 }
 
 TEST(BreakBeforeAlways, AlwaysTimingControl) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
 
@@ -330,7 +332,7 @@ TEST(BreakBeforeAlways, AlwaysTimingControl) {
 }
 
 TEST(BreakBeforeAlways, AlwaysWithComment) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
 
@@ -353,7 +355,7 @@ TEST(BreakBeforeAlways, AlwaysWithComment) {
 }
 
 TEST(BreakBeforeAlways, AlwaysWithTrailingComment) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
 
@@ -377,7 +379,7 @@ TEST(BreakBeforeAlways, AlwaysWithTrailingComment) {
 }
 
 TEST(BreakBeforeAlways, Never) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
@@ -399,7 +401,7 @@ TEST(BreakBeforeAlways, Never) {
 }
 
 TEST(BreakBeforeAlways, OnlyMultilineBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
 
@@ -421,7 +423,7 @@ TEST(BreakBeforeAlways, OnlyMultilineBlock) {
 }
 
 TEST(BreakBeforeAlways, OnlyMultilineConditional) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
     style.CompactControlStatements = false;
@@ -444,7 +446,7 @@ TEST(BreakBeforeAlways, OnlyMultilineConditional) {
 }
 
 TEST(BreakBeforeAlways, OnlyMultilineNestedBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
 
@@ -478,7 +480,7 @@ TEST(BreakBeforeAlways, OnlyMultilineNestedBlock) {
 }
 
 TEST(BreakBeforeAlways, OnlyMultilineSingleStatementBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
 
@@ -496,7 +498,7 @@ TEST(BreakBeforeAlways, OnlyMultilineSingleStatementBlock) {
 }
 
 TEST(BreakBeforeFunction, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeFunction = false;
     style.ContinuationIndentWidth = 2;
 
@@ -518,7 +520,7 @@ TEST(BreakBeforeFunction, Disabled) {
 }
 
 TEST(BreakBeforeFunction, Inserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeFunction = true;
     style.ContinuationIndentWidth = 2;
 
@@ -541,7 +543,7 @@ TEST(BreakBeforeFunction, Inserts) {
 }
 
 TEST(BreakBeforeFunction, PreservesBlankLine) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeFunction = true;
     style.ContinuationIndentWidth = 2;
 
@@ -565,7 +567,7 @@ TEST(BreakBeforeFunction, PreservesBlankLine) {
 }
 
 TEST(BreakBeforeFunction, WithComment) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeFunction = true;
     style.ContinuationIndentWidth = 2;
 
@@ -590,7 +592,7 @@ TEST(BreakBeforeFunction, WithComment) {
 }
 
 TEST(BreakBeforeFunction, WithTrailingComment) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeFunction = true;
     style.ContinuationIndentWidth = 2;
 
@@ -613,7 +615,7 @@ TEST(BreakBeforeFunction, WithTrailingComment) {
 }
 
 TEST(BreakBeforeInitial, Always) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::Always;
 
@@ -634,7 +636,7 @@ TEST(BreakBeforeInitial, Always) {
 }
 
 TEST(BreakBeforeInitial, AlwaysPreservesBlankLine) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::Always;
 
@@ -656,7 +658,7 @@ TEST(BreakBeforeInitial, AlwaysPreservesBlankLine) {
 }
 
 TEST(BreakBeforeInitial, AlwaysTimingControl) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::Always;
 
@@ -673,7 +675,7 @@ TEST(BreakBeforeInitial, AlwaysTimingControl) {
 }
 
 TEST(BreakBeforeInitial, AlwaysWithComment) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::Always;
 
@@ -696,7 +698,7 @@ TEST(BreakBeforeInitial, AlwaysWithComment) {
 }
 
 TEST(BreakBeforeInitial, AlwaysWithTrailingComment) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeInitial = BlockBreakStyle::Always;
     style.BreakAfterInitial = BlockBreakStyle::Never;
 
@@ -719,7 +721,7 @@ TEST(BreakBeforeInitial, AlwaysWithTrailingComment) {
 }
 
 TEST(BreakBeforeInitial, Never) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::Never;
 
@@ -741,7 +743,7 @@ TEST(BreakBeforeInitial, Never) {
 }
 
 TEST(BreakBeforeInitial, OnlyMultilineBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
 
@@ -763,7 +765,7 @@ TEST(BreakBeforeInitial, OnlyMultilineBlock) {
 }
 
 TEST(BreakBeforeInitial, OnlyMultilineNestedBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
 
@@ -797,7 +799,7 @@ TEST(BreakBeforeInitial, OnlyMultilineNestedBlock) {
 }
 
 TEST(BreakBeforeInitial, OnlyMultilineSingleStatementBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
 
@@ -815,7 +817,7 @@ TEST(BreakBeforeInitial, OnlyMultilineSingleStatementBlock) {
 }
 
 TEST(BreakBeforeSpecifyBlock, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeSpecifyBlock = false;
     style.ContinuationIndentWidth = 2;
 
@@ -837,7 +839,7 @@ TEST(BreakBeforeSpecifyBlock, Disabled) {
 }
 
 TEST(BreakBeforeSpecifyBlock, Inserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeSpecifyBlock = true;
     style.ContinuationIndentWidth = 2;
 
@@ -860,7 +862,7 @@ TEST(BreakBeforeSpecifyBlock, Inserts) {
 }
 
 TEST(BreakBeforeSpecifyBlock, PreservesBlankLine) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeSpecifyBlock = true;
     style.ContinuationIndentWidth = 2;
 
@@ -884,7 +886,7 @@ TEST(BreakBeforeSpecifyBlock, PreservesBlankLine) {
 }
 
 TEST(BreakBeforeSpecifyBlock, WithComment) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeSpecifyBlock = true;
     style.ContinuationIndentWidth = 2;
 
@@ -909,7 +911,7 @@ TEST(BreakBeforeSpecifyBlock, WithComment) {
 }
 
 TEST(BreakBeforeSpecifyBlock, WithTrailingComment) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeSpecifyBlock = true;
     style.ContinuationIndentWidth = 2;
 
@@ -932,7 +934,7 @@ TEST(BreakBeforeSpecifyBlock, WithTrailingComment) {
 }
 
 TEST(BreakBeforeTask, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeTask = false;
     style.ContinuationIndentWidth = 2;
 
@@ -954,7 +956,7 @@ TEST(BreakBeforeTask, Disabled) {
 }
 
 TEST(BreakBeforeTask, Inserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeTask = true;
     style.ContinuationIndentWidth = 2;
 
@@ -977,7 +979,7 @@ TEST(BreakBeforeTask, Inserts) {
 }
 
 TEST(BreakBeforeTask, PreservesBlankLine) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeTask = true;
     style.ContinuationIndentWidth = 2;
 
@@ -1001,7 +1003,7 @@ TEST(BreakBeforeTask, PreservesBlankLine) {
 }
 
 TEST(BreakBeforeTask, WithComment) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeTask = true;
     style.ContinuationIndentWidth = 2;
 
@@ -1026,7 +1028,7 @@ TEST(BreakBeforeTask, WithComment) {
 }
 
 TEST(BreakBeforeTask, WithTrailingComment) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakBeforeTask = true;
     style.ContinuationIndentWidth = 2;
 
@@ -1049,7 +1051,7 @@ TEST(BreakBeforeTask, WithTrailingComment) {
 }
 
 TEST(CheckerDeclaration, Members) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         checker foo(logic clk, req, ack);
@@ -1064,7 +1066,7 @@ TEST(CheckerDeclaration, Members) {
 }
 
 TEST(ClockingDeclaration, Members) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
@@ -1088,7 +1090,7 @@ TEST(ClockingDeclaration, Members) {
 }
 
 TEST(CompactTimeUnits, CommentPreventsJoin) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1106,7 +1108,7 @@ TEST(CompactTimeUnits, CommentPreventsJoin) {
 }
 
 TEST(CompactTimeUnits, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
     style.CompactTimeUnits = false;
@@ -1124,7 +1126,7 @@ TEST(CompactTimeUnits, Disabled) {
 }
 
 TEST(CompactTimeUnits, Enabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
     style.CompactTimeUnits = true;
@@ -1141,7 +1143,7 @@ TEST(CompactTimeUnits, Enabled) {
 }
 
 TEST(CompactTimeUnits, JoinsAcrossBlankLine) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
@@ -1159,7 +1161,7 @@ TEST(CompactTimeUnits, JoinsAcrossBlankLine) {
 }
 
 TEST(CompactTimeUnits, JoinsSeparateLines) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
@@ -1176,7 +1178,7 @@ TEST(CompactTimeUnits, JoinsSeparateLines) {
 }
 
 TEST(CompilationUnit, Members) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1196,7 +1198,7 @@ TEST(CompilationUnit, Members) {
 }
 
 TEST(ConfigDeclaration, Members) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         config foo;
@@ -1216,7 +1218,7 @@ TEST(ConfigDeclaration, Members) {
 }
 
 TEST(FunctionDeclaration, Body) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         package foo;
@@ -1234,7 +1236,7 @@ TEST(FunctionDeclaration, Body) {
 }
 
 TEST(PropertyDeclaration, SequenceMatchItem) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1254,7 +1256,7 @@ TEST(PropertyDeclaration, SequenceMatchItem) {
 }
 
 TEST(SpaceAfterAlways, Collapses) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterAlways = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1271,7 +1273,7 @@ TEST(SpaceAfterAlways, Collapses) {
 }
 
 TEST(SpaceAfterAlways, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterAlways = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1290,7 +1292,7 @@ TEST(SpaceAfterAlways, Disabled) {
 }
 
 TEST(SpaceAfterAlways, FormatOff) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterAlways = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1311,7 +1313,7 @@ TEST(SpaceAfterAlways, FormatOff) {
 }
 
 TEST(SpaceAfterAlways, Inserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterAlways = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1328,7 +1330,7 @@ TEST(SpaceAfterAlways, Inserts) {
 }
 
 TEST(SpaceAfterAlways, PreservesNewlines) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterAlways = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1349,7 +1351,7 @@ TEST(SpaceAfterAlways, PreservesNewlines) {
 }
 
 TEST(SpaceAfterAlways, Removes) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterAlways = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1366,7 +1368,7 @@ TEST(SpaceAfterAlways, Removes) {
 }
 
 TEST(SpaceAfterParensEventControls, Collapses) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterParens.EventControls = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1383,7 +1385,7 @@ TEST(SpaceAfterParensEventControls, Collapses) {
 }
 
 TEST(SpaceAfterParensEventControls, FormatOff) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1403,7 +1405,7 @@ TEST(SpaceAfterParensEventControls, FormatOff) {
 }
 
 TEST(SpaceAfterParensEventControls, IgnoresBareImplicitEvent) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1417,7 +1419,7 @@ TEST(SpaceAfterParensEventControls, IgnoresBareImplicitEvent) {
 }
 
 TEST(SpaceAfterParensEventControls, IgnoresDelay) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1433,7 +1435,7 @@ TEST(SpaceAfterParensEventControls, IgnoresDelay) {
 }
 
 TEST(SpaceAfterParensEventControls, Inserts) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1449,7 +1451,7 @@ TEST(SpaceAfterParensEventControls, Inserts) {
 }
 
 TEST(SpaceAfterParensEventControls, InsertsStatement) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1467,7 +1469,7 @@ TEST(SpaceAfterParensEventControls, InsertsStatement) {
 }
 
 TEST(SpaceAfterParensEventControls, PreservesNewlines) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1483,7 +1485,7 @@ TEST(SpaceAfterParensEventControls, PreservesNewlines) {
 }
 
 TEST(SpaceAfterParensEventControls, Removes) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterParens.EventControls = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1500,7 +1502,7 @@ TEST(SpaceAfterParensEventControls, Removes) {
 }
 
 TEST(SpaceAfterParensEventControls, RemovesImplicitEvent) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterParens.EventControls = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1515,7 +1517,7 @@ TEST(SpaceAfterParensEventControls, RemovesImplicitEvent) {
 }
 
 TEST(UdpDeclaration, Combinational) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
@@ -1545,7 +1547,7 @@ TEST(UdpDeclaration, Combinational) {
 }
 
 TEST(UdpDeclaration, Sequential) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 

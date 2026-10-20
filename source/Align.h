@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Style.h"
+#include "slang/format/Style.h"
 
 #include <cstddef>
 #include <string>

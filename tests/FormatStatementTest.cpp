@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: MIT
 
 #include "Format.h"
-#include "Style.h"
 #include "TestHelper.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <gtest/gtest.h>
 
 using namespace slang::format;
+using namespace slang::format::style;
 
 // clang-format off
 TEST(BreakAfterAssertionLabel, ConcurrentAssertion) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -26,7 +28,7 @@ TEST(BreakAfterAssertionLabel, ConcurrentAssertion) {
 }
 
 TEST(BreakAfterAssertionLabel, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAssertionLabel = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -41,7 +43,7 @@ TEST(BreakAfterAssertionLabel, Disabled) {
 }
 
 TEST(BreakAfterAssertionLabel, ImmediateAssertionWithElse) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -60,7 +62,7 @@ TEST(BreakAfterAssertionLabel, ImmediateAssertionWithElse) {
 }
 
 TEST(BreakAfterBegin, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterBegin = false;
     style.BreakBeforeEnd = false;
 
@@ -76,7 +78,7 @@ TEST(BreakAfterBegin, Disabled) {
 }
 
 TEST(BreakAfterBegin, Inserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterBegin = true;
     style.BreakBeforeEnd = false;
 
@@ -93,7 +95,7 @@ TEST(BreakAfterBegin, Inserts) {
 }
 
 TEST(BreakAfterBegin, Nested) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterBegin = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -112,7 +114,7 @@ TEST(BreakAfterBegin, Nested) {
 }
 
 TEST(BreakAfterBegin, PreservesNewlines) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterBegin = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -131,7 +133,7 @@ TEST(BreakAfterBegin, PreservesNewlines) {
 }
 
 TEST(BreakBeforeEnd, Inserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterBegin = false;
     style.BreakBeforeEnd = true;
 
@@ -148,7 +150,7 @@ TEST(BreakBeforeEnd, Inserts) {
 }
 
 TEST(CompactControlStatements, BlockBodies) {
-    Style style;
+    auto style = getDefaultStyle();
     style.CompactControlStatements = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -168,7 +170,7 @@ TEST(CompactControlStatements, BlockBodies) {
 }
 
 TEST(CompactControlStatements, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.CompactControlStatements = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -187,7 +189,7 @@ TEST(CompactControlStatements, Disabled) {
 }
 
 TEST(CompactControlStatements, ExceedsColumnLimit) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Always;
     style.ColumnLimit = 30; // NOLINT
     style.CompactControlStatements = true;
@@ -206,7 +208,7 @@ TEST(CompactControlStatements, ExceedsColumnLimit) {
 }
 
 TEST(CompactControlStatements, If) {
-    Style style;
+    auto style = getDefaultStyle();
     style.CompactControlStatements = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -221,7 +223,7 @@ TEST(CompactControlStatements, If) {
 }
 
 TEST(CompactControlStatements, IfElse) {
-    Style style;
+    auto style = getDefaultStyle();
     style.CompactControlStatements = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -238,7 +240,7 @@ TEST(CompactControlStatements, IfElse) {
 }
 
 TEST(CompactControlStatements, IfElseIfElse) {
-    Style style;
+    auto style = getDefaultStyle();
     style.CompactControlStatements = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -256,7 +258,7 @@ TEST(CompactControlStatements, IfElseIfElse) {
 }
 
 TEST(CompactControlStatements, NoColumnLimit) {
-    Style style;
+    auto style = getDefaultStyle();
     style.ColumnLimit = 0;
     style.CompactControlStatements = true;
 
@@ -272,7 +274,7 @@ TEST(CompactControlStatements, NoColumnLimit) {
 }
 
 TEST(CompactControlStatements, PartiallyCompacts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.ColumnLimit = 30; // NOLINT
     style.CompactControlStatements = true;
 
@@ -291,7 +293,7 @@ TEST(CompactControlStatements, PartiallyCompacts) {
 }
 
 TEST(CompactControlStatements, PreservesNewlines) {
-    Style style;
+    auto style = getDefaultStyle();
     style.CompactControlStatements = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -314,7 +316,7 @@ TEST(CompactControlStatements, PreservesNewlines) {
 }
 
 TEST(ConcurrentAssertionStatement, Restrict) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -328,7 +330,7 @@ TEST(ConcurrentAssertionStatement, Restrict) {
 }
 
 TEST(ConditionalStatement, BareBodies) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -350,7 +352,7 @@ TEST(ConditionalStatement, BareBodies) {
 }
 
 TEST(ForLoopStatement, BareBody) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -368,7 +370,7 @@ TEST(ForLoopStatement, BareBody) {
 }
 
 TEST(IndentCaseItem, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.IndentCaseItem = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -393,7 +395,7 @@ TEST(IndentCaseItem, Disabled) {
 }
 
 TEST(IndentCaseItem, Enabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.IndentCaseItem = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -418,7 +420,7 @@ TEST(IndentCaseItem, Enabled) {
 }
 
 TEST(IndentCaseItem, SameLineBlock) {
-    Style style;
+    auto style = getDefaultStyle();
     style.IndentCaseItem = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -443,7 +445,7 @@ TEST(IndentCaseItem, SameLineBlock) {
 }
 
 TEST(NamedBlockClause, NormalizesSpacing) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -461,7 +463,7 @@ TEST(NamedBlockClause, NormalizesSpacing) {
 }
 
 TEST(OneStatementPerLine, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.OneStatementPerLine = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -480,7 +482,7 @@ TEST(OneStatementPerLine, Disabled) {
 }
 
 TEST(OneStatementPerLine, Enabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.OneStatementPerLine = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -501,7 +503,7 @@ TEST(OneStatementPerLine, Enabled) {
 }
 
 TEST(OneStatementPerLine, Members) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo; wire a; wire b;
@@ -515,7 +517,7 @@ TEST(OneStatementPerLine, Members) {
 }
 
 TEST(RandSequenceStatement, CaseItems) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -540,7 +542,7 @@ TEST(RandSequenceStatement, CaseItems) {
 }
 
 TEST(RandSequenceStatement, Productions) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -570,7 +572,7 @@ TEST(RandSequenceStatement, Productions) {
 }
 
 TEST(SpaceAfterCaseColon, Collapses) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterCaseColon = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -593,7 +595,7 @@ TEST(SpaceAfterCaseColon, Collapses) {
 }
 
 TEST(SpaceAfterCaseColon, FormatOff) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterCaseColon = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -620,7 +622,7 @@ TEST(SpaceAfterCaseColon, FormatOff) {
 }
 
 TEST(SpaceAfterCaseColon, Inserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterCaseColon = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -643,7 +645,7 @@ TEST(SpaceAfterCaseColon, Inserts) {
 }
 
 TEST(SpaceAfterCaseColon, PreservesNewlines) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterCaseColon = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -670,7 +672,7 @@ TEST(SpaceAfterCaseColon, PreservesNewlines) {
 }
 
 TEST(SpaceAfterCaseColon, Removes) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterCaseColon = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -693,7 +695,7 @@ TEST(SpaceAfterCaseColon, Removes) {
 }
 
 TEST(SpaceAfterParensControlStatements, Collapses) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterParens.ControlStatements = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -740,7 +742,7 @@ TEST(SpaceAfterParensControlStatements, Collapses) {
 }
 
 TEST(SpaceAfterParensControlStatements, FormatOff) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -764,7 +766,7 @@ TEST(SpaceAfterParensControlStatements, FormatOff) {
 }
 
 TEST(SpaceAfterParensControlStatements, Inserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterParens.ControlStatements = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -811,7 +813,7 @@ TEST(SpaceAfterParensControlStatements, Inserts) {
 }
 
 TEST(SpaceAfterParensControlStatements, PreservesNewlines) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -831,7 +833,7 @@ TEST(SpaceAfterParensControlStatements, PreservesNewlines) {
 }
 
 TEST(SpaceAfterParensControlStatements, Removes) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceAfterParens.ControlStatements = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -878,7 +880,7 @@ TEST(SpaceAfterParensControlStatements, Removes) {
 }
 
 TEST(SpaceBeforeCaseColon, Collapses) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeCaseColon = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -901,7 +903,7 @@ TEST(SpaceBeforeCaseColon, Collapses) {
 }
 
 TEST(SpaceBeforeCaseColon, FormatOff) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeCaseColon = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -928,7 +930,7 @@ TEST(SpaceBeforeCaseColon, FormatOff) {
 }
 
 TEST(SpaceBeforeCaseColon, Inserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeCaseColon = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -951,7 +953,7 @@ TEST(SpaceBeforeCaseColon, Inserts) {
 }
 
 TEST(SpaceBeforeCaseColon, PreservesNewlines) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeCaseColon = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -978,7 +980,7 @@ TEST(SpaceBeforeCaseColon, PreservesNewlines) {
 }
 
 TEST(SpaceBeforeCaseColon, Removes) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeCaseColon = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1001,7 +1003,7 @@ TEST(SpaceBeforeCaseColon, Removes) {
 }
 
 TEST(SpaceBeforeParensControlStatements, Collapses) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeParens.ControlStatements = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1054,7 +1056,7 @@ TEST(SpaceBeforeParensControlStatements, Collapses) {
 }
 
 TEST(SpaceBeforeParensControlStatements, FormatOff) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1078,7 +1080,7 @@ TEST(SpaceBeforeParensControlStatements, FormatOff) {
 }
 
 TEST(SpaceBeforeParensControlStatements, Inserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeParens.ControlStatements = true;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1131,7 +1133,7 @@ TEST(SpaceBeforeParensControlStatements, Inserts) {
 }
 
 TEST(SpaceBeforeParensControlStatements, PreservesNewlines) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -1153,7 +1155,7 @@ TEST(SpaceBeforeParensControlStatements, PreservesNewlines) {
 }
 
 TEST(SpaceBeforeParensControlStatements, Removes) {
-    Style style;
+    auto style = getDefaultStyle();
     style.SpaceBeforeParens.ControlStatements = false;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -1206,7 +1208,7 @@ TEST(SpaceBeforeParensControlStatements, Removes) {
 }
 
 TEST(SpaceBeforeParensControlStatements, UniqueIf) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;

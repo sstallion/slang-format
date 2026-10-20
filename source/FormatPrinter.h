@@ -4,8 +4,8 @@
 #pragma once
 
 #include "Align.h"
-#include "Style.h"
 #include "TokenHelper.h"
+#include "slang/format/Style.h"
 
 #include <cstddef>
 #include <optional>

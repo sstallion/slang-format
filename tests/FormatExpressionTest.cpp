@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: MIT
 
 #include "Format.h"
-#include "Style.h"
 #include "TestHelper.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <gtest/gtest.h>
 
 using namespace slang::format;
+using namespace slang::format::style;
 
 // clang-format off
 TEST(AlignAfterOpenParen, AlignBinPacked) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
@@ -32,7 +34,7 @@ TEST(AlignAfterOpenParen, AlignBinPacked) {
 }
 
 TEST(AlignAfterOpenParen, AlignEmptyArguments) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
@@ -52,7 +54,7 @@ TEST(AlignAfterOpenParen, AlignEmptyArguments) {
 }
 
 TEST(AlignAfterOpenParen, AlignExistingBreaks) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -73,7 +75,7 @@ TEST(AlignAfterOpenParen, AlignExistingBreaks) {
 }
 
 TEST(AlignAfterOpenParen, AlignFits) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
@@ -93,7 +95,7 @@ TEST(AlignAfterOpenParen, AlignFits) {
 }
 
 TEST(AlignAfterOpenParen, AlignLastArgumentOverflows) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
@@ -114,7 +116,7 @@ TEST(AlignAfterOpenParen, AlignLastArgumentOverflows) {
 }
 
 TEST(AlignAfterOpenParen, AlignMethodCall) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
@@ -135,7 +137,7 @@ TEST(AlignAfterOpenParen, AlignMethodCall) {
 }
 
 TEST(AlignAfterOpenParen, AlignNestedCalls) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
     style.ColumnLimit = 50; // NOLINT
 
@@ -156,7 +158,7 @@ TEST(AlignAfterOpenParen, AlignNestedCalls) {
 }
 
 TEST(AlignAfterOpenParen, AlignSingleArgument) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
@@ -176,7 +178,7 @@ TEST(AlignAfterOpenParen, AlignSingleArgument) {
 }
 
 TEST(AlignAfterOpenParen, AlignSystemTask) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
@@ -197,7 +199,7 @@ TEST(AlignAfterOpenParen, AlignSystemTask) {
 }
 
 TEST(AlignAfterOpenParen, AlwaysBreakBinPacked) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
     style.ColumnLimit = 40; // NOLINT
 
@@ -219,7 +221,7 @@ TEST(AlignAfterOpenParen, AlwaysBreakBinPacked) {
 }
 
 TEST(AlignAfterOpenParen, AlwaysBreakFits) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
     style.ColumnLimit = 40; // NOLINT
 
@@ -239,7 +241,7 @@ TEST(AlignAfterOpenParen, AlwaysBreakFits) {
 }
 
 TEST(AlignAfterOpenParen, BlockIndentBinPacked) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
     style.ColumnLimit = 40; // NOLINT
 
@@ -262,7 +264,7 @@ TEST(AlignAfterOpenParen, BlockIndentBinPacked) {
 }
 
 TEST(AlignAfterOpenParen, BlockIndentFits) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
     style.ColumnLimit = 40; // NOLINT
 
@@ -282,7 +284,7 @@ TEST(AlignAfterOpenParen, BlockIndentFits) {
 }
 
 TEST(AlignAfterOpenParen, DontAlign) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::DontAlign;
     style.ColumnLimit = 40; // NOLINT
 
@@ -302,7 +304,7 @@ TEST(AlignAfterOpenParen, DontAlign) {
 }
 
 TEST(AlignAfterOpenParen, ElabSystemTask) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
@@ -319,7 +321,7 @@ TEST(AlignAfterOpenParen, ElabSystemTask) {
 }
 
 TEST(AlignAfterOpenParen, NewClassExpression) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
@@ -340,7 +342,7 @@ TEST(AlignAfterOpenParen, NewClassExpression) {
 }
 
 TEST(AlignAfterOpenParen, NoColumnLimit) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
     style.ColumnLimit = 0;
 
@@ -360,7 +362,7 @@ TEST(AlignAfterOpenParen, NoColumnLimit) {
 }
 
 TEST(AttributeInstance, NormalizesSpacing) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
@@ -378,7 +380,7 @@ TEST(AttributeInstance, NormalizesSpacing) {
 }
 
 TEST(BinPackArguments, Disabled) {
-    Style style;
+    auto style = getDefaultStyle();
     style.BinPackArguments = false;
     style.ColumnLimit = 40; // NOLINT
 
@@ -401,7 +403,7 @@ TEST(BinPackArguments, Disabled) {
 }
 
 TEST(BinPackArguments, DisabledAlwaysBreak) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
     style.BinPackArguments = false;
     style.ColumnLimit = 40; // NOLINT
@@ -426,7 +428,7 @@ TEST(BinPackArguments, DisabledAlwaysBreak) {
 }
 
 TEST(BinPackArguments, DisabledBlockIndent) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
     style.BinPackArguments = false;
     style.ColumnLimit = 40; // NOLINT
@@ -452,7 +454,7 @@ TEST(BinPackArguments, DisabledBlockIndent) {
 }
 
 TEST(DelayedSequenceElement, BeforeParenthesizedExpression) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -470,7 +472,7 @@ TEST(DelayedSequenceElement, BeforeParenthesizedExpression) {
 }
 
 TEST(DelayedSequenceElement, BracketRange) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -488,7 +490,7 @@ TEST(DelayedSequenceElement, BracketRange) {
 }
 
 TEST(RangeSpacing, AlwaysBitSelect) {
-    Style style;
+    auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Always;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -503,7 +505,7 @@ TEST(RangeSpacing, AlwaysBitSelect) {
 }
 
 TEST(RangeSpacing, AlwaysInserts) {
-    Style style;
+    auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Always;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -518,7 +520,7 @@ TEST(RangeSpacing, AlwaysInserts) {
 }
 
 TEST(RangeSpacing, AlwaysKeepsSpaces) {
-    Style style;
+    auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Always;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -533,7 +535,7 @@ TEST(RangeSpacing, AlwaysKeepsSpaces) {
 }
 
 TEST(RangeSpacing, MatchSourceKeepsCompact) {
-    Style style;
+    auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::MatchSource;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -548,7 +550,7 @@ TEST(RangeSpacing, MatchSourceKeepsCompact) {
 }
 
 TEST(RangeSpacing, MatchSourceKeepsSpaces) {
-    Style style;
+    auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::MatchSource;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -563,7 +565,7 @@ TEST(RangeSpacing, MatchSourceKeepsSpaces) {
 }
 
 TEST(RangeSpacing, MatchSourceValueRange) {
-    Style style;
+    auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::MatchSource;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -582,7 +584,7 @@ TEST(RangeSpacing, MatchSourceValueRange) {
 }
 
 TEST(RangeSpacing, NeverKeepsCompact) {
-    Style style;
+    auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Never;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -597,7 +599,7 @@ TEST(RangeSpacing, NeverKeepsCompact) {
 }
 
 TEST(RangeSpacing, NeverRemoves) {
-    Style style;
+    auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Never;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -612,7 +614,7 @@ TEST(RangeSpacing, NeverRemoves) {
 }
 
 TEST(RangeSpacing, PreserveCollapsesMultiSpace) {
-    Style style;
+    auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Preserve;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -627,7 +629,7 @@ TEST(RangeSpacing, PreserveCollapsesMultiSpace) {
 }
 
 TEST(RangeSpacing, PreserveKeepsCompact) {
-    Style style;
+    auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Preserve;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -642,7 +644,7 @@ TEST(RangeSpacing, PreserveKeepsCompact) {
 }
 
 TEST(RangeSpacing, PreserveKeepsSpaces) {
-    Style style;
+    auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Preserve;
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -657,7 +659,7 @@ TEST(RangeSpacing, PreserveKeepsSpaces) {
 }
 
 TEST(SequenceRepetition, Consecutive) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;

@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: MIT
 
 #include "Format.h"
-#include "Style.h"
 #include "TestHelper.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <gtest/gtest.h>
 
 using namespace slang::format;
+using namespace slang::format::style;
 
 // clang-format off
 TEST(BindDirective, Instantiation) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutivePortConnections = {};
     style.BinPackPortConnections = true;
 
@@ -33,7 +35,7 @@ TEST(BindDirective, Instantiation) {
 }
 
 TEST(DPIImport, ExpandsPorts) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         package foo;
@@ -50,7 +52,7 @@ TEST(DPIImport, ExpandsPorts) {
 }
 
 TEST(DPIImport, SinglePortFits) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         package foo;
@@ -64,7 +66,7 @@ TEST(DPIImport, SinglePortFits) {
 }
 
 TEST(EnumType, ExpandsMembers) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
@@ -81,7 +83,7 @@ TEST(EnumType, ExpandsMembers) {
 }
 
 TEST(EnumType, NormalizesSpacing) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         package foo;
@@ -101,7 +103,7 @@ TEST(EnumType, NormalizesSpacing) {
 }
 
 TEST(EnumType, PreservesNewlines) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveAssignments = {};
 
     EXPECT_EQ(reformat(dedent(R"(
@@ -122,7 +124,7 @@ TEST(EnumType, PreservesNewlines) {
 }
 
 TEST(StructUnionType, Members) {
-    Style style;
+    auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
@@ -144,7 +146,7 @@ TEST(StructUnionType, Members) {
 }
 
 TEST(TimeUnitsDeclaration, Divider) {
-    const Style style;
+    const auto style = getDefaultStyle();
 
     EXPECT_EQ(reformat(dedent(R"(
         module foo;

@@ -1,8 +1,10 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
-#include "Style.h"
+#include "ConfigHelper.h"
 #include "TestHelper.h"
+#include "slang/format/Style.h"
+#include "slang/format/styles/Default.h"
 
 #include <filesystem>
 #include <optional>
@@ -13,10 +15,11 @@
 #include <yaml-cpp/yaml.h>
 
 using namespace slang::format;
+using namespace slang::format::style;
 
-TEST(DumpConfiguration, DefaultStyle) {
+TEST(DumpConfig, DefaultStyle) {
     // clang-format off
-    EXPECT_EQ(dumpConfiguration(getDefaultStyle()), dedent(R"(
+    EXPECT_EQ(dumpConfig(getDefaultStyle()), dedent(R"(
         ---
         AlignAfterOpenParen: Align
         AlignConsecutiveAssignments:
@@ -128,8 +131,8 @@ TEST(DumpConfiguration, DefaultStyle) {
     // clang-format on
 }
 
-TEST(DumpConfiguration, RoundTrip) {
-    Style original;
+TEST(DumpConfig, RoundTrip) {
+    auto original = getDefaultStyle();
     original.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
     original.AlignConsecutiveDeclarations.AcrossEmptyLines = true;
     original.AlignConsecutiveDeclarations.Enabled = true;
@@ -200,33 +203,48 @@ TEST(DumpConfiguration, RoundTrip) {
     original.SpacesInParens = true;
     original.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
 
-    const auto yaml = dumpConfiguration(original);
+    const auto yaml = dumpConfig(original);
     const auto node = YAML::Load(yaml);
-    Style parsed;
-    parseConfiguration(node, parsed);
+    auto parsed = getDefaultStyle();
+    parseConfig(node, parsed);
     EXPECT_EQ(parsed, original);
 }
 
-TEST(GetDefaultStyle, MatchesDefaultConstructed) {
-    const Style style = getDefaultStyle();
-    EXPECT_EQ(style, Style{});
+TEST(LoadConfig, AppliesBasedOnStyle) {
+    // clang-format off
+    const auto loader = makeFileLoader({{"/a/b/c/.slang-format", dedent(R"(
+        BasedOnStyle: Default
+        IndentWidth: 4
+    )")}});
+    // clang-format on
+
+    auto expected = getDefaultStyle();
+    expected.IndentWidth = 4;
+    expected.ContinuationIndentWidth = 4;
+    expected.ParameterPortListIndentWidth = 4;
+    EXPECT_EQ(loadConfig("/a/b/c", loader), expected);
 }
 
-TEST(GetStyle, LoadsFromCurrentDir) {
+TEST(LoadConfig, LoadsFromCurrentDir) {
     const auto loader = makeFileLoader({{"/a/b/c/.slang-format", "{}"}});
 
-    Style expected;
+    auto expected = getDefaultStyle();
     expected.ContinuationIndentWidth = 2;
     expected.ParameterPortListIndentWidth = 2;
-    EXPECT_EQ(getStyle("/a/b/c", loader), expected);
+    EXPECT_EQ(loadConfig("/a/b/c", loader), expected);
 }
 
-TEST(GetStyle, ReturnsDefaultWhenNoFile) {
+TEST(LoadConfig, RejectsUnknownBasedOnStyle) {
+    const auto loader = makeFileLoader({{"/a/b/c/.slang-format", "BasedOnStyle: Unknown"}});
+    EXPECT_THROW(loadConfig("/a/b/c", loader), std::runtime_error);
+}
+
+TEST(LoadConfig, ReturnsDefaultWhenNoFile) {
     const auto loader = makeFileLoader({});
-    EXPECT_EQ(getStyle("/a/b/c", loader), Style{});
+    EXPECT_EQ(loadConfig("/a/b/c", loader), getDefaultStyle());
 }
 
-TEST(GetStyle, StopsAtFirstMatch) {
+TEST(LoadConfig, StopsAtFirstMatch) {
     int callCount{0};
     auto loader = [&callCount](const std::filesystem::path& p) -> std::optional<std::string> {
         callCount++;
@@ -237,42 +255,42 @@ TEST(GetStyle, StopsAtFirstMatch) {
         return std::nullopt;
     };
 
-    getStyle("/a/b/c", loader);
+    loadConfig("/a/b/c", loader);
     EXPECT_EQ(callCount, 4);
 }
 
-TEST(GetStyle, WalksHierarchy) {
+TEST(LoadConfig, WalksHierarchy) {
     const auto loader = makeFileLoader({{"/a/.slang-format", "{}"}});
 
-    Style expected;
+    auto expected = getDefaultStyle();
     expected.ContinuationIndentWidth = 2;
     expected.ParameterPortListIndentWidth = 2;
-    EXPECT_EQ(getStyle("/a/b/c", loader), expected);
+    EXPECT_EQ(loadConfig("/a/b/c", loader), expected);
 }
 
-TEST(ParseConfiguration, AcceptsEmptyMap) {
-    Style style;
-    parseConfiguration(YAML::Load("{}"), style);
+TEST(ParseConfig, AcceptsEmptyMap) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("{}"), style);
 }
 
-TEST(ParseConfiguration, AlignAfterOpenParen) {
-    Style style;
+TEST(ParseConfig, AlignAfterOpenParen) {
+    auto style = getDefaultStyle();
 
-    parseConfiguration(YAML::Load("AlignAfterOpenParen: Align"), style);
+    parseConfig(YAML::Load("AlignAfterOpenParen: Align"), style);
     EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::Align);
 
-    parseConfiguration(YAML::Load("AlignAfterOpenParen: AlwaysBreak"), style);
+    parseConfig(YAML::Load("AlignAfterOpenParen: AlwaysBreak"), style);
     EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::AlwaysBreak);
 
-    parseConfiguration(YAML::Load("AlignAfterOpenParen: BlockIndent"), style);
+    parseConfig(YAML::Load("AlignAfterOpenParen: BlockIndent"), style);
     EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::BlockIndent);
 
-    parseConfiguration(YAML::Load("AlignAfterOpenParen: DontAlign"), style);
+    parseConfig(YAML::Load("AlignAfterOpenParen: DontAlign"), style);
     EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::DontAlign);
 }
 
-TEST(ParseConfiguration, AlignConsecutiveAssignments) {
-    Style style;
+TEST(ParseConfig, AlignConsecutiveAssignments) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -290,7 +308,7 @@ TEST(ParseConfiguration, AlignConsecutiveAssignments) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_FALSE(style.AlignConsecutiveAssignments.Enabled);
     EXPECT_TRUE(style.AlignConsecutiveAssignments.AcrossComments);
     EXPECT_TRUE(style.AlignConsecutiveAssignments.AcrossEmptyLines);
@@ -303,8 +321,8 @@ TEST(ParseConfiguration, AlignConsecutiveAssignments) {
     EXPECT_TRUE(style.AlignConsecutiveAssignments.PadRight);
 }
 
-TEST(ParseConfiguration, AlignConsecutiveDeclarations) {
-    Style style;
+TEST(ParseConfig, AlignConsecutiveDeclarations) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -313,12 +331,12 @@ TEST(ParseConfiguration, AlignConsecutiveDeclarations) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_FALSE(style.AlignConsecutiveDeclarations.Enabled);
 }
 
-TEST(ParseConfiguration, AlignConsecutivePackedDimensions) {
-    Style style;
+TEST(ParseConfig, AlignConsecutivePackedDimensions) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -327,12 +345,12 @@ TEST(ParseConfiguration, AlignConsecutivePackedDimensions) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_FALSE(style.AlignConsecutivePackedDimensions.Enabled);
 }
 
-TEST(ParseConfiguration, AlignConsecutivePortConnections) {
-    Style style;
+TEST(ParseConfig, AlignConsecutivePortConnections) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -341,12 +359,12 @@ TEST(ParseConfiguration, AlignConsecutivePortConnections) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_FALSE(style.AlignConsecutivePortConnections.Enabled);
 }
 
-TEST(ParseConfiguration, AlignConsecutiveTimingControls) {
-    Style style;
+TEST(ParseConfig, AlignConsecutiveTimingControls) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -355,12 +373,12 @@ TEST(ParseConfiguration, AlignConsecutiveTimingControls) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_TRUE(style.AlignConsecutiveTimingControls.Enabled);
 }
 
-TEST(ParseConfiguration, AlignTrailingComments) {
-    Style style;
+TEST(ParseConfig, AlignTrailingComments) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -369,187 +387,225 @@ TEST(ParseConfiguration, AlignTrailingComments) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_TRUE(style.AlignTrailingComments.Enabled);
 }
 
-TEST(ParseConfiguration, AllowShortConstraintBlocksOnASingleLine) {
-    Style style;
-    parseConfiguration(YAML::Load("AllowShortConstraintBlocksOnASingleLine: false"), style);
+TEST(ParseConfig, AllowShortConstraintBlocksOnASingleLine) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("AllowShortConstraintBlocksOnASingleLine: false"), style);
     EXPECT_FALSE(style.AllowShortConstraintBlocksOnASingleLine);
 }
 
-TEST(ParseConfiguration, AllowShortCoverpointsOnASingleLine) {
-    Style style;
-    parseConfiguration(YAML::Load("AllowShortCoverpointsOnASingleLine: false"), style);
+TEST(ParseConfig, AllowShortCoverpointsOnASingleLine) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("AllowShortCoverpointsOnASingleLine: false"), style);
     EXPECT_FALSE(style.AllowShortCoverpointsOnASingleLine);
 }
 
-TEST(ParseConfiguration, BinPackArguments) {
-    Style style;
-    parseConfiguration(YAML::Load("BinPackArguments: false"), style);
+TEST(ParseConfig, BasedOnStyle) {
+    auto style = getDefaultStyle();
+    style.IndentWidth = 4;
+    parseConfig(YAML::Load("BasedOnStyle: Default"), style);
+
+    auto expected = getDefaultStyle();
+    expected.ContinuationIndentWidth = 2;
+    expected.ParameterPortListIndentWidth = 2;
+    EXPECT_EQ(style, expected);
+}
+
+TEST(ParseConfig, BasedOnStyleAppliesBeforeOtherKeys) {
+    auto style = getDefaultStyle();
+
+    // clang-format off
+    const auto node = YAML::Load(dedent(R"(
+        IndentWidth: 4
+        BasedOnStyle: Default
+    )"));
+    // clang-format on
+
+    parseConfig(node, style);
+    EXPECT_EQ(style.IndentWidth, 4U);
+    EXPECT_EQ(style.ContinuationIndentWidth, 4U);
+    EXPECT_EQ(style.ParameterPortListIndentWidth, 4U);
+}
+
+TEST(ParseConfig, BasedOnStyleIsCaseInsensitive) {
+    auto style = getDefaultStyle();
+    style.IndentWidth = 4;
+    parseConfig(YAML::Load("BasedOnStyle: default"), style);
+    EXPECT_EQ(style.IndentWidth, 2U);
+
+    style.IndentWidth = 4;
+    parseConfig(YAML::Load("BasedOnStyle: DEFAULT"), style);
+    EXPECT_EQ(style.IndentWidth, 2U);
+}
+
+TEST(ParseConfig, BinPackArguments) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("BinPackArguments: false"), style);
     EXPECT_FALSE(style.BinPackArguments);
 }
 
-TEST(ParseConfiguration, BinPackParameters) {
-    Style style;
-    parseConfiguration(YAML::Load("BinPackParameters: false"), style);
+TEST(ParseConfig, BinPackParameters) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("BinPackParameters: false"), style);
     EXPECT_FALSE(style.BinPackParameters);
 }
 
-TEST(ParseConfiguration, BinPackPortConnections) {
-    Style style;
-    parseConfiguration(YAML::Load("BinPackPortConnections: true"), style);
+TEST(ParseConfig, BinPackPortConnections) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("BinPackPortConnections: true"), style);
     EXPECT_TRUE(style.BinPackPortConnections);
 }
 
-TEST(ParseConfiguration, BreakAfterAlways) {
-    Style style;
+TEST(ParseConfig, BreakAfterAlways) {
+    auto style = getDefaultStyle();
 
-    parseConfiguration(YAML::Load("BreakAfterAlways: Always"), style);
+    parseConfig(YAML::Load("BreakAfterAlways: Always"), style);
     EXPECT_EQ(style.BreakAfterAlways, BlockBreakStyle::Always);
 
-    parseConfiguration(YAML::Load("BreakAfterAlways: Never"), style);
+    parseConfig(YAML::Load("BreakAfterAlways: Never"), style);
     EXPECT_EQ(style.BreakAfterAlways, BlockBreakStyle::Never);
 
-    parseConfiguration(YAML::Load("BreakAfterAlways: OnlyMultiline"), style);
+    parseConfig(YAML::Load("BreakAfterAlways: OnlyMultiline"), style);
     EXPECT_EQ(style.BreakAfterAlways, BlockBreakStyle::OnlyMultiline);
 }
 
-TEST(ParseConfiguration, BreakAfterAssertionLabel) {
-    Style style;
-    parseConfiguration(YAML::Load("BreakAfterAssertionLabel: false"), style);
+TEST(ParseConfig, BreakAfterAssertionLabel) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("BreakAfterAssertionLabel: false"), style);
     EXPECT_FALSE(style.BreakAfterAssertionLabel);
 }
 
-TEST(ParseConfiguration, BreakAfterBegin) {
-    Style style;
-    parseConfiguration(YAML::Load("BreakAfterBegin: false"), style);
+TEST(ParseConfig, BreakAfterBegin) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("BreakAfterBegin: false"), style);
     EXPECT_FALSE(style.BreakAfterBegin);
 }
 
-TEST(ParseConfiguration, BreakAfterInitial) {
-    Style style;
+TEST(ParseConfig, BreakAfterInitial) {
+    auto style = getDefaultStyle();
 
-    parseConfiguration(YAML::Load("BreakAfterInitial: Always"), style);
+    parseConfig(YAML::Load("BreakAfterInitial: Always"), style);
     EXPECT_EQ(style.BreakAfterInitial, BlockBreakStyle::Always);
 
-    parseConfiguration(YAML::Load("BreakAfterInitial: Never"), style);
+    parseConfig(YAML::Load("BreakAfterInitial: Never"), style);
     EXPECT_EQ(style.BreakAfterInitial, BlockBreakStyle::Never);
 
-    parseConfiguration(YAML::Load("BreakAfterInitial: OnlyMultiline"), style);
+    parseConfig(YAML::Load("BreakAfterInitial: OnlyMultiline"), style);
     EXPECT_EQ(style.BreakAfterInitial, BlockBreakStyle::OnlyMultiline);
 }
 
-TEST(ParseConfiguration, BreakBeforeAlways) {
-    Style style;
+TEST(ParseConfig, BreakBeforeAlways) {
+    auto style = getDefaultStyle();
 
-    parseConfiguration(YAML::Load("BreakBeforeAlways: Always"), style);
+    parseConfig(YAML::Load("BreakBeforeAlways: Always"), style);
     EXPECT_EQ(style.BreakBeforeAlways, BlockBreakStyle::Always);
 
-    parseConfiguration(YAML::Load("BreakBeforeAlways: Never"), style);
+    parseConfig(YAML::Load("BreakBeforeAlways: Never"), style);
     EXPECT_EQ(style.BreakBeforeAlways, BlockBreakStyle::Never);
 
-    parseConfiguration(YAML::Load("BreakBeforeAlways: OnlyMultiline"), style);
+    parseConfig(YAML::Load("BreakBeforeAlways: OnlyMultiline"), style);
     EXPECT_EQ(style.BreakBeforeAlways, BlockBreakStyle::OnlyMultiline);
 }
 
-TEST(ParseConfiguration, BreakBeforeEnd) {
-    Style style;
-    parseConfiguration(YAML::Load("BreakBeforeEnd: false"), style);
+TEST(ParseConfig, BreakBeforeEnd) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("BreakBeforeEnd: false"), style);
     EXPECT_FALSE(style.BreakBeforeEnd);
 }
 
-TEST(ParseConfiguration, BreakBeforeFunction) {
-    Style style;
-    parseConfiguration(YAML::Load("BreakBeforeFunction: true"), style);
+TEST(ParseConfig, BreakBeforeFunction) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("BreakBeforeFunction: true"), style);
     EXPECT_TRUE(style.BreakBeforeFunction);
 }
 
-TEST(ParseConfiguration, BreakBeforeInitial) {
-    Style style;
+TEST(ParseConfig, BreakBeforeInitial) {
+    auto style = getDefaultStyle();
 
-    parseConfiguration(YAML::Load("BreakBeforeInitial: Always"), style);
+    parseConfig(YAML::Load("BreakBeforeInitial: Always"), style);
     EXPECT_EQ(style.BreakBeforeInitial, BlockBreakStyle::Always);
 
-    parseConfiguration(YAML::Load("BreakBeforeInitial: Never"), style);
+    parseConfig(YAML::Load("BreakBeforeInitial: Never"), style);
     EXPECT_EQ(style.BreakBeforeInitial, BlockBreakStyle::Never);
 
-    parseConfiguration(YAML::Load("BreakBeforeInitial: OnlyMultiline"), style);
+    parseConfig(YAML::Load("BreakBeforeInitial: OnlyMultiline"), style);
     EXPECT_EQ(style.BreakBeforeInitial, BlockBreakStyle::OnlyMultiline);
 }
 
-TEST(ParseConfiguration, BreakBeforeSpecifyBlock) {
-    Style style;
-    parseConfiguration(YAML::Load("BreakBeforeSpecifyBlock: true"), style);
+TEST(ParseConfig, BreakBeforeSpecifyBlock) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("BreakBeforeSpecifyBlock: true"), style);
     EXPECT_TRUE(style.BreakBeforeSpecifyBlock);
 }
 
-TEST(ParseConfiguration, BreakBeforeTask) {
-    Style style;
-    parseConfiguration(YAML::Load("BreakBeforeTask: true"), style);
+TEST(ParseConfig, BreakBeforeTask) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("BreakBeforeTask: true"), style);
     EXPECT_TRUE(style.BreakBeforeTask);
 }
 
-TEST(ParseConfiguration, ColumnLimit) {
-    Style style;
-    parseConfiguration(YAML::Load("ColumnLimit: 80"), style);
+TEST(ParseConfig, ColumnLimit) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("ColumnLimit: 80"), style);
     EXPECT_EQ(style.ColumnLimit, 80U);
 }
 
-TEST(ParseConfiguration, CompactControlStatements) {
-    Style style;
-    parseConfiguration(YAML::Load("CompactControlStatements: false"), style);
+TEST(ParseConfig, CompactControlStatements) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("CompactControlStatements: false"), style);
     EXPECT_FALSE(style.CompactControlStatements);
 }
 
-TEST(ParseConfiguration, CompactTimeUnits) {
-    Style style;
-    parseConfiguration(YAML::Load("CompactTimeUnits: false"), style);
+TEST(ParseConfig, CompactTimeUnits) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("CompactTimeUnits: false"), style);
     EXPECT_FALSE(style.CompactTimeUnits);
 }
 
-TEST(ParseConfiguration, ContinuationIndentWidth) {
-    Style style;
-    parseConfiguration(YAML::Load("ContinuationIndentWidth: 6"), style);
+TEST(ParseConfig, ContinuationIndentWidth) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("ContinuationIndentWidth: 6"), style);
     EXPECT_EQ(style.ContinuationIndentWidth, 6U);
 }
 
-TEST(ParseConfiguration, ContinuationIndentWidthDefaultsToIndentWidth) {
-    Style style;
-    parseConfiguration(YAML::Load("IndentWidth: 6"), style);
+TEST(ParseConfig, ContinuationIndentWidthDefaultsToIndentWidth) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("IndentWidth: 6"), style);
     EXPECT_EQ(style.IndentWidth, 6U);
     EXPECT_EQ(style.ContinuationIndentWidth, 6U);
     EXPECT_EQ(style.ParameterPortListIndentWidth, 6U);
 }
 
-TEST(ParseConfiguration, EventSeparator) {
-    Style style;
+TEST(ParseConfig, EventSeparator) {
+    auto style = getDefaultStyle();
 
-    parseConfiguration(YAML::Load("EventSeparator: Comma"), style);
+    parseConfig(YAML::Load("EventSeparator: Comma"), style);
     EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Comma);
 
-    parseConfiguration(YAML::Load("EventSeparator: Or"), style);
+    parseConfig(YAML::Load("EventSeparator: Or"), style);
     EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Or);
 
-    parseConfiguration(YAML::Load("EventSeparator: Preserve"), style);
+    parseConfig(YAML::Load("EventSeparator: Preserve"), style);
     EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Preserve);
 }
 
-TEST(ParseConfiguration, IndentCaseItem) {
-    Style style;
-    parseConfiguration(YAML::Load("IndentCaseItem: true"), style);
+TEST(ParseConfig, IndentCaseItem) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("IndentCaseItem: true"), style);
     EXPECT_TRUE(style.IndentCaseItem);
 }
 
-TEST(ParseConfiguration, IndentWidth) {
-    Style style;
-    parseConfiguration(YAML::Load("IndentWidth: 4"), style);
+TEST(ParseConfig, IndentWidth) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("IndentWidth: 4"), style);
     EXPECT_EQ(style.IndentWidth, 4U);
 }
 
-TEST(ParseConfiguration, InsertBeginEnd) {
-    Style style;
+TEST(ParseConfig, InsertBeginEnd) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -561,15 +617,15 @@ TEST(ParseConfiguration, InsertBeginEnd) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_TRUE(style.InsertBeginEnd.Enabled);
     EXPECT_TRUE(style.InsertBeginEnd.AlwaysStatements);
     EXPECT_TRUE(style.InsertBeginEnd.ControlStatements);
     EXPECT_TRUE(style.InsertBeginEnd.InitialStatements);
 }
 
-TEST(ParseConfiguration, InsertParens) {
-    Style style;
+TEST(ParseConfig, InsertParens) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -581,113 +637,118 @@ TEST(ParseConfiguration, InsertParens) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_TRUE(style.InsertParens.Delays);
     EXPECT_TRUE(style.InsertParens.ExpressionEvents);
     EXPECT_TRUE(style.InsertParens.ImplicitEvents);
     EXPECT_TRUE(style.InsertParens.NamedEvents);
 }
 
-TEST(ParseConfiguration, LineEnding) {
-    Style style;
+TEST(ParseConfig, LineEnding) {
+    auto style = getDefaultStyle();
 
-    parseConfiguration(YAML::Load("LineEnding: CRLF"), style);
+    parseConfig(YAML::Load("LineEnding: CRLF"), style);
     EXPECT_EQ(style.LineEnding, LineEndingStyle::CRLF);
 
-    parseConfiguration(YAML::Load("LineEnding: DeriveCRLF"), style);
+    parseConfig(YAML::Load("LineEnding: DeriveCRLF"), style);
     EXPECT_EQ(style.LineEnding, LineEndingStyle::DeriveCRLF);
 
-    parseConfiguration(YAML::Load("LineEnding: DeriveLF"), style);
+    parseConfig(YAML::Load("LineEnding: DeriveLF"), style);
     EXPECT_EQ(style.LineEnding, LineEndingStyle::DeriveLF);
 
-    parseConfiguration(YAML::Load("LineEnding: LF"), style);
+    parseConfig(YAML::Load("LineEnding: LF"), style);
     EXPECT_EQ(style.LineEnding, LineEndingStyle::LF);
 }
 
-TEST(ParseConfiguration, MaxEmptyLinesToKeep) {
-    Style style;
-    parseConfiguration(YAML::Load("MaxEmptyLinesToKeep: 2"), style);
+TEST(ParseConfig, MaxEmptyLinesToKeep) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("MaxEmptyLinesToKeep: 2"), style);
     EXPECT_EQ(style.MaxEmptyLinesToKeep, 2U);
 }
 
-TEST(ParseConfiguration, OneLineFormatOffRegex) {
-    Style style;
-    parseConfiguration(YAML::Load("OneLineFormatOffRegex: '.*foo.*'"), style);
+TEST(ParseConfig, OneLineFormatOffRegex) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("OneLineFormatOffRegex: '.*foo.*'"), style);
     EXPECT_EQ(style.OneLineFormatOffRegex, ".*foo.*");
 }
 
-TEST(ParseConfiguration, OneStatementPerLine) {
-    Style style;
-    parseConfiguration(YAML::Load("OneStatementPerLine: false"), style);
+TEST(ParseConfig, OneStatementPerLine) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("OneStatementPerLine: false"), style);
     EXPECT_FALSE(style.OneStatementPerLine);
 }
 
-TEST(ParseConfiguration, PackedDimensionBounds) {
-    Style style;
+TEST(ParseConfig, PackedDimensionBounds) {
+    auto style = getDefaultStyle();
 
-    parseConfiguration(YAML::Load("PackedDimensionBounds: LSBFirst"), style);
+    parseConfig(YAML::Load("PackedDimensionBounds: LSBFirst"), style);
     EXPECT_EQ(style.PackedDimensionBounds, DimensionBoundsStyle::LSBFirst);
 
-    parseConfiguration(YAML::Load("PackedDimensionBounds: MSBFirst"), style);
+    parseConfig(YAML::Load("PackedDimensionBounds: MSBFirst"), style);
     EXPECT_EQ(style.PackedDimensionBounds, DimensionBoundsStyle::MSBFirst);
 
-    parseConfiguration(YAML::Load("PackedDimensionBounds: Preserve"), style);
+    parseConfig(YAML::Load("PackedDimensionBounds: Preserve"), style);
     EXPECT_EQ(style.PackedDimensionBounds, DimensionBoundsStyle::Preserve);
 }
 
-TEST(ParseConfiguration, ParameterPortListIndentWidth) {
-    Style style;
-    parseConfiguration(YAML::Load("ParameterPortListIndentWidth: 2"), style);
+TEST(ParseConfig, ParameterPortListIndentWidth) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("ParameterPortListIndentWidth: 2"), style);
     EXPECT_EQ(style.ParameterPortListIndentWidth, 2U);
 }
 
-TEST(ParseConfiguration, ParameterPortListIndentWidthDefaultsToContinuationIndentWidth) {
-    Style style;
-    parseConfiguration(YAML::Load("ContinuationIndentWidth: 4"), style);
+TEST(ParseConfig, ParameterPortListIndentWidthDefaultsToContinuationIndentWidth) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("ContinuationIndentWidth: 4"), style);
     EXPECT_EQ(style.ContinuationIndentWidth, 4U);
     EXPECT_EQ(style.ParameterPortListIndentWidth, 4U);
 }
 
-TEST(ParseConfiguration, RangeSpacing) {
-    Style style;
+TEST(ParseConfig, RangeSpacing) {
+    auto style = getDefaultStyle();
 
-    parseConfiguration(YAML::Load("RangeSpacing: Always"), style);
+    parseConfig(YAML::Load("RangeSpacing: Always"), style);
     EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::Always);
 
-    parseConfiguration(YAML::Load("RangeSpacing: MatchSource"), style);
+    parseConfig(YAML::Load("RangeSpacing: MatchSource"), style);
     EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::MatchSource);
 
-    parseConfiguration(YAML::Load("RangeSpacing: Never"), style);
+    parseConfig(YAML::Load("RangeSpacing: Never"), style);
     EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::Never);
 
-    parseConfiguration(YAML::Load("RangeSpacing: Preserve"), style);
+    parseConfig(YAML::Load("RangeSpacing: Preserve"), style);
     EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::Preserve);
 }
 
-TEST(ParseConfiguration, RejectsScalar) {
-    Style style;
-    EXPECT_THROW(parseConfiguration(YAML::Load("42"), style), std::runtime_error);
+TEST(ParseConfig, RejectsScalar) {
+    auto style = getDefaultStyle();
+    EXPECT_THROW(parseConfig(YAML::Load("42"), style), std::runtime_error);
 }
 
-TEST(ParseConfiguration, RejectsSequence) {
-    Style style;
-    EXPECT_THROW(parseConfiguration(YAML::Load("[1, 2, 3]"), style), std::runtime_error);
+TEST(ParseConfig, RejectsSequence) {
+    auto style = getDefaultStyle();
+    EXPECT_THROW(parseConfig(YAML::Load("[1, 2, 3]"), style), std::runtime_error);
 }
 
-TEST(ParseConfiguration, RemoveEmptyLines) {
-    Style style;
-    parseConfiguration(YAML::Load("RemoveEmptyLines: true"), style);
+TEST(ParseConfig, RejectsUnknownBasedOnStyle) {
+    auto style = getDefaultStyle();
+    EXPECT_THROW(parseConfig(YAML::Load("BasedOnStyle: Unknown"), style), std::runtime_error);
+}
+
+TEST(ParseConfig, RemoveEmptyLines) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("RemoveEmptyLines: true"), style);
     EXPECT_TRUE(style.RemoveEmptyLines);
 }
 
-TEST(ParseConfiguration, SpaceAfterAlways) {
-    Style style;
-    parseConfiguration(YAML::Load("SpaceAfterAlways: false"), style);
+TEST(ParseConfig, SpaceAfterAlways) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("SpaceAfterAlways: false"), style);
     EXPECT_FALSE(style.SpaceAfterAlways);
 }
 
-TEST(ParseConfiguration, SpaceAfterBrackets) {
-    Style style;
+TEST(ParseConfig, SpaceAfterBrackets) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -697,25 +758,25 @@ TEST(ParseConfiguration, SpaceAfterBrackets) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_FALSE(style.SpaceAfterBrackets.PackedDimensions);
     EXPECT_TRUE(style.SpaceAfterBrackets.UnpackedDimensions);
 }
 
-TEST(ParseConfiguration, SpaceAfterCaseColon) {
-    Style style;
-    parseConfiguration(YAML::Load("SpaceAfterCaseColon: false"), style);
+TEST(ParseConfig, SpaceAfterCaseColon) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("SpaceAfterCaseColon: false"), style);
     EXPECT_FALSE(style.SpaceAfterCaseColon);
 }
 
-TEST(ParseConfiguration, SpaceAfterComma) {
-    Style style;
-    parseConfiguration(YAML::Load("SpaceAfterComma: false"), style);
+TEST(ParseConfig, SpaceAfterComma) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("SpaceAfterComma: false"), style);
     EXPECT_FALSE(style.SpaceAfterComma);
 }
 
-TEST(ParseConfiguration, SpaceAfterParens) {
-    Style style;
+TEST(ParseConfig, SpaceAfterParens) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -725,25 +786,25 @@ TEST(ParseConfiguration, SpaceAfterParens) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_FALSE(style.SpaceAfterParens.ControlStatements);
     EXPECT_FALSE(style.SpaceAfterParens.EventControls);
 }
 
-TEST(ParseConfiguration, SpaceAfterSemicolon) {
-    Style style;
-    parseConfiguration(YAML::Load("SpaceAfterSemicolon: false"), style);
+TEST(ParseConfig, SpaceAfterSemicolon) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("SpaceAfterSemicolon: false"), style);
     EXPECT_FALSE(style.SpaceAfterSemicolon);
 }
 
-TEST(ParseConfiguration, SpaceAroundOperators) {
-    Style style;
-    parseConfiguration(YAML::Load("SpaceAroundOperators: false"), style);
+TEST(ParseConfig, SpaceAroundOperators) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("SpaceAroundOperators: false"), style);
     EXPECT_FALSE(style.SpaceAroundOperators);
 }
 
-TEST(ParseConfiguration, SpaceBeforeBrackets) {
-    Style style;
+TEST(ParseConfig, SpaceBeforeBrackets) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -753,19 +814,19 @@ TEST(ParseConfiguration, SpaceBeforeBrackets) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_FALSE(style.SpaceBeforeBrackets.PackedDimensions);
     EXPECT_TRUE(style.SpaceBeforeBrackets.UnpackedDimensions);
 }
 
-TEST(ParseConfiguration, SpaceBeforeCaseColon) {
-    Style style;
-    parseConfiguration(YAML::Load("SpaceBeforeCaseColon: true"), style);
+TEST(ParseConfig, SpaceBeforeCaseColon) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("SpaceBeforeCaseColon: true"), style);
     EXPECT_TRUE(style.SpaceBeforeCaseColon);
 }
 
-TEST(ParseConfiguration, SpaceBeforeParens) {
-    Style style;
+TEST(ParseConfig, SpaceBeforeParens) {
+    auto style = getDefaultStyle();
 
     // clang-format off
     const auto node = YAML::Load(dedent(R"(
@@ -776,45 +837,45 @@ TEST(ParseConfiguration, SpaceBeforeParens) {
     )"));
     // clang-format on
 
-    parseConfiguration(node, style);
+    parseConfig(node, style);
     EXPECT_FALSE(style.SpaceBeforeParens.ControlStatements);
     EXPECT_FALSE(style.SpaceBeforeParens.ParameterList);
     EXPECT_FALSE(style.SpaceBeforeParens.PortList);
 }
 
-TEST(ParseConfiguration, SpacesBeforeTrailingComments) {
-    Style style;
-    parseConfiguration(YAML::Load("SpacesBeforeTrailingComments: 4"), style);
+TEST(ParseConfig, SpacesBeforeTrailingComments) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("SpacesBeforeTrailingComments: 4"), style);
     EXPECT_EQ(style.SpacesBeforeTrailingComments, 4U);
 }
 
-TEST(ParseConfiguration, SpacesInBraces) {
-    Style style;
-    parseConfiguration(YAML::Load("SpacesInBraces: true"), style);
+TEST(ParseConfig, SpacesInBraces) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("SpacesInBraces: true"), style);
     EXPECT_TRUE(style.SpacesInBraces);
 }
 
-TEST(ParseConfiguration, SpacesInBrackets) {
-    Style style;
-    parseConfiguration(YAML::Load("SpacesInBrackets: true"), style);
+TEST(ParseConfig, SpacesInBrackets) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("SpacesInBrackets: true"), style);
     EXPECT_TRUE(style.SpacesInBrackets);
 }
 
-TEST(ParseConfiguration, SpacesInParens) {
-    Style style;
-    parseConfiguration(YAML::Load("SpacesInParens: true"), style);
+TEST(ParseConfig, SpacesInParens) {
+    auto style = getDefaultStyle();
+    parseConfig(YAML::Load("SpacesInParens: true"), style);
     EXPECT_TRUE(style.SpacesInParens);
 }
 
-TEST(ParseConfiguration, UnpackedDimensionBounds) {
-    Style style;
+TEST(ParseConfig, UnpackedDimensionBounds) {
+    auto style = getDefaultStyle();
 
-    parseConfiguration(YAML::Load("UnpackedDimensionBounds: LSBFirst"), style);
+    parseConfig(YAML::Load("UnpackedDimensionBounds: LSBFirst"), style);
     EXPECT_EQ(style.UnpackedDimensionBounds, DimensionBoundsStyle::LSBFirst);
 
-    parseConfiguration(YAML::Load("UnpackedDimensionBounds: MSBFirst"), style);
+    parseConfig(YAML::Load("UnpackedDimensionBounds: MSBFirst"), style);
     EXPECT_EQ(style.UnpackedDimensionBounds, DimensionBoundsStyle::MSBFirst);
 
-    parseConfiguration(YAML::Load("UnpackedDimensionBounds: Preserve"), style);
+    parseConfig(YAML::Load("UnpackedDimensionBounds: Preserve"), style);
     EXPECT_EQ(style.UnpackedDimensionBounds, DimensionBoundsStyle::Preserve);
 }

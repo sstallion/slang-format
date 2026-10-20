@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 #include "Rewriter.h"
-#include "Style.h"
 #include "SyntaxHelper.h"
+#include "slang/format/Style.h"
 
 #include <memory>
 #include <span>
