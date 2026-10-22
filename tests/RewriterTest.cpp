@@ -1,10 +1,10 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
-#include "TestHelper.h"
 #include "slang/format/Format.h"
 #include "slang/format/Style.h"
 #include "slang/format/styles/Default.h"
+#include "slang/util/Dedent.h"
 
 #include <string_view>
 
@@ -12,6 +12,7 @@
 
 using namespace slang::format;
 using namespace slang::format::style;
+using slang::dedent;
 
 TEST(EventSeparator, CommaIffClause) {
     auto style = getDefaultStyle();

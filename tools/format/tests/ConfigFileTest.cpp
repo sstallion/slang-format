@@ -1,10 +1,11 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
-#include "ConfigHelper.h"
-#include "TestHelper.h"
+#include "ConfigFile.h"
+#include "FileLoaderHelper.h"
 #include "slang/format/Style.h"
 #include "slang/format/styles/Default.h"
+#include "slang/util/Dedent.h"
 
 #include <filesystem>
 #include <optional>
@@ -16,6 +17,7 @@
 
 using namespace slang::format;
 using namespace slang::format::style;
+using slang::dedent;
 
 TEST(DumpConfig, DefaultStyle) {
     // clang-format off

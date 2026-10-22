@@ -21,18 +21,17 @@ include(CompileFlags)
 include(License)
 include(Version)
 
-find_package(ClangTidy)
+if(USE_CLANG_TIDY)
+  find_package(ClangTidy)
+endif()
 
-set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
 set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
-include_directories(${INCLUDE_DIR} ${SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${SOURCE_DIR}/VersionInfo.cpp.in
+               ${CMAKE_CURRENT_BINARY_DIR}/VersionInfo.cpp)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/Config.h)
-
-add_library(${PROJECT_NAME}-object OBJECT
+add_library(slang_format_lib
             ${SOURCE_DIR}/Align.cpp
             ${SOURCE_DIR}/AlignAssignment.cpp
             ${SOURCE_DIR}/AlignClassifier.cpp
@@ -41,8 +40,6 @@ add_library(${PROJECT_NAME}-object OBJECT
             ${SOURCE_DIR}/AlignGroup.cpp
             ${SOURCE_DIR}/AlignInference.cpp
             ${SOURCE_DIR}/AlignComment.cpp
-            ${SOURCE_DIR}/ConfigHelper.cpp
-            ${SOURCE_DIR}/FileLoader.cpp
             ${SOURCE_DIR}/Format.cpp
             ${SOURCE_DIR}/FormatClass.cpp
             ${SOURCE_DIR}/FormatDeclaration.cpp
@@ -51,33 +48,40 @@ add_library(${PROJECT_NAME}-object OBJECT
             ${SOURCE_DIR}/FormatPortList.cpp
             ${SOURCE_DIR}/FormatPrinter.cpp
             ${SOURCE_DIR}/FormatStatement.cpp
-            ${SOURCE_DIR}/Ignore.cpp
             ${SOURCE_DIR}/Rewriter.cpp
-            ${SOURCE_DIR}/TokenHelper.cpp)
+            ${SOURCE_DIR}/TokenHelper.cpp
+            ${CMAKE_CURRENT_BINARY_DIR}/VersionInfo.cpp)
 
-target_link_libraries(${PROJECT_NAME}-object
-                      yaml-cpp::yaml-cpp
-                      slang::slang)
+add_library(slang::format ALIAS slang_format_lib)
 
-add_executable(${PROJECT_NAME}
-               ${SOURCE_DIR}/main.cpp)
+include(GenerateExportHeader)
+generate_export_header(slang_format_lib
+                       BASE_NAME SLANG_FORMAT
+                       EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/slang/format/Export.h)
 
-target_link_libraries(${PROJECT_NAME}
-                      ${PROJECT_NAME}-object)
+target_include_directories(slang_format_lib
+                           PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                                  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
+
+target_link_libraries(slang_format_lib
+                      PRIVATE slang::slang)
+
+set_target_properties(slang_format_lib
+                      PROPERTIES CXX_VISIBILITY_PRESET hidden
+                                 VISIBILITY_INLINES_HIDDEN YES
+                                 OUTPUT_NAME svformat
+                                 VERSION ${PROJECT_VERSION}
+                                 SOVERSION ${PROJECT_VERSION_MAJOR})
 
 if(BUILD_TESTING)
   enable_testing()
 
-  set(FIXTURES_DIR ${TESTS_DIR}/fixtures)
-  add_subdirectory(${FIXTURES_DIR})
-
-  add_executable(${PROJECT_NAME}-tests
+  add_executable(slang_format_lib_tests
                  ${TESTS_DIR}/AlignAssignmentTest.cpp
                  ${TESTS_DIR}/AlignCommentTest.cpp
                  ${TESTS_DIR}/AlignDeclarationTest.cpp
                  ${TESTS_DIR}/AlignDimensionTest.cpp
                  ${TESTS_DIR}/AlignInferenceTest.cpp
-                 ${TESTS_DIR}/ConfigHelperTest.cpp
                  ${TESTS_DIR}/FormatClassTest.cpp
                  ${TESTS_DIR}/FormatDeclarationTest.cpp
                  ${TESTS_DIR}/FormatExpressionTest.cpp
@@ -86,26 +90,30 @@ if(BUILD_TESTING)
                  ${TESTS_DIR}/FormatPrinterTest.cpp
                  ${TESTS_DIR}/FormatStatementTest.cpp
                  ${TESTS_DIR}/FormatTest.cpp
-                 ${TESTS_DIR}/IgnoreTest.cpp
                  ${TESTS_DIR}/RewriterTest.cpp)
 
-  target_link_libraries(${PROJECT_NAME}-tests
-                        ${PROJECT_NAME}-object
+  target_include_directories(slang_format_lib_tests
+                             PRIVATE ${SOURCE_DIR})
+
+  target_link_libraries(slang_format_lib_tests
+                        slang_format_lib
                         GTest::gtest_main
                         GTest::gtest)
 
   include(GoogleTest)
-  gtest_discover_tests(${PROJECT_NAME}-tests
+  gtest_discover_tests(slang_format_lib_tests
                        DISCOVERY_TIMEOUT 30)
 endif()
 
-install(TARGETS ${PROJECT_NAME} DESTINATION .)
+if(BUILD_TOOLS)
+  add_subdirectory(tools)
+endif()
 
 if (BUILD_PACKAGING)
   set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
   set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 
-  # The slang project packages executables using GitHub actions rather than
+  # The slang project packages executables using GitHub Actions rather than
   # CPack; naming conventions established upstream are followed below.
   if(APPLE)
     set(CPACK_SYSTEM_NAME macos)

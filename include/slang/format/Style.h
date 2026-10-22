@@ -3,12 +3,14 @@
 
 #pragma once
 
+#include "slang/format/Export.h"
+
 #include <string>
 
 namespace slang::format {
 
 /// Controls alignment behavior for consecutive declarations.
-struct AlignConsecutiveStyle {
+struct SLANG_FORMAT_EXPORT AlignConsecutiveStyle {
     /// If false, disables all alignment regardless of other options.
     bool Enabled;
 
@@ -45,20 +47,20 @@ struct AlignConsecutiveStyle {
     bool operator==(const AlignConsecutiveStyle&) const = default;
 };
 
-enum class BlockBreakStyle { Never, Always, OnlyMultiline };
+enum class SLANG_FORMAT_EXPORT BlockBreakStyle { Never, Always, OnlyMultiline };
 
-enum class BracketAlignmentStyle { Align, AlwaysBreak, BlockIndent, DontAlign };
+enum class SLANG_FORMAT_EXPORT BracketAlignmentStyle { Align, AlwaysBreak, BlockIndent, DontAlign };
 
-enum class DimensionBoundsStyle { LSBFirst, MSBFirst, Preserve };
+enum class SLANG_FORMAT_EXPORT DimensionBoundsStyle { LSBFirst, MSBFirst, Preserve };
 
-enum class EventSeparatorStyle { Comma, Or, Preserve };
+enum class SLANG_FORMAT_EXPORT EventSeparatorStyle { Comma, Or, Preserve };
 
-enum class LineEndingStyle { CRLF, DeriveCRLF, DeriveLF, LF };
+enum class SLANG_FORMAT_EXPORT LineEndingStyle { CRLF, DeriveCRLF, DeriveLF, LF };
 
-enum class RangeSpacingStyle { Always, MatchSource, Never, Preserve };
+enum class SLANG_FORMAT_EXPORT RangeSpacingStyle { Always, MatchSource, Never, Preserve };
 
 /// Controls automatic insertion of begin/end around statement bodies.
-struct InsertBeginEndStyle {
+struct SLANG_FORMAT_EXPORT InsertBeginEndStyle {
     /// If false, disables all begin/end insertion regardless of other options.
     bool Enabled;
 
@@ -75,7 +77,7 @@ struct InsertBeginEndStyle {
 };
 
 /// Controls automatic insertion of parentheses around timing constructs.
-struct InsertParensStyle {
+struct SLANG_FORMAT_EXPORT InsertParensStyle {
     /// If true, insert parentheses around delay expressions.
     bool Delays;
 
@@ -92,7 +94,7 @@ struct InsertParensStyle {
 };
 
 /// Controls whitespace after a closing square bracket in declarations.
-struct SpaceAfterBracketsStyle {
+struct SLANG_FORMAT_EXPORT SpaceAfterBracketsStyle {
     /// If true, insert a space after packed dimension brackets.
     bool PackedDimensions;
 
@@ -103,7 +105,7 @@ struct SpaceAfterBracketsStyle {
 };
 
 /// Controls whitespace before an opening square bracket in declarations.
-struct SpaceBeforeBracketsStyle {
+struct SLANG_FORMAT_EXPORT SpaceBeforeBracketsStyle {
     /// If true, insert a space before packed dimension brackets.
     bool PackedDimensions;
 
@@ -114,7 +116,7 @@ struct SpaceBeforeBracketsStyle {
 };
 
 /// Controls whitespace before an opening parenthesis.
-struct SpaceBeforeParensStyle {
+struct SLANG_FORMAT_EXPORT SpaceBeforeParensStyle {
     /// If true, insert a space before parentheses in control statements.
     bool ControlStatements;
 
@@ -128,7 +130,7 @@ struct SpaceBeforeParensStyle {
 };
 
 /// Controls whitespace after a closing parenthesis.
-struct SpaceAfterParensStyle {
+struct SLANG_FORMAT_EXPORT SpaceAfterParensStyle {
     /// If true, insert a space after parentheses in control statements.
     bool ControlStatements;
 
@@ -139,7 +141,7 @@ struct SpaceAfterParensStyle {
 };
 
 /// Defines all formatting style options.
-struct Style {
+struct SLANG_FORMAT_EXPORT Style {
     /// Controls alignment of arguments after an opening parenthesis in function calls, system task
     /// calls, and constructor invocations.
     BracketAlignmentStyle AlignAfterOpenParen;

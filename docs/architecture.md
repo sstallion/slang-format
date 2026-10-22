@@ -19,7 +19,8 @@ slang-format/
 │   ├── styles/
 │   │   └── Default.h              # Default predefined style definition
 │   ├── Format.h                   # Public interface for formatting and post-processing
-│   └── Style.h                    # Style types and canonical option documentation
+│   ├── Style.h                    # Style types and canonical option documentation
+│   └── VersionInfo.h              # Library version information
 ├── source/
 │   ├── Align.cpp                  # Alignment pass driver
 │   ├── Align.h                    # Public interface for alignment post-processing
@@ -37,10 +38,6 @@ slang-format/
 │   ├── AlignInference.h           # Public interface for alignment inference
 │   ├── AlignComment.cpp           # Comment alignment pass
 │   ├── AlignComment.h             # Public interface for comment alignment
-│   ├── ConfigHelper.cpp           # Configuration file loading, YAML parsing, and dumping
-│   ├── ConfigHelper.h             # Interface for configuration loading, parsing, and dumping
-│   ├── FileLoader.cpp             # Directory hierarchy file search
-│   ├── FileLoader.h               # FileLoader type alias and directory walk utility
 │   ├── Format.cpp                 # Single-pass formatting and post-processing
 │   ├── FormatClass.cpp            # Constraint and covergroup handler definitions
 │   ├── FormatDeclaration.cpp      # Declaration and typedef handler definitions
@@ -50,33 +47,42 @@ slang-format/
 │   ├── FormatPrinter.cpp          # Core formatting helpers and token emission
 │   ├── FormatPrinter.h            # FormatPrinter class declaration
 │   ├── FormatStatement.cpp        # Statement and case item handler definitions
-│   ├── Ignore.cpp                 # Ignore file lookup and pattern matching
-│   ├── Ignore.h                   # Public interface for ignore file support
 │   ├── Rewriter.cpp               # Iterative syntax rewriting
 │   ├── Rewriter.h                 # Public interface for syntax rewriting
 │   ├── SyntaxHelper.h             # Shared predicates for syntax node classification
 │   ├── TokenHelper.cpp            # Token inspection utilities
 │   ├── TokenHelper.h              # Public interface for token inspection
-│   └── main.cpp                   # Entry point; command-line processing and output
-└── tests/
-    ├── fixtures/                  # CTest integration test scripts
-    ├── AlignAssignmentTest.cpp    # Assignment and port connection alignment tests
-    ├── AlignCommentTest.cpp       # Comment alignment tests
-    ├── AlignDeclarationTest.cpp   # Declaration and timing control alignment tests
-    ├── AlignDimensionTest.cpp     # Packed dimension alignment tests
-    ├── AlignInferenceTest.cpp     # Source spacing inference tests
-    ├── ConfigHelperTest.cpp       # Configuration loading and YAML parsing tests
-    ├── FormatClassTest.cpp        # Constraint and covergroup formatting tests
-    ├── FormatDeclarationTest.cpp  # Declaration and typedef formatting tests
-    ├── FormatExpressionTest.cpp   # Expression and argument list formatting tests
-    ├── FormatMemberTest.cpp       # Module, function, and generate formatting tests
-    ├── FormatPortListTest.cpp     # Port list and parameter list formatting tests
-    ├── FormatPrinterTest.cpp      # Core formatting and token emission tests
-    ├── FormatStatementTest.cpp    # Statement and case item formatting tests
-    ├── FormatTest.cpp             # Line ending and post-processing tests
-    ├── IgnoreTest.cpp             # Ignore file lookup and pattern matching tests
-    ├── RewriterTest.cpp           # Syntax rewriting tests
-    └── TestHelper.h               # Utilities for writing tests
+│   └── VersionInfo.cpp.in         # Version information template for configure_file
+├── tests/
+│   ├── fixtures/                  # CTest integration test scripts
+│   ├── AlignAssignmentTest.cpp    # Assignment and port connection alignment tests
+│   ├── AlignCommentTest.cpp       # Comment alignment tests
+│   ├── AlignDeclarationTest.cpp   # Declaration and timing control alignment tests
+│   ├── AlignDimensionTest.cpp     # Packed dimension alignment tests
+│   ├── AlignInferenceTest.cpp     # Source spacing inference tests
+│   ├── FormatClassTest.cpp        # Constraint and covergroup formatting tests
+│   ├── FormatDeclarationTest.cpp  # Declaration and typedef formatting tests
+│   ├── FormatExpressionTest.cpp   # Expression and argument list formatting tests
+│   ├── FormatMemberTest.cpp       # Module, function, and generate formatting tests
+│   ├── FormatPortListTest.cpp     # Port list and parameter list formatting tests
+│   ├── FormatPrinterTest.cpp      # Core formatting and token emission tests
+│   ├── FormatStatementTest.cpp    # Statement and case item formatting tests
+│   ├── FormatTest.cpp             # Line ending and post-processing tests
+│   ├── RewriterTest.cpp           # Syntax rewriting tests
+│   └── TestHelper.h               # Utilities for writing tests
+└── tools/format/
+    ├── source/
+    │   ├── ConfigFile.cpp         # Configuration file loading, YAML parsing, and dumping
+    │   ├── ConfigFile.h           # Interface for configuration loading, parsing, and dumping
+    │   ├── FileLoader.cpp         # Directory hierarchy file search
+    │   ├── FileLoader.h           # FileLoader type alias and directory walk utility
+    │   ├── IgnoreFile.cpp         # Ignore file lookup and pattern matching
+    │   ├── IgnoreFile.h           # Public interface for ignore file support
+    │   └── main.cpp               # Entry point; command-line processing and output
+    └── tests/
+        ├── ConfigFileTest.cpp     # Configuration loading and YAML parsing tests
+        ├── FileLoaderHelper.h     # Utilities for writing tool tests
+        └── IgnoreFileTest.cpp     # Ignore file lookup and pattern matching tests
 ```
 
 ## Formatting Flow
@@ -116,6 +122,22 @@ flowchart LR
 
 ## Architectural Decisions
 
+### Library and Tool Separation
+
+The project is organized into two tiers: a core formatting library
+(`slang-format-lib`, aliased as `slang::format`) and a CLI tool
+(`tools/format/`). The library contains the formatting engine, alignment passes,
+rewriter, and public headers under `include/slang/format/`. Its only external
+dependency is `slang::slang`. The tool contains CLI-specific code -
+configuration file loading (`ConfigFile`), directory hierarchy file search
+(`FileLoader`), ignore file handling (`IgnoreFile`), and the entry point
+(`main.cpp`). The tool adds `yaml-cpp` as a dependency for YAML configuration
+parsing. This separation allows other projects to consume the formatting engine
+as a library without pulling in CLI infrastructure or the yaml-cpp dependency.
+The library supports building as both static and shared; when built shared,
+symbol visibility defaults to hidden and public API surfaces are explicitly
+exported via the generated `Export.h` header.
+
 ### Formatter Source Organization
 
 The formatting pass is a single `FormatPrinter` class declared in
@@ -150,7 +172,7 @@ and later report a missing field in any style header as an error under
 `-Wextra`, which keeps style headers complete as options are added.
 
 `parseConfig()` resolves `BasedOnStyle` before any other key through a constexpr
-name table in `ConfigHelper.cpp` that maps names to the style header functions.
+name table in `ConfigFile.cpp` that maps names to the style header functions.
 Matching is case-insensitive, as in clang-format. The base style replaces the
 whole style and the remaining keys override it; an unknown name throws. The
 table is the single registration point and is intended to back a future
@@ -160,9 +182,22 @@ table is the single registration point and is intended to back a future
 
 `include/slang/format/` holds the headers intended for the library API:
 `Format.h` (the public formatting interface), `Style.h` (types and documentation
-only, depending on nothing but `<string>`) and `styles/`. They are included with
-quotes and a path relative to `include/` (`"slang/format/Style.h"`) so they are
-visually distinct from upstream `<slang/...>` headers.
+only, depending on nothing but `<string>`), `VersionInfo.h` (library version
+information), and `styles/`. `Export.h` is generated by CMake into the build
+tree and defines `SLANG_FORMAT_EXPORT`; all public functions, classes, structs,
+and enum classes are decorated with it. They are included with quotes and a path
+relative to `include/` (`"slang/format/Style.h"`) so they are visually distinct
+from upstream `<slang/...>` headers.
+
+### Symbol Visibility
+
+The library sets default symbol visibility to hidden and marks public API
+surfaces with `SLANG_FORMAT_EXPORT`. CMake's `GenerateExportHeader` produces
+`slang/format/Export.h` in the build tree, which defines `SLANG_FORMAT_EXPORT`
+to the platform's export attribute for shared builds and to nothing for static
+builds. Public headers include `Export.h` as their first local include. This
+ensures only intentionally exported symbols appear in the shared library's
+dynamic symbol table, reducing binary size and avoiding accidental ABI exposure.
 
 ### Ignore File Lookup
 
@@ -340,10 +375,10 @@ wrapped arguments are greedy-filled or placed one per line.
 
 ### Fixture Tests
 
-Command-line features that live in `main.cpp` are not part of the object library
-linked by unit tests. These features are tested using CTest integration tests
-driven by CMake scripts under `tests/fixtures/`. Each script invokes the built
-binary, then verifies output using `cmake -E compare_files` or similar checks.
+Command-line features that live in `main.cpp` are not part of the library linked
+by unit tests. These features are tested using CTest integration tests driven by
+CMake scripts under `tests/fixtures/`. Each script invokes the built binary,
+then verifies output using `cmake -E compare_files` or similar checks.
 
 [1]: https://sv-lang.com/
 [2]: https://clang.llvm.org/docs/ClangFormat.html
