@@ -1,0 +1,36 @@
+// Copyright 2026 Steven Stallion
+// SPDX-License-Identifier: MIT
+
+#include "slang/format/VersionInfo.h"
+
+#include <string_view>
+
+using namespace std::literals;
+
+namespace slang::format {
+
+int VersionInfo::getMajor() {
+    return @PROJECT_VERSION_MAJOR@;
+}
+
+int VersionInfo::getMinor() {
+    return @PROJECT_VERSION_MINOR@;
+}
+
+int VersionInfo::getPatch() {
+    return @PROJECT_VERSION_PATCH@;
+}
+
+std::string_view VersionInfo::getPrerelease() {
+    return "@PROJECT_VERSION_PRERELEASE@"sv;
+}
+
+std::string_view VersionInfo::getBuildMetadata() {
+    return "@PROJECT_VERSION_BUILD@"sv;
+}
+
+std::string_view VersionInfo::getVersionString() {
+    return "@PROJECT_VERSION@"sv;
+}
+
+} // namespace slang::format

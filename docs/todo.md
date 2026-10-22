@@ -31,7 +31,7 @@
     - [x] Commas vs. `or`
 - [x] Installation and packaging using CMake
 - [x] Full releases including packaging
-- [ ] Build slang-format as a library (cf. [LibFormat][1])
+- [x] Build slang-format as a library (cf. [LibFormat][1])
 - [ ] Publish API documentation
 - [x] Verible compatibility:
   - [x] Token spacing normalization
@@ -44,8 +44,8 @@
   - [x] Line terminator auto-detection
   - [x] Preprocessor directive line breaks
 - [ ] Add style presets (i.e. `--style=<string>`
-- [ ] Define builtin styles using YAML
 - [ ] Add `--dry-run` / `-n` support
 - [ ] Add `--fail-on-incomplete-format` support
+- [ ] Define builtin styles
 
 [1]: https://clang.llvm.org/docs/LibFormat.html

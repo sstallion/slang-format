@@ -55,7 +55,7 @@ Predefined style headers under `include/slang/format/styles/` list every option
 explicitly and are part of the user-facing configuration. Whenever a user-facing
 option is added, removed, renamed, or has its default value changed, update
 every style header (adding the field to each style with the value appropriate
-for that style) in the same change as `Style.h`, `ConfigHelper.cpp`, the tests,
+for that style) in the same change as `Style.h`, `ConfigFile.cpp`, the tests,
 and this document. `Style.h` carries documentation and types only; default
 values live exclusively in the style headers.
 

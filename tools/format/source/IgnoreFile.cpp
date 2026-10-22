@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "FileLoader.h"
-#include "Ignore.h"
+#include "IgnoreFile.h"
 
 #include <array>
 #include <cstddef>

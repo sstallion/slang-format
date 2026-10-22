@@ -1,8 +1,8 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
-#include "Ignore.h"
-#include "TestHelper.h"
+#include "FileLoaderHelper.h"
+#include "IgnoreFile.h"
 
 #include <filesystem>
 #include <optional>

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "slang/format/Export.h"
 #include "slang/format/Style.h"
 
 #include <iosfwd>
@@ -12,9 +13,9 @@
 namespace slang::format {
 
 /// Reformats \p text according to \p style.
-std::string reformat(std::string_view text, const Style& style);
+SLANG_FORMAT_EXPORT std::string reformat(std::string_view text, const Style& style);
 
 /// Reformats the contents of \p stream according to \p style.
-std::string reformat(std::istream& stream, const Style& style);
+SLANG_FORMAT_EXPORT std::string reformat(std::istream& stream, const Style& style);
 
 } // namespace slang::format

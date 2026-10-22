@@ -1,15 +1,16 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
-#include "TestHelper.h"
 #include "slang/format/Format.h"
 #include "slang/format/Style.h"
 #include "slang/format/styles/Default.h"
+#include "slang/util/Dedent.h"
 
 #include <gtest/gtest.h>
 
 using namespace slang::format;
 using namespace slang::format::style;
+using slang::dedent;
 
 // clang-format off
 TEST(Comment, BeforeEnd) {

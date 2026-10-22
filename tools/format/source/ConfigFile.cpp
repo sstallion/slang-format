@@ -1,7 +1,7 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
-#include "ConfigHelper.h"
+#include "ConfigFile.h"
 #include "FileLoader.h"
 #include "slang/format/Style.h"
 #include "slang/format/styles/Default.h"

@@ -1,10 +1,10 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
-#include "Config.h"
-#include "ConfigHelper.h"
-#include "Ignore.h"
+#include "ConfigFile.h"
+#include "IgnoreFile.h"
 #include "slang/format/Format.h"
+#include "slang/format/VersionInfo.h"
 #include "slang/format/styles/Default.h"
 
 #include <cerrno>
@@ -182,13 +182,16 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    const auto programName = cmdLine.getProgramName();
+    const auto overview = "SystemVerilog code formatter";
+
     if (help.value_or(false)) {
-        std::cout << cmdLine.getHelpText(PROJECT_DESCRIPTION) << "\n";
+        std::cout << cmdLine.getHelpText(overview) << "\n";
         return EXIT_SUCCESS;
     }
 
     if (version.value_or(false)) {
-        std::cout << PROJECT_NAME << " version " << PROJECT_VERSION << "\n";
+        std::cout << programName << " version " << VersionInfo::getVersionString() << "\n";
         return EXIT_SUCCESS;
     }
 
@@ -202,7 +205,7 @@ int main(int argc, char* argv[]) {
     try {
         auto files = buildFileList(positionalFiles, fileListPaths);
         if (files.empty()) {
-            std::cerr << cmdLine.getHelpText(PROJECT_DESCRIPTION) << "\n";
+            std::cerr << cmdLine.getHelpText(overview) << "\n";
             return EXIT_FAILURE;
         }
 
@@ -211,12 +214,12 @@ int main(int argc, char* argv[]) {
             return EXIT_SUCCESS;
         }
 
-        auto failed = formatFiles(cmdLine.getProgramName(), files, inplace.value_or(false),
+        auto failed = formatFiles(programName, files, inplace.value_or(false),
                                   noConfig.value_or(false), noIgnored.value_or(false));
         return failed > 0 ? EXIT_FAILURE : EXIT_SUCCESS;
     }
     catch (const std::exception& e) {
-        std::cerr << cmdLine.getProgramName() << ": " << e.what() << "\n";
+        std::cerr << programName << ": " << e.what() << "\n";
         return EXIT_FAILURE;
     }
 }

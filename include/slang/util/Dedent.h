@@ -3,19 +3,16 @@
 
 #pragma once
 
-#include "FileLoader.h"
-
 #include <algorithm>
-#include <filesystem>
-#include <map>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
-/// Strips a leading newline and the common leading whitespace prefix from all
-/// non-empty lines. Allows raw string literals to be indented at call-site level.
+namespace slang {
+
+/// Strips a leading newline and the common leading whitespace prefix from
+/// non-empty lines. Allows raw string literals to be indented at call level.
 inline std::string dedent(std::string_view s) {
     if (!s.empty() && s.front() == '\n') {
         s.remove_prefix(1);
@@ -35,7 +32,7 @@ inline std::string dedent(std::string_view s) {
     }
 
     // Find the minimum leading-space count across non-empty lines.
-    size_t minIndent{std::string_view::npos};
+    auto minIndent = std::string_view::npos;
     for (const auto line : lines) {
         if (line.empty()) {
             continue;
@@ -54,7 +51,7 @@ inline std::string dedent(std::string_view s) {
     }
 
     // Strip common prefix and rejoin.
-    std::string result;
+    auto result = std::string{};
     for (size_t i = 0; i < lines.size(); i++) {
         const auto line = lines.at(i);
         if (!line.empty() && line.find_first_not_of(' ') != std::string_view::npos) {
@@ -69,17 +66,4 @@ inline std::string dedent(std::string_view s) {
     return result;
 }
 
-/// Returns a FileLoader that serves the given path-to-contents map and reports every other path as
-/// missing.
-inline slang::format::FileLoader makeFileLoader(
-    std::map<std::filesystem::path, std::string> files) {
-    return
-        [files = std::move(files)](const std::filesystem::path& p) -> std::optional<std::string> {
-            const auto it = files.find(p);
-            if (it == files.end()) {
-                return std::nullopt;
-            }
-
-            return it->second;
-        };
-}
+} // namespace slang

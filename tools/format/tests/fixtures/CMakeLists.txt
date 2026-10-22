@@ -6,7 +6,7 @@ foreach(fixture IN ITEMS FilesFlag FilesPositional InplaceEdit InplaceEditStdin
   add_test(NAME ${fixture}
            COMMAND ${CMAKE_COMMAND}
                    "-DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}"
-                   "-DFIXTURE_EXECUTABLE=$<TARGET_FILE:${PROJECT_NAME}>"
+                   "-DFIXTURE_EXECUTABLE=$<TARGET_FILE:slang_format>"
                    "-DFIXTURE_FLAGS=--no-config"
                    "-DFIXTURES_DIR=${FIXTURES_DIR}"
                    -P "${FIXTURES_DIR}/${fixture}.cmake")

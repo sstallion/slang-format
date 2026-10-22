@@ -11,7 +11,7 @@ paths:
 - Use test fixtures instead of local wrappers for excessive repetition.
 - Do not modify existing tests unless explicitly authorized by the user.
 - Keep tests organized alphabetically by test suite, then by test name.
-- Multi-line strings use the `dedent()` function from `test/TestHelper.h`
+- Multi-line strings use the `dedent()` function from `slang/util/Dedent.h`
   together with raw string literals. Do not use escaped `\n` sequences in string
   literals. Statements are wrapped in `// clang-format off` / `// clang-format on`
   comment pragmas. Unindented newlines should be avoided for readability.
