@@ -9,6 +9,7 @@
 
 namespace slang::format {
 
+/// Provides compile-time version information about the library.
 class SLANG_FORMAT_EXPORT VersionInfo {
 public:
     VersionInfo() = delete;

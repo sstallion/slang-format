@@ -75,7 +75,7 @@ This repository adheres to the [LLVM AI Tool Use Policy][9]:
 
 Contributors may use AI tools, but a human must be in the loop. Submissions must
 be understood, reviewed, and owned by the contributor. Substantial AI-assisted
-content must be attributed using a `Co-authored-by` commit trailer and disclosed
+content must be attributed using a `Co-Authored-By` commit trailer and disclosed
 in pull request descriptions. Use of autonomous agents is not permitted.
 
 ## License

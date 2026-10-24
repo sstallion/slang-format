@@ -3,10 +3,10 @@
 
 include(FixtureTest)
 
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/filelist.txt
+file(WRITE ${FIXTURE_BINARY_DIR}/filelist.txt
      "# comment line\n"
      "\n"
-     "${FIXTURES_DIR}/inplace.sv\n")
+     "${FIXTURE_SOURCE_DIR}/inplace.sv\n")
 
-fixture_run(output --files ${CMAKE_CURRENT_BINARY_DIR}/filelist.txt)
-fixture_expect_output("${output}" ${FIXTURES_DIR}/inplace.sv.expected)
+fixture_run(output --files ${FIXTURE_BINARY_DIR}/filelist.txt)
+fixture_expect_output("${output}" ${FIXTURE_SOURCE_DIR}/inplace.sv.expected)

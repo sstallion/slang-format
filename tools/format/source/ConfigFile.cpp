@@ -35,7 +35,7 @@ constexpr std::array<std::string_view, 2> ConfigFileNames{
 using StyleFactory = Style (*)();
 
 constexpr std::array PredefinedStyles{
-    std::pair<std::string_view, StyleFactory>{"Default"sv, &style::getDefaultStyle},
+    std::pair<std::string_view, StyleFactory>{"Default"sv, &getDefaultStyle},
 };
 
 bool equalsInsensitive(std::string_view lhs, std::string_view rhs) {
@@ -563,13 +563,13 @@ Style loadConfig(const std::filesystem::path& searchDir, FileLoader loader) {
 
     auto result = findFileInHierarchy(searchDir, ConfigFileNames, loader);
     if (!result) {
-        return style::getDefaultStyle();
+        return getDefaultStyle();
     }
 
     auto& [path, content] = *result;
     try {
         const YAML::Node node = YAML::Load(content);
-        auto style = style::getDefaultStyle();
+        auto style = getDefaultStyle();
         parseConfig(node, style);
         return style;
     }

@@ -16,7 +16,6 @@
 #include <yaml-cpp/yaml.h>
 
 using namespace slang::format;
-using namespace slang::format::style;
 using slang::dedent;
 
 TEST(DumpConfig, DefaultStyle) {

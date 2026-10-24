@@ -13,7 +13,7 @@ systems are supported, including Linux, macOS, and Windows.
 
 > [!IMPORTANT]
 > CMake 3.31 is required to build this repository; minimum supported compilers
-> are GCC 11, Clang 14, and Visual Studio 2019.
+> are GCC 11, Clang 14, and Visual Studio 2022.
 
 Building release binaries differs slightly between platforms when using the
 default CMake generator.

@@ -34,7 +34,8 @@ slang-format reads style options from a YAML configuration file named
 `.slang-format` or `_slang-format`. When formatting a file, slang-format
 searches for configuration starting from the directory containing the source
 file and walks up the directory hierarchy to the filesystem root. The first file
-found is used; default settings are applied when none is found.
+found is used; default settings are applied when none is found. To disable
+configuration file lookup entirely, pass `--no-config`.
 
 The configuration file uses the format:
 
@@ -66,16 +67,15 @@ To generate a configuration file from the current defaults, issue:
 slang-format --dump-config > .slang-format
 ```
 
-To disable configuration file lookup entirely, pass `--no-config`. The default
-style is used for all files.
-
 See [Style Options][1] for a complete list of supported options.
 
 ## Ignoring Files
 
-slang-format supports `.slang-format-ignore` (or `_slang-format-ignore`) files
-to make the formatter ignore certain files. A `.slang-format-ignore` file
-consists of patterns of file path names. It has the following format:
+slang-format supports `.slang-format-ignore` or `_slang-format-ignore` files to
+make the formatter ignore files. To disable ignore file lookup entirely, pass
+`--no-ignored`. 
+
+The ignore file uses the format:
 
 - A blank line is skipped.
 - Leading and trailing spaces of a line are trimmed.
@@ -85,7 +85,7 @@ consists of patterns of file path names. It has the following format:
 - Patterns are relative to the directory of the `.slang-format-ignore` file.
 - Patterns follow the rules specified in [POSIX 2.13.1, 2.13.2, and Rule 1 of
   2.13.3][2].
-- Both `**` (bash globstar) and `...` (LRM 33.3.1) are supported for recursive
+- Both `**` (Bash globstar) and `...` (LRM 33.3.1) are supported for recursive
   directory matching.
 - A pattern is negated if it starts with a bang (`!`).
 
@@ -94,9 +94,6 @@ Use `--list-ignored` to see which files would be ignored:
 ```shell
 slang-format --list-ignored *.sv
 ```
-
-To disable ignore file lookup entirely, pass `--no-ignored`. All specified files
-are formatted.
 
 [1]: https://github.com/sstallion/slang-format/blob/main/docs/style-options.md
 [2]: https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_13

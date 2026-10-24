@@ -5,10 +5,9 @@
 
 #include "slang/format/Style.h"
 
-namespace slang::format::style {
+namespace slang::format {
 
-/// Returns the Default style, which is used when no configuration file is found and as the base
-/// for configuration files that do not specify BasedOnStyle.
+/// Returns the default style, which is used when no configuration is found.
 inline Style getDefaultStyle() {
     return {
         .AlignAfterOpenParen = BracketAlignmentStyle::Align,
@@ -128,4 +127,4 @@ inline Style getDefaultStyle() {
     };
 }
 
-} // namespace slang::format::style
+} // namespace slang::format

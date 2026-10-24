@@ -3,7 +3,9 @@
 
 include(FixtureTest)
 
-file(COPY ${FIXTURES_DIR}/inplace.sv DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${FIXTURE_SOURCE_DIR}/inplace.sv DESTINATION ${FIXTURE_BINARY_DIR})
 
-fixture_run(output -i ${CMAKE_CURRENT_BINARY_DIR}/inplace.sv)
-fixture_expect_file(${CMAKE_CURRENT_BINARY_DIR}/inplace.sv ${FIXTURES_DIR}/inplace.sv.expected)
+fixture_run(output -i ${FIXTURE_BINARY_DIR}/inplace.sv)
+
+fixture_expect_file(${FIXTURE_BINARY_DIR}/inplace.sv
+                    ${FIXTURE_SOURCE_DIR}/inplace.sv.expected)

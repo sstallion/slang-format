@@ -7,7 +7,7 @@ FixtureTest
 
 # Runs :variable:`FIXTURE_EXECUTABLE` test fixture with :variable:`FIXTURE_FLAGS`,
 # failing on a non-zero exit code. ``INPUT_FILE <path>`` feeds standard input.
-# The captured standard output is stored in ``output_var``.
+# The captured standard output is stored in :variable:`output_var`.
 #]=======================================================================]
 
 function(fixture_run output_var)
@@ -28,7 +28,8 @@ function(fixture_run output_var)
   set(${output_var} "${output}" PARENT_SCOPE)
 endfunction()
 
-# Fails unless <output> equals the contents of <expected_file>.
+# Fails unless :variable:`output` equals the contents of
+# :variable:`expected_file`.
 function(fixture_expect_output output expected_file)
   file(READ ${expected_file} expected)
   if(NOT output STREQUAL expected)
@@ -36,14 +37,15 @@ function(fixture_expect_output output expected_file)
   endif()
 endfunction()
 
-# Fails unless <output> is empty.
+# Fails unless :variable:`output` is empty.
 function(fixture_expect_empty output)
   if(NOT output STREQUAL "")
     message(FATAL_ERROR "Fixture produced unexpected output: ${output}")
   endif()
 endfunction()
 
-# Fails unless the files <actual> and <expected> are identical.
+# Fails unless the :variable:`actual` and :variable:`expected` files
+# are identical.
 function(fixture_expect_file actual expected)
   execute_process(COMMAND ${CMAKE_COMMAND} -E compare_files ${actual} ${expected}
                   RESULT_VARIABLE result)

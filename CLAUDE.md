@@ -1,6 +1,6 @@
 # Claude Code
 
-## Rules
+## Ground Rules
 
 - Respond to prompts using technical language and terminology; do not respond
   with flattery or superfluous language.
@@ -21,10 +21,9 @@
 
 ## Making Changes
 
-- Read `@docs/architecture.md` for internal design documentation.
+- Read `docs/architecture.md` for internal design documentation.
 - Update documentation when non-obvious design decisions are made.
-- Update documentation when user-facing configuration is changed, including
-  command-line and style options.
+- Update documentation when user-facing configuration is changed.
 - Proposed changes should be as simple possible; avoid over-engineering.
 - Use the `/cmake` skill to build and test source code.
 - Use the `/clang-format` skill to format source code after making changes.

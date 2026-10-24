@@ -3,5 +3,5 @@
 
 include(FixtureTest)
 
-fixture_run(output - INPUT_FILE ${FIXTURES_DIR}/stdin.sv)
-fixture_expect_output("${output}" ${FIXTURES_DIR}/stdin.sv.expected)
+fixture_run(output - INPUT_FILE ${FIXTURE_SOURCE_DIR}/stdin.sv)
+fixture_expect_output("${output}" ${FIXTURE_SOURCE_DIR}/stdin.sv.expected)

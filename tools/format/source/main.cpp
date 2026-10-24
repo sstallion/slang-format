@@ -111,7 +111,7 @@ int formatFiles(std::string_view programName, const std::vector<std::string>& fi
                 if (inplace) {
                     continue;
                 }
-                auto style = noConfig ? style::getDefaultStyle()
+                auto style = noConfig ? getDefaultStyle()
                                       : loadConfig(std::filesystem::current_path());
                 std::cout << reformat(std::cin, style);
                 continue;
@@ -122,7 +122,7 @@ int formatFiles(std::string_view programName, const std::vector<std::string>& fi
                 continue;
             }
 
-            auto style = noConfig ? style::getDefaultStyle() : loadConfig(path.parent_path());
+            auto style = noConfig ? getDefaultStyle() : loadConfig(path.parent_path());
 
             if (inplace) {
                 auto source = readFile(path);
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (dumpConfig.value_or(false)) {
-        auto style = noConfig.value_or(false) ? style::getDefaultStyle()
+        auto style = noConfig.value_or(false) ? getDefaultStyle()
                                               : loadConfig(std::filesystem::current_path());
         std::cout << slang::format::dumpConfig(style) << "\n";
         return EXIT_SUCCESS;

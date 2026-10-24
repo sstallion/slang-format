@@ -11,7 +11,7 @@ namespace slang::format {
 
 /// Controls alignment behavior for consecutive declarations.
 struct SLANG_FORMAT_EXPORT AlignConsecutiveStyle {
-    /// If false, disables all alignment regardless of other options.
+    /// If false, disables alignment regardless of other options.
     bool Enabled;
 
     /// If true, comments do not break alignment groups.
@@ -23,45 +23,48 @@ struct SLANG_FORMAT_EXPORT AlignConsecutiveStyle {
     /// If true, port list boundaries do not break alignment groups.
     bool AcrossParameterPortList;
 
-    /// If true, align `:` separators in packed dimensions by right-justifying
-    /// the left-side value.
+    /// If true, align `:` separators in packed dimensions.
     bool AlignColon;
 
-    /// If true, use original source spacing to infer whether to align:
-    /// align when the source was aligned, flush-left when it was not.
+    /// If true, use original source spacing to infer whether to align.
     bool InferFromSource;
 
     /// Maximum number of spaces any line may be padded; 0 means unlimited.
     unsigned MaxPadding;
 
-    /// Minimum padding guarantee: groups with displacement at or below this
-    /// threshold are always aligned when InferFromSource is true; 0 disables.
+    /// Minimum number of spaces any line may be padded; 0 means disabled.
     unsigned MinPadding;
 
-    /// If true, left-pad content within brackets (right-justify).
+    /// If true, left-pad content within brackets.
     bool PadLeft;
 
-    /// If true, right-pad content within brackets (left-justify).
+    /// If true, right-pad content within brackets.
     bool PadRight;
 
     bool operator==(const AlignConsecutiveStyle&) const = default;
 };
 
+/// Defines break insertion behavior for procedural blocks.
 enum class SLANG_FORMAT_EXPORT BlockBreakStyle { Never, Always, OnlyMultiline };
 
+/// Defines alignment behavior after an opening bracket.
 enum class SLANG_FORMAT_EXPORT BracketAlignmentStyle { Align, AlwaysBreak, BlockIndent, DontAlign };
 
+/// Defines the ordering of dimension bounds.
 enum class SLANG_FORMAT_EXPORT DimensionBoundsStyle { LSBFirst, MSBFirst, Preserve };
 
+/// Defines the separator style for event expressions.
 enum class SLANG_FORMAT_EXPORT EventSeparatorStyle { Comma, Or, Preserve };
 
+/// Defines line ending characters in formatted output.
 enum class SLANG_FORMAT_EXPORT LineEndingStyle { CRLF, DeriveCRLF, DeriveLF, LF };
 
+/// Defines spacing behavior around range operators.
 enum class SLANG_FORMAT_EXPORT RangeSpacingStyle { Always, MatchSource, Never, Preserve };
 
 /// Controls automatic insertion of begin/end around statement bodies.
 struct SLANG_FORMAT_EXPORT InsertBeginEndStyle {
-    /// If false, disables all begin/end insertion regardless of other options.
+    /// If false, disables begin/end insertion regardless of other options.
     bool Enabled;
 
     /// If true, wrap bare single-statement bodies of control statements.
@@ -93,7 +96,7 @@ struct SLANG_FORMAT_EXPORT InsertParensStyle {
     bool operator==(const InsertParensStyle&) const = default;
 };
 
-/// Controls whitespace after a closing square bracket in declarations.
+/// Controls whitespace after a closing bracket in declarations.
 struct SLANG_FORMAT_EXPORT SpaceAfterBracketsStyle {
     /// If true, insert a space after packed dimension brackets.
     bool PackedDimensions;
@@ -104,7 +107,7 @@ struct SLANG_FORMAT_EXPORT SpaceAfterBracketsStyle {
     bool operator==(const SpaceAfterBracketsStyle&) const = default;
 };
 
-/// Controls whitespace before an opening square bracket in declarations.
+/// Controls whitespace before an opening bracket in declarations.
 struct SLANG_FORMAT_EXPORT SpaceBeforeBracketsStyle {
     /// If true, insert a space before packed dimension brackets.
     bool PackedDimensions;
@@ -142,8 +145,7 @@ struct SLANG_FORMAT_EXPORT SpaceAfterParensStyle {
 
 /// Defines all formatting style options.
 struct SLANG_FORMAT_EXPORT Style {
-    /// Controls alignment of arguments after an opening parenthesis in function calls, system task
-    /// calls, and constructor invocations.
+    /// Controls alignment of arguments after an opening parenthesis.
     BracketAlignmentStyle AlignAfterOpenParen;
 
     /// Controls alignment of assignment operators in consecutive declarations.
@@ -155,99 +157,97 @@ struct SLANG_FORMAT_EXPORT Style {
     /// Controls alignment of packed dimensions in consecutive declarations.
     AlignConsecutiveStyle AlignConsecutivePackedDimensions;
 
-    /// Controls alignment of opening parentheses in consecutive named port connections.
+    /// Controls alignment of consecutive named port connections.
     AlignConsecutiveStyle AlignConsecutivePortConnections;
 
-    /// Controls alignment of signal names and assignment operators in consecutive timing controls.
+    /// Controls alignment of consecutive timing controls.
     AlignConsecutiveStyle AlignConsecutiveTimingControls;
 
-    /// Controls alignment of trailing comments in consecutive lines.
+    /// Controls alignment of trailing comments.
     AlignConsecutiveStyle AlignTrailingComments;
 
-    /// If true, constraint blocks with a single item are joined onto one line.
+    /// If true, constraint blocks are joined onto one line when possible.
     bool AllowShortConstraintBlocksOnASingleLine;
 
-    /// If true, coverpoint and cover cross bodies are joined onto one line when they fit.
+    /// If true, coverpoints are joined onto one line when possible.
     bool AllowShortCoverpointsOnASingleLine;
 
-    /// If true, arguments are bin-packed when they exceed the column limit. If false, each argument
-    /// is placed on its own line.
+    /// If true, arguments are bin-packed when they exceed the column limit.
+    /// If false, each argument is placed on its own line.
     bool BinPackArguments;
 
-    /// If true, function and task port parameters are bin-packed. If false, each parameter is
-    /// placed on its own line.
+    /// If true, function and task port parameters are bin-packed.
+    /// If false, each parameter is placed on its own line.
     bool BinPackParameters;
 
-    /// If true, instance port connections are bin-packed. If false, each port connection is placed
-    /// on its own line.
+    /// If true, instance port connections are bin-packed.
+    /// If false, each port connection is placed on its own line.
     bool BinPackPortConnections;
 
     /// Controls insertion of a newline between always and its body.
     BlockBreakStyle BreakAfterAlways;
 
-    /// If true, inserts a newline after assertion labels on concurrent assertions and immediate
-    /// assertions with else clauses.
+    /// If true, inserts a newline after assertion labels.
     bool BreakAfterAssertionLabel;
 
-    /// If true, enforce a newline after every begin statement.
+    /// If true, inserts a newline after begin statements.
     bool BreakAfterBegin;
 
-    /// Controls insertion of a newline between initial and its body.
+    /// Controls insertion of a newline after initial statements.
     BlockBreakStyle BreakAfterInitial;
 
-    /// Controls insertion of a blank line before always and its body.
+    /// Controls insertion of a newline before always statements.
     BlockBreakStyle BreakBeforeAlways;
 
-    /// If true, enforce a newline before every end statement.
+    /// If true, insert a newline before end statements.
     bool BreakBeforeEnd;
 
-    /// If true, insert a blank line before function declarations.
+    /// If true, insert a newline before function declarations.
     bool BreakBeforeFunction;
 
-    /// Controls insertion of a blank line before initial and its body.
+    /// Controls insertion of a newline before initial blocks.
     BlockBreakStyle BreakBeforeInitial;
 
-    /// If true, insert a blank line before specify blocks.
+    /// If true, insert a newline before specify blocks.
     bool BreakBeforeSpecifyBlock;
 
-    /// If true, insert a blank line before task declarations.
+    /// If true, insert a newline before task declarations.
     bool BreakBeforeTask;
 
     /// The column limit.
     unsigned ColumnLimit;
 
-    /// If true, compacts bare control statement bodies onto the same line when the result fits
-    /// within the column limit.
+    /// If true, compacts control statements onto the same line when possible.
     bool CompactControlStatements;
 
-    /// If true, keeps consecutive timeunit and timeprecision declarations on the same line.
+    /// If true, compacts time units onto the same line when possible.
     bool CompactTimeUnits;
 
-    /// Number of spaces added for continuation lines relative to the enclosing statement.
+    /// Number of spaces indented for continuation lines.
     unsigned ContinuationIndentWidth;
 
     /// Controls the separator used in event expressions.
     EventSeparatorStyle EventSeparator;
 
-    /// If true, indent statements following a case label when they appear on the next line.
+    /// If true, indent statements after a case label.
     bool IndentCaseItem;
 
     /// Number of spaces for each indentation level.
     unsigned IndentWidth;
 
-    /// Controls insertion of begin/end around bare statements.
+    /// Controls insertion of begin/end statements.
     InsertBeginEndStyle InsertBeginEnd;
 
-    /// Controls insertion of parentheses around timing constructs.
+    /// Controls insertion of parentheses.
     InsertParensStyle InsertParens;
 
-    /// Controls line ending characters in formatted output.
+    /// Controls line ending characters.
     LineEndingStyle LineEnding;
 
     /// Maximum number of consecutive empty lines to keep.
     unsigned MaxEmptyLinesToKeep;
 
-    /// Disables formatting for any line matching this pattern.
+    /// Disables formatting for lines matching this pattern.
     std::string OneLineFormatOffRegex;
 
     /// If true, enforce one statement per line.
@@ -259,52 +259,52 @@ struct SLANG_FORMAT_EXPORT Style {
     /// Number of spaces for parameter port list items in module declarations.
     unsigned ParameterPortListIndentWidth;
 
-    /// Controls spacing around `:` in range expressions and declared dimensions.
+    /// Controls spacing around `:` in range expressions.
     RangeSpacingStyle RangeSpacing;
 
-    /// If true, enables enforcement of MaxEmptyLinesToKeep.
+    /// If true, enables enforcement of \ref Style.MaxEmptyLinesToKeep.
     bool RemoveEmptyLines;
 
-    /// Normalizes whitespace after an always keyword.
+    /// Inserts a whitespace after an always keyword.
     bool SpaceAfterAlways;
 
-    /// Controls whitespace after a closing square bracket in declarations.
+    /// Controls whitespace after a closing bracket in declarations.
     SpaceAfterBracketsStyle SpaceAfterBrackets;
 
-    /// Normalizes whitespace after a case item colon.
+    /// Inserts a whitespace after case item colons.
     bool SpaceAfterCaseColon;
 
-    /// Normalizes whitespace around commas.
+    /// Inserts whitespace after commas.
     bool SpaceAfterComma;
 
-    /// Controls whitespace after a closing parenthesis.
+    /// Controls whitespace after closing parentheses.
     SpaceAfterParensStyle SpaceAfterParens;
 
-    /// Normalizes whitespace around semicolons.
+    /// Inserts whitespace after semicolons.
     bool SpaceAfterSemicolon;
 
-    /// Normalizes whitespace around assignment, binary, and ternary operators.
+    /// Inserts whitespace around assignment, binary, and ternary operators.
     bool SpaceAroundOperators;
 
     /// Controls whitespace before an opening square bracket in declarations.
     SpaceBeforeBracketsStyle SpaceBeforeBrackets;
 
-    /// Normalizes whitespace before a case item colon.
+    /// Inserts whitespace before case item colons.
     bool SpaceBeforeCaseColon;
 
-    /// Controls whitespace before an opening parenthesis.
+    /// Controls whitespace before opening parentheses.
     SpaceBeforeParensStyle SpaceBeforeParens;
 
-    /// Minimum number of spaces before a trailing comment.
+    /// Number of spaces before a trailing comment.
     unsigned SpacesBeforeTrailingComments;
 
-    /// Normalizes whitespace inside curly braces.
+    /// Normalizes whitespace inside braces.
     bool SpacesInBraces;
 
-    /// Normalizes whitespace inside square brackets in declarations.
+    /// Normalizes whitespace inside brackets.
     bool SpacesInBrackets;
 
-    /// Normalizes whitespace inside parentheses (space after `(` and before `)`).
+    /// Normalizes whitespace inside parentheses.
     bool SpacesInParens;
 
     /// Controls the order of unpacked dimension bounds.
