@@ -11,64 +11,7 @@
 
 using namespace slang::format;
 
-TEST(ApplyEventSeparator, CommaPreservesExistingComma) {
-    Style style;
-    style.EventSeparator = EventSeparatorStyle::Comma;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        always_ff @(posedge clk, negedge rst)
-        x <= 1;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          always_ff @(posedge clk, negedge rst)
-            x <= 1;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyEventSeparator, CommaRewritesOrToComma) {
-    Style style;
-    style.EventSeparator = EventSeparatorStyle::Comma;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        always_ff @(posedge clk or negedge rst)
-        x <= 1;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          always_ff @(posedge clk, negedge rst)
-            x <= 1;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyEventSeparator, EdgeQualifiedSignals) {
-    Style style;
-    style.EventSeparator = EventSeparatorStyle::Or;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        always_ff @(posedge clk, negedge rst)
-        x <= 1;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          always_ff @(posedge clk or negedge rst)
-            x <= 1;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyEventSeparator, IffClause) {
+TEST(EventSeparator, CommaIffClause) {
     Style style;
     style.EventSeparator = EventSeparatorStyle::Comma;
 
@@ -87,7 +30,7 @@ TEST(ApplyEventSeparator, IffClause) {
     // clang-format on
 }
 
-TEST(ApplyEventSeparator, MixedSeparators) {
+TEST(EventSeparator, CommaMixedSeparators) {
     Style style;
     style.EventSeparator = EventSeparatorStyle::Comma;
 
@@ -106,7 +49,7 @@ TEST(ApplyEventSeparator, MixedSeparators) {
     // clang-format on
 }
 
-TEST(ApplyEventSeparator, MultipleSignals) {
+TEST(EventSeparator, CommaMultipleSignals) {
     Style style;
     style.EventSeparator = EventSeparatorStyle::Comma;
 
@@ -125,7 +68,45 @@ TEST(ApplyEventSeparator, MultipleSignals) {
     // clang-format on
 }
 
-TEST(ApplyEventSeparator, OrPreservesExistingOr) {
+TEST(EventSeparator, CommaPreservesComma) {
+    Style style;
+    style.EventSeparator = EventSeparatorStyle::Comma;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk, negedge rst)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk, negedge rst)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(EventSeparator, CommaRewritesOr) {
+    Style style;
+    style.EventSeparator = EventSeparatorStyle::Comma;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_ff @(posedge clk or negedge rst)
+        x <= 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_ff @(posedge clk, negedge rst)
+            x <= 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(EventSeparator, OrPreservesOr) {
     Style style;
     style.EventSeparator = EventSeparatorStyle::Or;
 
@@ -144,7 +125,7 @@ TEST(ApplyEventSeparator, OrPreservesExistingOr) {
     // clang-format on
 }
 
-TEST(ApplyEventSeparator, OrRewritesCommaToOr) {
+TEST(EventSeparator, OrRewritesComma) {
     Style style;
     style.EventSeparator = EventSeparatorStyle::Or;
 
@@ -163,7 +144,7 @@ TEST(ApplyEventSeparator, OrRewritesCommaToOr) {
     // clang-format on
 }
 
-TEST(ApplyEventSeparator, PreserveDoesNothing) {
+TEST(EventSeparator, Preserve) {
     Style style;
     style.EventSeparator = EventSeparatorStyle::Preserve;
 
@@ -182,361 +163,9 @@ TEST(ApplyEventSeparator, PreserveDoesNothing) {
     // clang-format on
 }
 
-TEST(ApplyPackedDimensionBounds, EqualBoundsPreserved) {
+TEST(InsertBeginEnd, AlwaysAlreadyWrapped) {
     Style style;
-    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic [0:0] x;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic [0:0] x;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyPackedDimensionBounds, ImplicitType) {
-    Style style;
-    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-    style.ParameterPortListIndentWidth = 2;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo(
-        input [0:7] x
-        );
-        endmodule
-    )"), style), dedent(R"(
-        module foo (
-          input [7:0] x
-        );
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyPackedDimensionBounds, LSBFirstPreservesCorrectOrder) {
-    Style style;
-    style.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic [0:7] x;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic [0:7] x;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyPackedDimensionBounds, LSBFirstSwapsWhenNeeded) {
-    Style style;
-    style.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic [7:0] x;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic [0:7] x;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyPackedDimensionBounds, MSBFirstPreservesCorrectOrder) {
-    Style style;
-    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic [7:0] x;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic [7:0] x;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyPackedDimensionBounds, MSBFirstSwapsWhenNeeded) {
-    Style style;
-    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic [0:7] x;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic [7:0] x;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyPackedDimensionBounds, MultipleDimensions) {
-    Style style;
-    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic [0:7][0:3] x;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic [7:0] [3:0] x;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyPackedDimensionBounds, NonLiteralBoundsPreserved) {
-    Style style;
-    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic [N-1:0] x;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic [N-1:0] x;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyPackedDimensionBounds, PreserveDoesNothing) {
-    Style style;
-    style.PackedDimensionBounds = DimensionBoundsStyle::Preserve;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic [0:7] x;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic [0:7] x;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyPackedDimensionBounds, UnpackedDimensionSkipped) {
-    Style style;
-    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic x [0:7];
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic x[0:7];
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyUnpackedDimensionBounds, EqualBoundsPreserved) {
-    Style style;
-    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic x [0:0];
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic x[0:0];
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyUnpackedDimensionBounds, LSBFirstPreservesCorrectOrder) {
-    Style style;
-    style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic x [0:7];
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic x[0:7];
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyUnpackedDimensionBounds, LSBFirstSwapsWhenNeeded) {
-    Style style;
-    style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic x [7:0];
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic x[0:7];
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyUnpackedDimensionBounds, MSBFirstPreservesCorrectOrder) {
-    Style style;
-    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic x [7:0];
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic x[7:0];
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyUnpackedDimensionBounds, MSBFirstSwapsWhenNeeded) {
-    Style style;
-    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic x [0:7];
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic x[7:0];
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyUnpackedDimensionBounds, MultipleDimensions) {
-    Style style;
-    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic x [0:7][0:3];
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic x[7:0][3:0];
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyUnpackedDimensionBounds, NonLiteralBoundsPreserved) {
-    Style style;
-    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic x [N-1:0];
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic x[N-1:0];
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyUnpackedDimensionBounds, PackedDimensionSkipped) {
-    Style style;
-    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic [0:7] x;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic [0:7] x;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyUnpackedDimensionBounds, PreserveDoesNothing) {
-    Style style;
-    style.UnpackedDimensionBounds = DimensionBoundsStyle::Preserve;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        logic x [0:7];
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          logic x[0:7];
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyInsertBeginEnd, AlreadyWrapped) {
-    Style style;
-    style.InsertBeginEnd.Enabled = true;
-    style.InsertBeginEnd.AlwaysStatements = false;
-    style.BreakBeforeAlways = BlockBreakStyle::Never;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        always_comb
-        if (a)
-        begin
-        x = 1;
-        end
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          always_comb
-            if (a)
-            begin
-              x = 1;
-            end
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyInsertBeginEnd, AlwaysAlreadyWrapped) {
-    Style style;
+    style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
     // clang-format off
@@ -556,10 +185,8 @@ TEST(ApplyInsertBeginEnd, AlwaysAlreadyWrapped) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, AlwaysComb) {
+TEST(InsertBeginEnd, AlwaysComb) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -579,10 +206,8 @@ TEST(ApplyInsertBeginEnd, AlwaysComb) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, AlwaysFF) {
+TEST(InsertBeginEnd, AlwaysFF) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.Enabled = true;
 
@@ -602,10 +227,9 @@ TEST(ApplyInsertBeginEnd, AlwaysFF) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, AlwaysStatementsDisabled) {
+TEST(InsertBeginEnd, AlwaysStatementsDisabled) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
-    style.InsertBeginEnd.AlwaysStatements = false;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -622,14 +246,11 @@ TEST(ApplyInsertBeginEnd, AlwaysStatementsDisabled) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, AlwaysWithControlStatement) {
+TEST(InsertBeginEnd, AlwaysWithControlStatement) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
-    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -650,14 +271,11 @@ TEST(ApplyInsertBeginEnd, AlwaysWithControlStatement) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, AlwaysWithNestedControl) {
+TEST(InsertBeginEnd, AlwaysWithNestedControl) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.AlwaysStatements = true;
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
-    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -678,14 +296,10 @@ TEST(ApplyInsertBeginEnd, AlwaysWithNestedControl) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, CaseItem) {
+TEST(InsertBeginEnd, CaseItem) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
-    style.InsertBeginEnd.AlwaysStatements = false;
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
-    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -712,9 +326,10 @@ TEST(ApplyInsertBeginEnd, CaseItem) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, CaseItemAlreadyWrapped) {
+TEST(InsertBeginEnd, CaseItemAlreadyWrapped) {
     Style style;
-    style.BreakBeforeAlways = BlockBreakStyle::Never;
+    style.InsertBeginEnd.ControlStatements = true;
+    style.InsertBeginEnd.Enabled = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -739,9 +354,35 @@ TEST(ApplyInsertBeginEnd, CaseItemAlreadyWrapped) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, ControlStatementsDisabled) {
+TEST(InsertBeginEnd, ControlStatementAlreadyWrapped) {
     Style style;
-    style.InsertBeginEnd.ControlStatements = false;
+    style.InsertBeginEnd.ControlStatements = true;
+    style.InsertBeginEnd.Enabled = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        if (a)
+        begin
+        x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            if (a)
+            begin
+              x = 1;
+            end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(InsertBeginEnd, ControlStatementsDisabled) {
+    Style style;
+    style.InsertBeginEnd.Enabled = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -760,14 +401,10 @@ TEST(ApplyInsertBeginEnd, ControlStatementsDisabled) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, DeepNesting) {
+TEST(InsertBeginEnd, DeepNesting) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
-    style.InsertBeginEnd.AlwaysStatements = false;
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
-    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -793,15 +430,31 @@ TEST(ApplyInsertBeginEnd, DeepNesting) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, DoWhile) {
+TEST(InsertBeginEnd, Disabled) {
+    const Style style;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        if (a)
+        x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            if (a)
+              x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(InsertBeginEnd, DoWhile) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
     style.ContinuationIndentWidth = 2;
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
-    style.InsertBeginEnd.InitialStatements = false;
-    style.BreakBeforeInitial = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -823,14 +476,10 @@ TEST(ApplyInsertBeginEnd, DoWhile) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, ElseIf) {
+TEST(InsertBeginEnd, ElseIf) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
-    style.InsertBeginEnd.AlwaysStatements = false;
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
-    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -860,31 +509,8 @@ TEST(ApplyInsertBeginEnd, ElseIf) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, EnabledFalse) {
+TEST(InsertBeginEnd, Final) {
     Style style;
-    style.InsertBeginEnd.Enabled = false;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        always_comb
-        if (a)
-        x = 1;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          always_comb
-            if (a)
-              x = 1;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyInsertBeginEnd, FinalBlock) {
-    Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.InitialStatements = true;
 
@@ -904,14 +530,10 @@ TEST(ApplyInsertBeginEnd, FinalBlock) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, ForLoop) {
+TEST(InsertBeginEnd, ForLoop) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
-    style.InsertBeginEnd.AlwaysStatements = false;
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
-    style.BreakBeforeAlways = BlockBreakStyle::Never;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -931,14 +553,33 @@ TEST(ApplyInsertBeginEnd, ForLoop) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, IfElse) {
+TEST(InsertBeginEnd, If) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
-    style.InsertBeginEnd.AlwaysStatements = false;
     style.InsertBeginEnd.ControlStatements = true;
     style.InsertBeginEnd.Enabled = true;
-    style.BreakBeforeAlways = BlockBreakStyle::Never;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always_comb
+        if (a)
+        x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always_comb
+            if (a) begin
+              x = 1;
+            end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(InsertBeginEnd, IfElse) {
+    Style style;
+    style.InsertBeginEnd.ControlStatements = true;
+    style.InsertBeginEnd.Enabled = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -963,58 +604,8 @@ TEST(ApplyInsertBeginEnd, IfElse) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, IfSingleStatement) {
+TEST(InsertBeginEnd, Initial) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
-    style.InsertBeginEnd.AlwaysStatements = false;
-    style.InsertBeginEnd.ControlStatements = true;
-    style.InsertBeginEnd.Enabled = true;
-    style.BreakBeforeAlways = BlockBreakStyle::Never;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        always_comb
-        if (a)
-        x = 1;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          always_comb
-            if (a) begin
-              x = 1;
-            end
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyInsertBeginEnd, InitialAlreadyWrapped) {
-    Style style;
-    style.InsertBeginEnd.Enabled = true;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        initial begin
-        x = 1;
-        end
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          initial begin
-            x = 1;
-          end
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyInsertBeginEnd, InitialBlock) {
-    Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
     style.InsertBeginEnd.Enabled = true;
     style.InsertBeginEnd.InitialStatements = true;
 
@@ -1034,10 +625,31 @@ TEST(ApplyInsertBeginEnd, InitialBlock) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, InitialStatementsDisabled) {
+TEST(InsertBeginEnd, InitialAlreadyWrapped) {
     Style style;
     style.InsertBeginEnd.Enabled = true;
-    style.InsertBeginEnd.InitialStatements = false;
+    style.InsertBeginEnd.InitialStatements = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        initial begin
+        x = 1;
+        end
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          initial begin
+            x = 1;
+          end
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(InsertBeginEnd, InitialStatementsDisabled) {
+    Style style;
+    style.InsertBeginEnd.Enabled = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1054,38 +666,43 @@ TEST(ApplyInsertBeginEnd, InitialStatementsDisabled) {
     // clang-format on
 }
 
-TEST(ApplyInsertBeginEnd, NestedIf) {
+TEST(InsertParens, Delays) {
     Style style;
-    style.BreakAfterBegin = true;
-    style.BreakBeforeEnd = true;
-    style.InsertBeginEnd.AlwaysStatements = false;
-    style.InsertBeginEnd.ControlStatements = true;
-    style.InsertBeginEnd.Enabled = true;
-    style.BreakBeforeAlways = BlockBreakStyle::Never;
+    style.InsertParens.Delays = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
-        always_comb
-        if (a)
-        if (b)
-        x = 1;
+        always #5 clk = ~clk;
         endmodule
     )"), style), dedent(R"(
         module foo;
-          always_comb
-            if (a) begin
-              if (b) begin
-                x = 1;
-              end
-            end
+          always #(5) clk = ~clk;
         endmodule
     )"));
     // clang-format on
 }
 
-TEST(ApplyInsertParens, AllDisabledDoesNothing) {
-    Style const style{};
+TEST(InsertParens, DelaysPreservesParens) {
+    Style style;
+    style.InsertParens.Delays = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        always #(5) clk = ~clk;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          always #(5) clk = ~clk;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(InsertParens, Disabled) {
+    Style style;
+    style.InsertParens = {};
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
@@ -1104,41 +721,26 @@ TEST(ApplyInsertParens, AllDisabledDoesNothing) {
     // clang-format on
 }
 
-TEST(ApplyInsertParens, Delays) {
+TEST(InsertParens, ExpressionEvents) {
     Style style;
-    style.InsertParens.Delays = true;
+    style.InsertParens.ExpressionEvents = true;
 
     // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        always #5 clk = ~clk;
-        endmodule
+        class foo;
+        covergroup cg @clk;
+        endgroup
+        endclass
     )"), style), dedent(R"(
-        module foo;
-          always #(5) clk = ~clk;
-        endmodule
+        class foo;
+          covergroup cg @(clk);
+          endgroup
+        endclass
     )"));
     // clang-format on
 }
 
-TEST(ApplyInsertParens, DelaysPreservesExisting) {
-    Style style;
-    style.InsertParens.Delays = true;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        always #(5) clk = ~clk;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          always #(5) clk = ~clk;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyInsertParens, ExpressionEvents) {
+TEST(InsertParens, ExpressionEventsPreservesParens) {
     Style style;
     style.InsertParens.ExpressionEvents = true;
 
@@ -1157,26 +759,7 @@ TEST(ApplyInsertParens, ExpressionEvents) {
     // clang-format on
 }
 
-TEST(ApplyInsertParens, ExpressionEventsPreservesExisting) {
-    Style style;
-    style.InsertParens.ExpressionEvents = true;
-
-    // clang-format off
-    EXPECT_EQ(reformat(dedent(R"(
-        module foo;
-        always_ff @(posedge clk)
-        x <= 1;
-        endmodule
-    )"), style), dedent(R"(
-        module foo;
-          always_ff @(posedge clk)
-            x <= 1;
-        endmodule
-    )"));
-    // clang-format on
-}
-
-TEST(ApplyInsertParens, ImplicitEvents) {
+TEST(InsertParens, ImplicitEvents) {
     Style style;
     style.InsertParens.ImplicitEvents = true;
 
@@ -1193,7 +776,7 @@ TEST(ApplyInsertParens, ImplicitEvents) {
     // clang-format on
 }
 
-TEST(ApplyInsertParens, ImplicitEventsPreservesExisting) {
+TEST(InsertParens, ImplicitEventsPreservesParens) {
     Style style;
     style.InsertParens.ImplicitEvents = true;
 
@@ -1210,7 +793,7 @@ TEST(ApplyInsertParens, ImplicitEventsPreservesExisting) {
     // clang-format on
 }
 
-TEST(ApplyInsertParens, NamedEvents) {
+TEST(InsertParens, NamedEvents) {
     Style style;
     style.InsertParens.NamedEvents = true;
 
@@ -1227,7 +810,7 @@ TEST(ApplyInsertParens, NamedEvents) {
     // clang-format on
 }
 
-TEST(ApplyInsertParens, NamedEventsPreservesExisting) {
+TEST(InsertParens, NamedEventsPreservesParens) {
     Style style;
     style.InsertParens.NamedEvents = true;
 
@@ -1239,6 +822,332 @@ TEST(ApplyInsertParens, NamedEventsPreservesExisting) {
     )"), style), dedent(R"(
         module foo;
           always @(signal) x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(PackedDimensionBounds, EqualBoundsPreserved) {
+    Style style;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [0:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(PackedDimensionBounds, IgnoresUnpackedDimensions) {
+    Style style;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:7];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x[0:7];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(PackedDimensionBounds, ImplicitType) {
+    Style style;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+    style.ParameterPortListIndentWidth = 2;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo(
+        input [0:7] x
+        );
+        endmodule
+    )"), style), dedent(R"(
+        module foo (
+          input [7:0] x
+        );
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(PackedDimensionBounds, LSBFirstPreservesOrder) {
+    Style style;
+    style.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:7] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [0:7] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(PackedDimensionBounds, LSBFirstSwaps) {
+    Style style;
+    style.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [7:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [0:7] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(PackedDimensionBounds, MSBFirstPreservesOrder) {
+    Style style;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [7:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(PackedDimensionBounds, MSBFirstSwaps) {
+    Style style;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:7] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(PackedDimensionBounds, MultipleDimensions) {
+    Style style;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:7][0:3] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [7:0] [3:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(PackedDimensionBounds, NonLiteralBounds) {
+    Style style;
+    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [N-1:0] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [N-1:0] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(PackedDimensionBounds, Preserve) {
+    Style style;
+    style.PackedDimensionBounds = DimensionBoundsStyle::Preserve;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:7] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [0:7] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(UnpackedDimensionBounds, EqualBoundsPreserved) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:0];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x[0:0];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(UnpackedDimensionBounds, IgnoresPackedDimensions) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic [0:7] x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic [0:7] x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(UnpackedDimensionBounds, LSBFirstPreservesOrder) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:7];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x[0:7];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(UnpackedDimensionBounds, LSBFirstSwaps) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [7:0];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x[0:7];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(UnpackedDimensionBounds, MSBFirstPreservesOrder) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [7:0];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x[7:0];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(UnpackedDimensionBounds, MSBFirstSwaps) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:7];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x[7:0];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(UnpackedDimensionBounds, MultipleDimensions) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:7][0:3];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x[7:0][3:0];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(UnpackedDimensionBounds, NonLiteralBounds) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [N-1:0];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x[N-1:0];
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(UnpackedDimensionBounds, Preserve) {
+    Style style;
+    style.UnpackedDimensionBounds = DimensionBoundsStyle::Preserve;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        logic x [0:7];
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          logic x[0:7];
         endmodule
     )"));
     // clang-format on

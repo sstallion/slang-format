@@ -1,65 +1,13 @@
 # Copyright 2026 Steven Stallion
 # SPDX-License-Identifier: MIT
 
-add_test(NAME FilesFlag
-         COMMAND ${CMAKE_COMMAND}
-                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
-                 -DFIXTURES_DIR=${FIXTURES_DIR}
-                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                 -P ${FIXTURES_DIR}/FilesFlag.cmake)
-
-add_test(NAME FilesPositional
-         COMMAND ${CMAKE_COMMAND}
-                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
-                 -DFIXTURES_DIR=${FIXTURES_DIR}
-                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                 -P ${FIXTURES_DIR}/FilesPositional.cmake)
-
-add_test(NAME InplaceEdit
-         COMMAND ${CMAKE_COMMAND}
-                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
-                 -DFIXTURES_DIR=${FIXTURES_DIR}
-                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                 -P ${FIXTURES_DIR}/InplaceEdit.cmake)
-
-add_test(NAME InplaceEditStdin
-         COMMAND ${CMAKE_COMMAND}
-                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
-                 -DFIXTURES_DIR=${FIXTURES_DIR}
-                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                 -P ${FIXTURES_DIR}/InplaceEditStdin.cmake)
-
-add_test(NAME ListIgnored
-         COMMAND ${CMAKE_COMMAND}
-                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
-                 -DFIXTURES_DIR=${FIXTURES_DIR}
-                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                 -P ${FIXTURES_DIR}/ListIgnored.cmake)
-
-add_test(NAME NoConfig
-         COMMAND ${CMAKE_COMMAND}
-                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
-                 -DFIXTURES_DIR=${FIXTURES_DIR}
-                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                 -P ${FIXTURES_DIR}/NoConfig.cmake)
-
-add_test(NAME NoIgnore
-         COMMAND ${CMAKE_COMMAND}
-                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
-                 -DFIXTURES_DIR=${FIXTURES_DIR}
-                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                 -P ${FIXTURES_DIR}/NoIgnore.cmake)
-
-add_test(NAME Stdin
-         COMMAND ${CMAKE_COMMAND}
-                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
-                 -DFIXTURES_DIR=${FIXTURES_DIR}
-                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                 -P ${FIXTURES_DIR}/Stdin.cmake)
-
-add_test(NAME Verible
-         COMMAND ${CMAKE_COMMAND}
-                 -DSLANG_FORMAT=$<TARGET_FILE:${PROJECT_NAME}>
-                 -DFIXTURES_DIR=${FIXTURES_DIR}
-                 -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                 -P ${FIXTURES_DIR}/Verible.cmake)
+foreach(fixture IN ITEMS FilesFlag FilesPositional InplaceEdit InplaceEditStdin
+                         ListIgnored NoConfig NoIgnore Stdin Verible)
+  add_test(NAME ${fixture}
+           COMMAND ${CMAKE_COMMAND}
+                   "-DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}"
+                   "-DFIXTURE_EXECUTABLE=$<TARGET_FILE:${PROJECT_NAME}>"
+                   "-DFIXTURE_FLAGS=--no-config"
+                   "-DFIXTURES_DIR=${FIXTURES_DIR}"
+                   -P "${FIXTURES_DIR}/${fixture}.cmake")
+endforeach()

@@ -14,26 +14,215 @@
 
 using namespace slang::format;
 
+TEST(DumpConfiguration, DefaultStyle) {
+    // clang-format off
+    EXPECT_EQ(dumpConfiguration(getDefaultStyle()), dedent(R"(
+        ---
+        AlignAfterOpenParen: Align
+        AlignConsecutiveAssignments:
+          Enabled: true
+          AcrossComments: false
+          AcrossEmptyLines: false
+          AcrossParameterPortList: false
+          InferFromSource: true
+          MaxPadding: 2
+          MinPadding: 2
+        AlignConsecutiveDeclarations:
+          Enabled: true
+          AcrossComments: false
+          AcrossEmptyLines: false
+          AcrossParameterPortList: false
+          InferFromSource: true
+        AlignConsecutivePackedDimensions:
+          Enabled: true
+          AcrossComments: false
+          AcrossEmptyLines: false
+          AcrossParameterPortList: false
+          AlignColon: false
+          InferFromSource: true
+          PadLeft: true
+          PadRight: false
+        AlignConsecutivePortConnections:
+          Enabled: true
+          AcrossComments: false
+          AcrossEmptyLines: false
+          AcrossParameterPortList: false
+          InferFromSource: true
+          MaxPadding: 2
+          MinPadding: 2
+        AlignConsecutiveTimingControls:
+          Enabled: false
+          AcrossComments: false
+          AcrossEmptyLines: false
+        AlignTrailingComments:
+          Enabled: false
+          AcrossComments: false
+          AcrossEmptyLines: false
+          AcrossParameterPortList: false
+        AllowShortConstraintBlocksOnASingleLine: true
+        AllowShortCoverpointsOnASingleLine: true
+        BinPackArguments: true
+        BinPackParameters: true
+        BinPackPortConnections: false
+        BreakAfterAlways: OnlyMultiline
+        BreakAfterAssertionLabel: true
+        BreakAfterBegin: true
+        BreakAfterInitial: OnlyMultiline
+        BreakBeforeAlways: Never
+        BreakBeforeEnd: true
+        BreakBeforeFunction: false
+        BreakBeforeInitial: Never
+        BreakBeforeSpecifyBlock: false
+        BreakBeforeTask: false
+        ColumnLimit: 100
+        CompactControlStatements: true
+        CompactTimeUnits: true
+        ContinuationIndentWidth: 4
+        EventSeparator: Preserve
+        IndentCaseItem: false
+        IndentWidth: 2
+        InsertBeginEnd:
+          Enabled: false
+          AlwaysStatements: false
+          ControlStatements: false
+          InitialStatements: false
+        InsertParens:
+          Delays: false
+          ExpressionEvents: false
+          ImplicitEvents: false
+          NamedEvents: false
+        LineEnding: DeriveLF
+        MaxEmptyLinesToKeep: 1
+        OneLineFormatOffRegex: ""
+        OneStatementPerLine: true
+        PackedDimensionBounds: Preserve
+        ParameterPortListIndentWidth: 4
+        RangeSpacing: MatchSource
+        RemoveEmptyLines: false
+        SpaceAfterAlways: true
+        SpaceAfterBrackets:
+          PackedDimensions: true
+          UnpackedDimensions: false
+        SpaceAfterCaseColon: true
+        SpaceAfterComma: true
+        SpaceAfterParens:
+          ControlStatements: true
+          EventControls: true
+        SpaceAfterSemicolon: true
+        SpaceAroundOperators: true
+        SpaceBeforeBrackets:
+          PackedDimensions: true
+          UnpackedDimensions: false
+        SpaceBeforeCaseColon: false
+        SpaceBeforeParens:
+          ControlStatements: true
+          ParameterList: true
+          PortList: true
+        SpacesBeforeTrailingComments: 2
+        SpacesInBraces: false
+        SpacesInBrackets: false
+        SpacesInParens: false
+        UnpackedDimensionBounds: Preserve
+        ...
+    )"));
+    // clang-format on
+}
+
+TEST(DumpConfiguration, RoundTrip) {
+    Style original;
+    original.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
+    original.AlignConsecutiveDeclarations.AcrossEmptyLines = true;
+    original.AlignConsecutiveDeclarations.Enabled = true;
+    original.AlignConsecutivePackedDimensions.AlignColon = true;
+    original.AlignConsecutivePackedDimensions.InferFromSource = true;
+    original.AlignConsecutivePackedDimensions.PadLeft = true;
+    original.AlignConsecutivePackedDimensions.PadRight = true;
+    original.AlignConsecutivePortConnections.Enabled = true;
+    original.AlignConsecutivePortConnections.MaxPadding = 3;
+    original.AlignConsecutivePortConnections.MinPadding = 1;
+    original.AlignConsecutiveTimingControls.AcrossEmptyLines = true;
+    original.AlignConsecutiveTimingControls.Enabled = true;
+    original.AlignTrailingComments.AcrossEmptyLines = true;
+    original.AlignTrailingComments.Enabled = true;
+    original.AllowShortConstraintBlocksOnASingleLine = false;
+    original.AllowShortCoverpointsOnASingleLine = false;
+    original.BinPackArguments = false;
+    original.BinPackParameters = false;
+    original.BreakAfterAlways = BlockBreakStyle::Never;
+    original.BreakAfterBegin = false;
+    original.BreakAfterInitial = BlockBreakStyle::Always;
+    original.BreakBeforeAlways = BlockBreakStyle::Never;
+    original.BreakBeforeEnd = false;
+    original.BreakBeforeFunction = false;
+    original.BreakBeforeInitial = BlockBreakStyle::Never;
+    original.BreakBeforeSpecifyBlock = false;
+    original.BreakBeforeTask = false;
+    original.CompactControlStatements = false;
+    original.CompactTimeUnits = false;
+    original.ContinuationIndentWidth = 4;
+    original.EventSeparator = EventSeparatorStyle::Or;
+    original.IndentCaseItem = true;
+    original.IndentWidth = 4;
+    original.InsertBeginEnd.AlwaysStatements = false;
+    original.InsertBeginEnd.ControlStatements = false;
+    original.InsertBeginEnd.Enabled = true;
+    original.InsertBeginEnd.InitialStatements = false;
+    original.InsertParens.Delays = true;
+    original.InsertParens.ExpressionEvents = true;
+    original.InsertParens.ImplicitEvents = true;
+    original.InsertParens.NamedEvents = true;
+    original.LineEnding = LineEndingStyle::LF;
+    original.MaxEmptyLinesToKeep = 3;
+    original.OneLineFormatOffRegex = ".*test.*";
+    original.OneStatementPerLine = false;
+    original.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
+    original.ParameterPortListIndentWidth = 4;
+    original.RangeSpacing = RangeSpacingStyle::Never;
+    original.RemoveEmptyLines = true;
+    original.SpaceAfterAlways = false;
+    original.SpaceAfterBrackets.PackedDimensions = false;
+    original.SpaceAfterBrackets.UnpackedDimensions = true;
+    original.SpaceAfterCaseColon = false;
+    original.SpaceAfterComma = true;
+    original.SpaceAfterParens.ControlStatements = false;
+    original.SpaceAfterParens.EventControls = false;
+    original.SpaceAfterSemicolon = true;
+    original.SpaceAroundOperators = false;
+    original.SpaceBeforeBrackets.PackedDimensions = false;
+    original.SpaceBeforeBrackets.UnpackedDimensions = true;
+    original.SpaceBeforeCaseColon = true;
+    original.SpaceBeforeParens.ControlStatements = false;
+    original.SpaceBeforeParens.ParameterList = false;
+    original.SpaceBeforeParens.PortList = false;
+    original.SpacesBeforeTrailingComments = 3;
+    original.SpacesInBraces = true;
+    original.SpacesInBrackets = true;
+    original.SpacesInParens = true;
+    original.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
+
+    const auto yaml = dumpConfiguration(original);
+    const auto node = YAML::Load(yaml);
+    Style parsed;
+    parseConfiguration(node, parsed);
+    EXPECT_EQ(parsed, original);
+}
+
+TEST(GetDefaultStyle, MatchesDefaultConstructed) {
+    const Style style = getDefaultStyle();
+    EXPECT_EQ(style, Style{});
+}
+
 TEST(GetStyle, LoadsFromCurrentDir) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/b/c/.slang-format")) {
-            return "{}";
-        }
+    const auto loader = makeFileLoader({{"/a/b/c/.slang-format", "{}"}});
 
-        return std::nullopt;
-    };
-
-    Style expected{};
+    Style expected;
     expected.ContinuationIndentWidth = 2;
     expected.ParameterPortListIndentWidth = 2;
     EXPECT_EQ(getStyle("/a/b/c", loader), expected);
 }
 
 TEST(GetStyle, ReturnsDefaultWhenNoFile) {
-    auto loader = [](const std::filesystem::path&) -> std::optional<std::string> {
-        return std::nullopt;
-    };
-
+    const auto loader = makeFileLoader({});
     EXPECT_EQ(getStyle("/a/b/c", loader), Style{});
 }
 
@@ -49,1295 +238,583 @@ TEST(GetStyle, StopsAtFirstMatch) {
     };
 
     getStyle("/a/b/c", loader);
-
     EXPECT_EQ(callCount, 4);
 }
 
 TEST(GetStyle, WalksHierarchy) {
-    auto loader = [](const std::filesystem::path& p) -> std::optional<std::string> {
-        if (p == std::filesystem::path("/a/.slang-format")) {
-            return "{}";
-        }
+    const auto loader = makeFileLoader({{"/a/.slang-format", "{}"}});
 
-        return std::nullopt;
-    };
-
-    Style expected{};
+    Style expected;
     expected.ContinuationIndentWidth = 2;
     expected.ParameterPortListIndentWidth = 2;
     EXPECT_EQ(getStyle("/a/b/c", loader), expected);
 }
 
 TEST(ParseConfiguration, AcceptsEmptyMap) {
-    YAML::Node const node = YAML::Load("{}");
     Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("{}"), style);
 }
 
-TEST(ParseConfiguration, ParsesAlignAfterOpenParenAlign) {
-    YAML::Node const node = YAML::Load("AlignAfterOpenParen: Align");
+TEST(ParseConfiguration, AlignAfterOpenParen) {
     Style style;
-    parseConfiguration(node, style);
+
+    parseConfiguration(YAML::Load("AlignAfterOpenParen: Align"), style);
     EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::Align);
-}
 
-TEST(ParseConfiguration, ParsesAlignAfterOpenParenAlwaysBreak) {
-    YAML::Node const node = YAML::Load("AlignAfterOpenParen: AlwaysBreak");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("AlignAfterOpenParen: AlwaysBreak"), style);
     EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::AlwaysBreak);
-}
 
-TEST(ParseConfiguration, ParsesAlignAfterOpenParenBlockIndent) {
-    YAML::Node const node = YAML::Load("AlignAfterOpenParen: BlockIndent");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("AlignAfterOpenParen: BlockIndent"), style);
     EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::BlockIndent);
-}
 
-TEST(ParseConfiguration, ParsesAlignAfterOpenParenDontAlign) {
-    YAML::Node const node = YAML::Load("AlignAfterOpenParen: DontAlign");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("AlignAfterOpenParen: DontAlign"), style);
     EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::DontAlign);
 }
 
-TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsAcrossComments) {
+TEST(ParseConfiguration, AlignConsecutiveAssignments) {
     Style style;
 
     // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
+    const auto node = YAML::Load(dedent(R"(
         AlignConsecutiveAssignments:
+          Enabled: false
           AcrossComments: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveAssignments.AcrossComments);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsAcrossEmptyLines) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveAssignments:
           AcrossEmptyLines: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveAssignments.AcrossEmptyLines);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsAcrossParameterPortList) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveAssignments:
           AcrossParameterPortList: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveAssignments.AcrossParameterPortList);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsEnabled) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveAssignments:
-          Enabled: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveAssignments.Enabled);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsMaxPadding) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveAssignments:
-          MaxPadding: 4
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_EQ(style.AlignConsecutiveAssignments.MaxPadding, 4U);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveAssignmentsMinPadding) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveAssignments:
-          MinPadding: 3
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_EQ(style.AlignConsecutiveAssignments.MinPadding, 3U);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarationsAcrossComments) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveDeclarations:
-          AcrossComments: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveDeclarations.AcrossComments);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarationsAcrossEmptyLines) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveDeclarations:
-          AcrossEmptyLines: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveDeclarations.AcrossEmptyLines);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarationsAcrossParameterPortList) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveDeclarations:
-          AcrossParameterPortList: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveDeclarations.AcrossParameterPortList);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveDeclarationsEnabled) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveDeclarations:
-          Enabled: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveDeclarations.Enabled);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensionsAcrossComments) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutivePackedDimensions:
-          AcrossComments: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.AcrossComments);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensionsAcrossEmptyLines) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutivePackedDimensions:
-          AcrossEmptyLines: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.AcrossEmptyLines);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensionsAcrossParameterPortList) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutivePackedDimensions:
-          AcrossParameterPortList: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.AcrossParameterPortList);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutivePackedDimensionsEnabled) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutivePackedDimensions:
-          Enabled: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.Enabled);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutivePortConnectionsEnabled) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutivePortConnections:
-          Enabled: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutivePortConnections.Enabled);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutivePortConnectionsMaxPadding) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutivePortConnections:
-          MaxPadding: 4
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_EQ(style.AlignConsecutivePortConnections.MaxPadding, 4U);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveTimingControlsAcrossComments) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveTimingControls:
-          AcrossComments: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveTimingControls.AcrossComments);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveTimingControlsAcrossEmptyLines) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveTimingControls:
-          AcrossEmptyLines: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveTimingControls.AcrossEmptyLines);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveTimingControlsEnabled) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveTimingControls:
-          Enabled: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveTimingControls.Enabled);
-}
-
-TEST(ParseConfiguration, ParsesAlignTrailingCommentsAcrossComments) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignTrailingComments:
-          AcrossComments: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignTrailingComments.AcrossComments);
-}
-
-TEST(ParseConfiguration, ParsesAlignTrailingCommentsAcrossEmptyLines) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignTrailingComments:
-          AcrossEmptyLines: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignTrailingComments.AcrossEmptyLines);
-}
-
-TEST(ParseConfiguration, ParsesAlignTrailingCommentsAcrossParameterPortList) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignTrailingComments:
-          AcrossParameterPortList: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignTrailingComments.AcrossParameterPortList);
-}
-
-TEST(ParseConfiguration, ParsesAlignTrailingCommentsEnabled) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignTrailingComments:
-          Enabled: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignTrailingComments.Enabled);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveStyleAlignColon) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutivePackedDimensions:
           AlignColon: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.AlignColon);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveStyleInferFromSource) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutiveAssignments:
-          InferFromSource: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutiveAssignments.InferFromSource);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveStylePadLeft) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutivePackedDimensions:
+          InferFromSource: false
+          MaxPadding: 4
+          MinPadding: 3
           PadLeft: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.PadLeft);
-}
-
-TEST(ParseConfiguration, ParsesAlignConsecutiveStylePadRight) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        AlignConsecutivePackedDimensions:
           PadRight: true
     )"));
     // clang-format on
 
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.AlignConsecutivePackedDimensions.PadRight);
-}
-
-TEST(ParseConfiguration, ContinuationIndentWidthDefaultsToIndentWidth) {
-    YAML::Node const node = YAML::Load("IndentWidth: 6");
-    Style style;
     parseConfiguration(node, style);
-    EXPECT_EQ(style.IndentWidth, 6U);
-    EXPECT_EQ(style.ContinuationIndentWidth, 6U);
+    EXPECT_FALSE(style.AlignConsecutiveAssignments.Enabled);
+    EXPECT_TRUE(style.AlignConsecutiveAssignments.AcrossComments);
+    EXPECT_TRUE(style.AlignConsecutiveAssignments.AcrossEmptyLines);
+    EXPECT_TRUE(style.AlignConsecutiveAssignments.AcrossParameterPortList);
+    EXPECT_TRUE(style.AlignConsecutiveAssignments.AlignColon);
+    EXPECT_FALSE(style.AlignConsecutiveAssignments.InferFromSource);
+    EXPECT_EQ(style.AlignConsecutiveAssignments.MaxPadding, 4U);
+    EXPECT_EQ(style.AlignConsecutiveAssignments.MinPadding, 3U);
+    EXPECT_TRUE(style.AlignConsecutiveAssignments.PadLeft);
+    EXPECT_TRUE(style.AlignConsecutiveAssignments.PadRight);
 }
 
-TEST(ParseConfiguration, ParameterPortListIndentWidthDefaultsChain) {
-    YAML::Node const node = YAML::Load("IndentWidth: 6");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.ContinuationIndentWidth, 6U);
-    EXPECT_EQ(style.ParameterPortListIndentWidth, 6U);
-}
-
-TEST(ParseConfiguration, ParameterPortListIndentWidthDefaultsToContinuationIndentWidth) {
-    YAML::Node const node = YAML::Load("ContinuationIndentWidth: 4");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.ContinuationIndentWidth, 4U);
-    EXPECT_EQ(style.ParameterPortListIndentWidth, 4U);
-}
-
-TEST(ParseConfiguration, ParsesAllowShortConstraintBlocksOnASingleLine) {
-    YAML::Node const node = YAML::Load("AllowShortConstraintBlocksOnASingleLine: false");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.AllowShortConstraintBlocksOnASingleLine);
-}
-
-TEST(ParseConfiguration, ParsesAllowShortCoverpointsOnASingleLine) {
-    YAML::Node const node = YAML::Load("AllowShortCoverpointsOnASingleLine: false");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.AllowShortCoverpointsOnASingleLine);
-}
-
-TEST(ParseConfiguration, ParsesBinPackArguments) {
-    YAML::Node const node = YAML::Load("BinPackArguments: false");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.BinPackArguments);
-}
-
-TEST(ParseConfiguration, ParsesBinPackParameters) {
-    YAML::Node const node = YAML::Load("BinPackParameters: false");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.BinPackParameters);
-}
-
-TEST(ParseConfiguration, ParsesBreakAfterAlways) {
-    YAML::Node const node = YAML::Load("BreakAfterAlways: Always");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakAfterAlways, BlockBreakStyle::Always);
-}
-
-TEST(ParseConfiguration, ParsesBreakAfterBegin) {
-    YAML::Node const node = YAML::Load("BreakAfterBegin: false");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakAfterBegin, false);
-}
-
-TEST(ParseConfiguration, ParsesBreakAfterInitial) {
-    YAML::Node const node = YAML::Load("BreakAfterInitial: Always");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakAfterInitial, BlockBreakStyle::Always);
-}
-
-TEST(ParseConfiguration, ParsesBreakBeforeAlways) {
-    YAML::Node const node = YAML::Load("BreakBeforeAlways: Always");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakBeforeAlways, BlockBreakStyle::Always);
-}
-
-TEST(ParseConfiguration, ParsesBreakBeforeInitial) {
-    YAML::Node const node = YAML::Load("BreakBeforeInitial: Always");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakBeforeInitial, BlockBreakStyle::Always);
-}
-
-TEST(ParseConfiguration, ParsesBreakBeforeEnd) {
-    YAML::Node const node = YAML::Load("BreakBeforeEnd: false");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakBeforeEnd, false);
-}
-
-TEST(ParseConfiguration, ParsesBreakBeforeFunction) {
-    YAML::Node const node = YAML::Load("BreakBeforeFunction: false");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakBeforeFunction, false);
-}
-
-TEST(ParseConfiguration, ParsesBreakBeforeSpecifyBlock) {
-    YAML::Node const node = YAML::Load("BreakBeforeSpecifyBlock: false");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakBeforeSpecifyBlock, false);
-}
-
-TEST(ParseConfiguration, ParsesBreakBeforeTask) {
-    YAML::Node const node = YAML::Load("BreakBeforeTask: false");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.BreakBeforeTask, false);
-}
-
-TEST(ParseConfiguration, ParsesCompactControlStatements) {
-    YAML::Node const node = YAML::Load("CompactControlStatements: false");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.CompactControlStatements);
-}
-
-TEST(ParseConfiguration, ParsesCompactTimeUnits) {
-    YAML::Node const node = YAML::Load("CompactTimeUnits: false");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.CompactTimeUnits);
-}
-
-TEST(ParseConfiguration, ParsesContinuationIndentWidth) {
-    YAML::Node const node = YAML::Load("ContinuationIndentWidth: 4");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.ContinuationIndentWidth, 4U);
-}
-
-TEST(ParseConfiguration, ParsesEventSeparatorComma) {
-    YAML::Node const node = YAML::Load("EventSeparator: Comma");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Comma);
-}
-
-TEST(ParseConfiguration, ParsesEventSeparatorOr) {
-    YAML::Node const node = YAML::Load("EventSeparator: Or");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Or);
-}
-
-TEST(ParseConfiguration, ParsesEventSeparatorPreserve) {
-    YAML::Node const node = YAML::Load("EventSeparator: Preserve");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Preserve);
-}
-
-TEST(ParseConfiguration, ParsesIndentCaseItem) {
-    YAML::Node const node = YAML::Load("IndentCaseItem: true");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.IndentCaseItem, true);
-}
-
-TEST(ParseConfiguration, ParsesIndentWidth) {
-    YAML::Node const node = YAML::Load("IndentWidth: 4");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.IndentWidth, 4U);
-}
-
-TEST(ParseConfiguration, ParsesLineEndingCRLF) {
-    YAML::Node const node = YAML::Load("LineEnding: CRLF");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.LineEnding, LineEndingStyle::CRLF);
-}
-
-TEST(ParseConfiguration, ParsesLineEndingDeriveCRLF) {
-    YAML::Node const node = YAML::Load("LineEnding: DeriveCRLF");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.LineEnding, LineEndingStyle::DeriveCRLF);
-}
-
-TEST(ParseConfiguration, ParsesLineEndingDeriveLF) {
-    YAML::Node const node = YAML::Load("LineEnding: DeriveLF");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.LineEnding, LineEndingStyle::DeriveLF);
-}
-
-TEST(ParseConfiguration, ParsesLineEndingLF) {
-    YAML::Node const node = YAML::Load("LineEnding: LF");
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_EQ(style.LineEnding, LineEndingStyle::LF);
-}
-
-TEST(ParseConfiguration, ParsesInsertBeginEndAlwaysStatements) {
+TEST(ParseConfiguration, AlignConsecutiveDeclarations) {
     Style style;
 
     // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        InsertBeginEnd:
-          AlwaysStatements: false
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_FALSE(style.InsertBeginEnd.AlwaysStatements);
-}
-
-TEST(ParseConfiguration, ParsesInsertBeginEndControlStatements) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        InsertBeginEnd:
-          ControlStatements: false
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_FALSE(style.InsertBeginEnd.ControlStatements);
-}
-
-TEST(ParseConfiguration, ParsesInsertBeginEndEnabled) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        InsertBeginEnd:
+    const auto node = YAML::Load(dedent(R"(
+        AlignConsecutiveDeclarations:
           Enabled: false
     )"));
     // clang-format on
 
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_FALSE(style.InsertBeginEnd.Enabled);
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.AlignConsecutiveDeclarations.Enabled);
 }
 
-TEST(ParseConfiguration, ParsesInsertBeginEndInitialStatements) {
+TEST(ParseConfiguration, AlignConsecutivePackedDimensions) {
     Style style;
 
     // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        InsertBeginEnd:
-          InitialStatements: false
+    const auto node = YAML::Load(dedent(R"(
+        AlignConsecutivePackedDimensions:
+          Enabled: false
     )"));
     // clang-format on
 
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_FALSE(style.InsertBeginEnd.InitialStatements);
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.AlignConsecutivePackedDimensions.Enabled);
 }
 
-TEST(ParseConfiguration, ParsesInsertParensDelays) {
+TEST(ParseConfiguration, AlignConsecutivePortConnections) {
     Style style;
 
     // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
+    const auto node = YAML::Load(dedent(R"(
+        AlignConsecutivePortConnections:
+          Enabled: false
+    )"));
+    // clang-format on
+
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.AlignConsecutivePortConnections.Enabled);
+}
+
+TEST(ParseConfiguration, AlignConsecutiveTimingControls) {
+    Style style;
+
+    // clang-format off
+    const auto node = YAML::Load(dedent(R"(
+        AlignConsecutiveTimingControls:
+          Enabled: true
+    )"));
+    // clang-format on
+
+    parseConfiguration(node, style);
+    EXPECT_TRUE(style.AlignConsecutiveTimingControls.Enabled);
+}
+
+TEST(ParseConfiguration, AlignTrailingComments) {
+    Style style;
+
+    // clang-format off
+    const auto node = YAML::Load(dedent(R"(
+        AlignTrailingComments:
+          Enabled: true
+    )"));
+    // clang-format on
+
+    parseConfiguration(node, style);
+    EXPECT_TRUE(style.AlignTrailingComments.Enabled);
+}
+
+TEST(ParseConfiguration, AllowShortConstraintBlocksOnASingleLine) {
+    Style style;
+    parseConfiguration(YAML::Load("AllowShortConstraintBlocksOnASingleLine: false"), style);
+    EXPECT_FALSE(style.AllowShortConstraintBlocksOnASingleLine);
+}
+
+TEST(ParseConfiguration, AllowShortCoverpointsOnASingleLine) {
+    Style style;
+    parseConfiguration(YAML::Load("AllowShortCoverpointsOnASingleLine: false"), style);
+    EXPECT_FALSE(style.AllowShortCoverpointsOnASingleLine);
+}
+
+TEST(ParseConfiguration, BinPackArguments) {
+    Style style;
+    parseConfiguration(YAML::Load("BinPackArguments: false"), style);
+    EXPECT_FALSE(style.BinPackArguments);
+}
+
+TEST(ParseConfiguration, BinPackParameters) {
+    Style style;
+    parseConfiguration(YAML::Load("BinPackParameters: false"), style);
+    EXPECT_FALSE(style.BinPackParameters);
+}
+
+TEST(ParseConfiguration, BinPackPortConnections) {
+    Style style;
+    parseConfiguration(YAML::Load("BinPackPortConnections: true"), style);
+    EXPECT_TRUE(style.BinPackPortConnections);
+}
+
+TEST(ParseConfiguration, BreakAfterAlways) {
+    Style style;
+
+    parseConfiguration(YAML::Load("BreakAfterAlways: Always"), style);
+    EXPECT_EQ(style.BreakAfterAlways, BlockBreakStyle::Always);
+
+    parseConfiguration(YAML::Load("BreakAfterAlways: Never"), style);
+    EXPECT_EQ(style.BreakAfterAlways, BlockBreakStyle::Never);
+
+    parseConfiguration(YAML::Load("BreakAfterAlways: OnlyMultiline"), style);
+    EXPECT_EQ(style.BreakAfterAlways, BlockBreakStyle::OnlyMultiline);
+}
+
+TEST(ParseConfiguration, BreakAfterAssertionLabel) {
+    Style style;
+    parseConfiguration(YAML::Load("BreakAfterAssertionLabel: false"), style);
+    EXPECT_FALSE(style.BreakAfterAssertionLabel);
+}
+
+TEST(ParseConfiguration, BreakAfterBegin) {
+    Style style;
+    parseConfiguration(YAML::Load("BreakAfterBegin: false"), style);
+    EXPECT_FALSE(style.BreakAfterBegin);
+}
+
+TEST(ParseConfiguration, BreakAfterInitial) {
+    Style style;
+
+    parseConfiguration(YAML::Load("BreakAfterInitial: Always"), style);
+    EXPECT_EQ(style.BreakAfterInitial, BlockBreakStyle::Always);
+
+    parseConfiguration(YAML::Load("BreakAfterInitial: Never"), style);
+    EXPECT_EQ(style.BreakAfterInitial, BlockBreakStyle::Never);
+
+    parseConfiguration(YAML::Load("BreakAfterInitial: OnlyMultiline"), style);
+    EXPECT_EQ(style.BreakAfterInitial, BlockBreakStyle::OnlyMultiline);
+}
+
+TEST(ParseConfiguration, BreakBeforeAlways) {
+    Style style;
+
+    parseConfiguration(YAML::Load("BreakBeforeAlways: Always"), style);
+    EXPECT_EQ(style.BreakBeforeAlways, BlockBreakStyle::Always);
+
+    parseConfiguration(YAML::Load("BreakBeforeAlways: Never"), style);
+    EXPECT_EQ(style.BreakBeforeAlways, BlockBreakStyle::Never);
+
+    parseConfiguration(YAML::Load("BreakBeforeAlways: OnlyMultiline"), style);
+    EXPECT_EQ(style.BreakBeforeAlways, BlockBreakStyle::OnlyMultiline);
+}
+
+TEST(ParseConfiguration, BreakBeforeEnd) {
+    Style style;
+    parseConfiguration(YAML::Load("BreakBeforeEnd: false"), style);
+    EXPECT_FALSE(style.BreakBeforeEnd);
+}
+
+TEST(ParseConfiguration, BreakBeforeFunction) {
+    Style style;
+    parseConfiguration(YAML::Load("BreakBeforeFunction: true"), style);
+    EXPECT_TRUE(style.BreakBeforeFunction);
+}
+
+TEST(ParseConfiguration, BreakBeforeInitial) {
+    Style style;
+
+    parseConfiguration(YAML::Load("BreakBeforeInitial: Always"), style);
+    EXPECT_EQ(style.BreakBeforeInitial, BlockBreakStyle::Always);
+
+    parseConfiguration(YAML::Load("BreakBeforeInitial: Never"), style);
+    EXPECT_EQ(style.BreakBeforeInitial, BlockBreakStyle::Never);
+
+    parseConfiguration(YAML::Load("BreakBeforeInitial: OnlyMultiline"), style);
+    EXPECT_EQ(style.BreakBeforeInitial, BlockBreakStyle::OnlyMultiline);
+}
+
+TEST(ParseConfiguration, BreakBeforeSpecifyBlock) {
+    Style style;
+    parseConfiguration(YAML::Load("BreakBeforeSpecifyBlock: true"), style);
+    EXPECT_TRUE(style.BreakBeforeSpecifyBlock);
+}
+
+TEST(ParseConfiguration, BreakBeforeTask) {
+    Style style;
+    parseConfiguration(YAML::Load("BreakBeforeTask: true"), style);
+    EXPECT_TRUE(style.BreakBeforeTask);
+}
+
+TEST(ParseConfiguration, ColumnLimit) {
+    Style style;
+    parseConfiguration(YAML::Load("ColumnLimit: 80"), style);
+    EXPECT_EQ(style.ColumnLimit, 80U);
+}
+
+TEST(ParseConfiguration, CompactControlStatements) {
+    Style style;
+    parseConfiguration(YAML::Load("CompactControlStatements: false"), style);
+    EXPECT_FALSE(style.CompactControlStatements);
+}
+
+TEST(ParseConfiguration, CompactTimeUnits) {
+    Style style;
+    parseConfiguration(YAML::Load("CompactTimeUnits: false"), style);
+    EXPECT_FALSE(style.CompactTimeUnits);
+}
+
+TEST(ParseConfiguration, ContinuationIndentWidth) {
+    Style style;
+    parseConfiguration(YAML::Load("ContinuationIndentWidth: 6"), style);
+    EXPECT_EQ(style.ContinuationIndentWidth, 6U);
+}
+
+TEST(ParseConfiguration, ContinuationIndentWidthDefaultsToIndentWidth) {
+    Style style;
+    parseConfiguration(YAML::Load("IndentWidth: 6"), style);
+    EXPECT_EQ(style.IndentWidth, 6U);
+    EXPECT_EQ(style.ContinuationIndentWidth, 6U);
+    EXPECT_EQ(style.ParameterPortListIndentWidth, 6U);
+}
+
+TEST(ParseConfiguration, EventSeparator) {
+    Style style;
+
+    parseConfiguration(YAML::Load("EventSeparator: Comma"), style);
+    EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Comma);
+
+    parseConfiguration(YAML::Load("EventSeparator: Or"), style);
+    EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Or);
+
+    parseConfiguration(YAML::Load("EventSeparator: Preserve"), style);
+    EXPECT_EQ(style.EventSeparator, EventSeparatorStyle::Preserve);
+}
+
+TEST(ParseConfiguration, IndentCaseItem) {
+    Style style;
+    parseConfiguration(YAML::Load("IndentCaseItem: true"), style);
+    EXPECT_TRUE(style.IndentCaseItem);
+}
+
+TEST(ParseConfiguration, IndentWidth) {
+    Style style;
+    parseConfiguration(YAML::Load("IndentWidth: 4"), style);
+    EXPECT_EQ(style.IndentWidth, 4U);
+}
+
+TEST(ParseConfiguration, InsertBeginEnd) {
+    Style style;
+
+    // clang-format off
+    const auto node = YAML::Load(dedent(R"(
+        InsertBeginEnd:
+          Enabled: true
+          AlwaysStatements: true
+          ControlStatements: true
+          InitialStatements: true
+    )"));
+    // clang-format on
+
+    parseConfiguration(node, style);
+    EXPECT_TRUE(style.InsertBeginEnd.Enabled);
+    EXPECT_TRUE(style.InsertBeginEnd.AlwaysStatements);
+    EXPECT_TRUE(style.InsertBeginEnd.ControlStatements);
+    EXPECT_TRUE(style.InsertBeginEnd.InitialStatements);
+}
+
+TEST(ParseConfiguration, InsertParens) {
+    Style style;
+
+    // clang-format off
+    const auto node = YAML::Load(dedent(R"(
         InsertParens:
           Delays: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.InsertParens.Delays);
-}
-
-TEST(ParseConfiguration, ParsesInsertParensExpressionEvents) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        InsertParens:
           ExpressionEvents: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.InsertParens.ExpressionEvents);
-}
-
-TEST(ParseConfiguration, ParsesInsertParensImplicitEvents) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        InsertParens:
           ImplicitEvents: true
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_TRUE(style.InsertParens.ImplicitEvents);
-}
-
-TEST(ParseConfiguration, ParsesInsertParensNamedEvents) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        InsertParens:
           NamedEvents: true
     )"));
     // clang-format on
 
-    ASSERT_NO_THROW(parseConfiguration(node, style));
+    parseConfiguration(node, style);
+    EXPECT_TRUE(style.InsertParens.Delays);
+    EXPECT_TRUE(style.InsertParens.ExpressionEvents);
+    EXPECT_TRUE(style.InsertParens.ImplicitEvents);
     EXPECT_TRUE(style.InsertParens.NamedEvents);
 }
 
-TEST(ParseConfiguration, ParsesMaxEmptyLinesToKeep) {
-    YAML::Node const node = YAML::Load("MaxEmptyLinesToKeep: 2");
+TEST(ParseConfiguration, LineEnding) {
     Style style;
-    parseConfiguration(node, style);
+
+    parseConfiguration(YAML::Load("LineEnding: CRLF"), style);
+    EXPECT_EQ(style.LineEnding, LineEndingStyle::CRLF);
+
+    parseConfiguration(YAML::Load("LineEnding: DeriveCRLF"), style);
+    EXPECT_EQ(style.LineEnding, LineEndingStyle::DeriveCRLF);
+
+    parseConfiguration(YAML::Load("LineEnding: DeriveLF"), style);
+    EXPECT_EQ(style.LineEnding, LineEndingStyle::DeriveLF);
+
+    parseConfiguration(YAML::Load("LineEnding: LF"), style);
+    EXPECT_EQ(style.LineEnding, LineEndingStyle::LF);
+}
+
+TEST(ParseConfiguration, MaxEmptyLinesToKeep) {
+    Style style;
+    parseConfiguration(YAML::Load("MaxEmptyLinesToKeep: 2"), style);
     EXPECT_EQ(style.MaxEmptyLinesToKeep, 2U);
 }
 
-TEST(ParseConfiguration, ParsesOneStatementPerLine) {
-    YAML::Node const node = YAML::Load("OneStatementPerLine: false");
+TEST(ParseConfiguration, OneLineFormatOffRegex) {
     Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.OneStatementPerLine);
-}
-
-TEST(ParseConfiguration, ParsesOneLineFormatOffRegex) {
-    YAML::Node const node = YAML::Load("OneLineFormatOffRegex: '.*foo.*'");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("OneLineFormatOffRegex: '.*foo.*'"), style);
     EXPECT_EQ(style.OneLineFormatOffRegex, ".*foo.*");
 }
 
-TEST(ParseConfiguration, ParsesPackedDimensionBoundsLSBFirst) {
-    YAML::Node const node = YAML::Load("PackedDimensionBounds: LSBFirst");
+TEST(ParseConfiguration, OneStatementPerLine) {
     Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("OneStatementPerLine: false"), style);
+    EXPECT_FALSE(style.OneStatementPerLine);
+}
+
+TEST(ParseConfiguration, PackedDimensionBounds) {
+    Style style;
+
+    parseConfiguration(YAML::Load("PackedDimensionBounds: LSBFirst"), style);
     EXPECT_EQ(style.PackedDimensionBounds, DimensionBoundsStyle::LSBFirst);
-}
 
-TEST(ParseConfiguration, ParsesPackedDimensionBoundsMSBFirst) {
-    YAML::Node const node = YAML::Load("PackedDimensionBounds: MSBFirst");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("PackedDimensionBounds: MSBFirst"), style);
     EXPECT_EQ(style.PackedDimensionBounds, DimensionBoundsStyle::MSBFirst);
-}
 
-TEST(ParseConfiguration, ParsesPackedDimensionBoundsPreserve) {
-    YAML::Node const node = YAML::Load("PackedDimensionBounds: Preserve");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("PackedDimensionBounds: Preserve"), style);
     EXPECT_EQ(style.PackedDimensionBounds, DimensionBoundsStyle::Preserve);
 }
 
-TEST(ParseConfiguration, ParsesParameterPortListIndentWidth) {
-    YAML::Node const node = YAML::Load("ParameterPortListIndentWidth: 4");
+TEST(ParseConfiguration, ParameterPortListIndentWidth) {
     Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("ParameterPortListIndentWidth: 2"), style);
+    EXPECT_EQ(style.ParameterPortListIndentWidth, 2U);
+}
+
+TEST(ParseConfiguration, ParameterPortListIndentWidthDefaultsToContinuationIndentWidth) {
+    Style style;
+    parseConfiguration(YAML::Load("ContinuationIndentWidth: 4"), style);
+    EXPECT_EQ(style.ContinuationIndentWidth, 4U);
     EXPECT_EQ(style.ParameterPortListIndentWidth, 4U);
 }
 
-TEST(ParseConfiguration, ParsesRemoveEmptyLines) {
-    YAML::Node const node = YAML::Load("RemoveEmptyLines: true");
+TEST(ParseConfiguration, RangeSpacing) {
     Style style;
-    parseConfiguration(node, style);
-    EXPECT_TRUE(style.RemoveEmptyLines);
-}
 
-TEST(ParseConfiguration, ParsesRangeSpacingAlways) {
-    YAML::Node const node = YAML::Load("RangeSpacing: Always");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("RangeSpacing: Always"), style);
     EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::Always);
-}
 
-TEST(ParseConfiguration, ParsesRangeSpacingMatchSource) {
-    YAML::Node const node = YAML::Load("RangeSpacing: MatchSource");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("RangeSpacing: MatchSource"), style);
     EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::MatchSource);
-}
 
-TEST(ParseConfiguration, ParsesRangeSpacingNever) {
-    YAML::Node const node = YAML::Load("RangeSpacing: Never");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("RangeSpacing: Never"), style);
     EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::Never);
-}
 
-TEST(ParseConfiguration, ParsesRangeSpacingPreserve) {
-    YAML::Node const node = YAML::Load("RangeSpacing: Preserve");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("RangeSpacing: Preserve"), style);
     EXPECT_EQ(style.RangeSpacing, RangeSpacingStyle::Preserve);
 }
 
-TEST(ParseConfiguration, ParsesSpaceAfterAlways) {
-    YAML::Node const node = YAML::Load("SpaceAfterAlways: false");
+TEST(ParseConfiguration, RejectsScalar) {
     Style style;
-    parseConfiguration(node, style);
+    EXPECT_THROW(parseConfiguration(YAML::Load("42"), style), std::runtime_error);
+}
+
+TEST(ParseConfiguration, RejectsSequence) {
+    Style style;
+    EXPECT_THROW(parseConfiguration(YAML::Load("[1, 2, 3]"), style), std::runtime_error);
+}
+
+TEST(ParseConfiguration, RemoveEmptyLines) {
+    Style style;
+    parseConfiguration(YAML::Load("RemoveEmptyLines: true"), style);
+    EXPECT_TRUE(style.RemoveEmptyLines);
+}
+
+TEST(ParseConfiguration, SpaceAfterAlways) {
+    Style style;
+    parseConfiguration(YAML::Load("SpaceAfterAlways: false"), style);
     EXPECT_FALSE(style.SpaceAfterAlways);
 }
 
-TEST(ParseConfiguration, ParsesSpaceAfterBracketsPackedDimensions) {
+TEST(ParseConfiguration, SpaceAfterBrackets) {
+    Style style;
+
     // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
+    const auto node = YAML::Load(dedent(R"(
         SpaceAfterBrackets:
           PackedDimensions: false
-    )"));
-    // clang-format on
-
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.SpaceAfterBrackets.PackedDimensions);
-}
-
-TEST(ParseConfiguration, ParsesSpaceAfterBracketsUnpackedDimensions) {
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        SpaceAfterBrackets:
           UnpackedDimensions: true
     )"));
     // clang-format on
 
-    Style style;
     parseConfiguration(node, style);
+    EXPECT_FALSE(style.SpaceAfterBrackets.PackedDimensions);
     EXPECT_TRUE(style.SpaceAfterBrackets.UnpackedDimensions);
 }
 
-TEST(ParseConfiguration, ParsesSpaceAfterCaseColon) {
-    YAML::Node const node = YAML::Load("SpaceAfterCaseColon: false");
+TEST(ParseConfiguration, SpaceAfterCaseColon) {
     Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("SpaceAfterCaseColon: false"), style);
     EXPECT_FALSE(style.SpaceAfterCaseColon);
 }
 
-TEST(ParseConfiguration, ParsesSpaceAfterComma) {
-    YAML::Node const node = YAML::Load("SpaceAfterComma: true");
+TEST(ParseConfiguration, SpaceAfterComma) {
     Style style;
-    parseConfiguration(node, style);
-    EXPECT_TRUE(style.SpaceAfterComma);
+    parseConfiguration(YAML::Load("SpaceAfterComma: false"), style);
+    EXPECT_FALSE(style.SpaceAfterComma);
 }
 
-TEST(ParseConfiguration, ParsesSpaceAfterParensControlStatements) {
+TEST(ParseConfiguration, SpaceAfterParens) {
     Style style;
 
     // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
+    const auto node = YAML::Load(dedent(R"(
         SpaceAfterParens:
           ControlStatements: false
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_FALSE(style.SpaceAfterParens.ControlStatements);
-}
-
-TEST(ParseConfiguration, ParsesSpaceAfterParensEventControls) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        SpaceAfterParens:
           EventControls: false
     )"));
     // clang-format on
 
-    ASSERT_NO_THROW(parseConfiguration(node, style));
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.SpaceAfterParens.ControlStatements);
     EXPECT_FALSE(style.SpaceAfterParens.EventControls);
 }
 
-TEST(ParseConfiguration, ParsesSpaceAfterSemicolon) {
-    YAML::Node const node = YAML::Load("SpaceAfterSemicolon: true");
+TEST(ParseConfiguration, SpaceAfterSemicolon) {
     Style style;
-    parseConfiguration(node, style);
-    EXPECT_TRUE(style.SpaceAfterSemicolon);
+    parseConfiguration(YAML::Load("SpaceAfterSemicolon: false"), style);
+    EXPECT_FALSE(style.SpaceAfterSemicolon);
 }
 
-TEST(ParseConfiguration, ParsesSpaceBeforeBracketsPackedDimensions) {
+TEST(ParseConfiguration, SpaceAroundOperators) {
+    Style style;
+    parseConfiguration(YAML::Load("SpaceAroundOperators: false"), style);
+    EXPECT_FALSE(style.SpaceAroundOperators);
+}
+
+TEST(ParseConfiguration, SpaceBeforeBrackets) {
+    Style style;
+
     // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
+    const auto node = YAML::Load(dedent(R"(
         SpaceBeforeBrackets:
           PackedDimensions: false
-    )"));
-    // clang-format on
-
-    Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.SpaceBeforeBrackets.PackedDimensions);
-}
-
-TEST(ParseConfiguration, ParsesSpaceBeforeBracketsUnpackedDimensions) {
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        SpaceBeforeBrackets:
           UnpackedDimensions: true
     )"));
     // clang-format on
 
-    Style style;
     parseConfiguration(node, style);
+    EXPECT_FALSE(style.SpaceBeforeBrackets.PackedDimensions);
     EXPECT_TRUE(style.SpaceBeforeBrackets.UnpackedDimensions);
 }
 
-TEST(ParseConfiguration, ParsesSpaceBeforeCaseColon) {
-    YAML::Node const node = YAML::Load("SpaceBeforeCaseColon: true");
+TEST(ParseConfiguration, SpaceBeforeCaseColon) {
     Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("SpaceBeforeCaseColon: true"), style);
     EXPECT_TRUE(style.SpaceBeforeCaseColon);
 }
 
-TEST(ParseConfiguration, ParsesSpaceBeforeParensControlStatements) {
+TEST(ParseConfiguration, SpaceBeforeParens) {
     Style style;
 
     // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
+    const auto node = YAML::Load(dedent(R"(
         SpaceBeforeParens:
           ControlStatements: false
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_FALSE(style.SpaceBeforeParens.ControlStatements);
-}
-
-TEST(ParseConfiguration, ParsesSpaceBeforeParensParameterList) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        SpaceBeforeParens:
           ParameterList: false
-    )"));
-    // clang-format on
-
-    ASSERT_NO_THROW(parseConfiguration(node, style));
-    EXPECT_FALSE(style.SpaceBeforeParens.ParameterList);
-}
-
-TEST(ParseConfiguration, ParsesSpaceBeforeParensPortList) {
-    Style style;
-
-    // clang-format off
-    YAML::Node const node = YAML::Load(dedent(R"(
-        SpaceBeforeParens:
           PortList: false
     )"));
     // clang-format on
 
-    ASSERT_NO_THROW(parseConfiguration(node, style));
+    parseConfiguration(node, style);
+    EXPECT_FALSE(style.SpaceBeforeParens.ControlStatements);
+    EXPECT_FALSE(style.SpaceBeforeParens.ParameterList);
     EXPECT_FALSE(style.SpaceBeforeParens.PortList);
 }
 
-TEST(ParseConfiguration, ParsesSpaceAroundOperators) {
-    YAML::Node const node = YAML::Load("SpaceAroundOperators: false");
+TEST(ParseConfiguration, SpacesBeforeTrailingComments) {
     Style style;
-    parseConfiguration(node, style);
-    EXPECT_FALSE(style.SpaceAroundOperators);
-}
-
-TEST(ParseConfiguration, ParsesSpacesBeforeTrailingComments) {
-    YAML::Node const node = YAML::Load("SpacesBeforeTrailingComments: 4");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("SpacesBeforeTrailingComments: 4"), style);
     EXPECT_EQ(style.SpacesBeforeTrailingComments, 4U);
 }
 
-TEST(ParseConfiguration, ParsesSpacesInBraces) {
-    YAML::Node const node = YAML::Load("SpacesInBraces: true");
+TEST(ParseConfiguration, SpacesInBraces) {
     Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("SpacesInBraces: true"), style);
     EXPECT_TRUE(style.SpacesInBraces);
 }
 
-TEST(ParseConfiguration, ParsesSpacesInBrackets) {
-    YAML::Node const node = YAML::Load("SpacesInBrackets: true");
+TEST(ParseConfiguration, SpacesInBrackets) {
     Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("SpacesInBrackets: true"), style);
     EXPECT_TRUE(style.SpacesInBrackets);
 }
 
-TEST(ParseConfiguration, ParsesSpacesInParens) {
-    YAML::Node const node = YAML::Load("SpacesInParens: true");
+TEST(ParseConfiguration, SpacesInParens) {
     Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("SpacesInParens: true"), style);
     EXPECT_TRUE(style.SpacesInParens);
 }
 
-TEST(ParseConfiguration, ParsesUnpackedDimensionBoundsLSBFirst) {
-    YAML::Node const node = YAML::Load("UnpackedDimensionBounds: LSBFirst");
+TEST(ParseConfiguration, UnpackedDimensionBounds) {
     Style style;
-    parseConfiguration(node, style);
+
+    parseConfiguration(YAML::Load("UnpackedDimensionBounds: LSBFirst"), style);
     EXPECT_EQ(style.UnpackedDimensionBounds, DimensionBoundsStyle::LSBFirst);
-}
 
-TEST(ParseConfiguration, ParsesUnpackedDimensionBoundsMSBFirst) {
-    YAML::Node const node = YAML::Load("UnpackedDimensionBounds: MSBFirst");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("UnpackedDimensionBounds: MSBFirst"), style);
     EXPECT_EQ(style.UnpackedDimensionBounds, DimensionBoundsStyle::MSBFirst);
-}
 
-TEST(ParseConfiguration, ParsesUnpackedDimensionBoundsPreserve) {
-    YAML::Node const node = YAML::Load("UnpackedDimensionBounds: Preserve");
-    Style style;
-    parseConfiguration(node, style);
+    parseConfiguration(YAML::Load("UnpackedDimensionBounds: Preserve"), style);
     EXPECT_EQ(style.UnpackedDimensionBounds, DimensionBoundsStyle::Preserve);
-}
-
-TEST(ParseConfiguration, RejectsScalar) {
-    YAML::Node const node = YAML::Load("42");
-    Style style;
-    EXPECT_THROW(parseConfiguration(node, style), std::runtime_error);
-}
-
-TEST(ParseConfiguration, RejectsSequence) {
-    YAML::Node const node = YAML::Load("[1, 2, 3]");
-    Style style;
-    EXPECT_THROW(parseConfiguration(node, style), std::runtime_error);
-}
-
-TEST(DumpConfiguration, DefaultStyle) {
-    auto const result = dumpConfiguration(getDefaultStyle());
-    EXPECT_NE(result.find("---"), std::string::npos);
-    EXPECT_NE(result.find("..."), std::string::npos);
-    EXPECT_NE(result.find("AlignAfterOpenParen: Align"), std::string::npos);
-    EXPECT_NE(result.find("AlignConsecutiveAssignments:"), std::string::npos);
-    EXPECT_NE(result.find("AlignConsecutivePortConnections:"), std::string::npos);
-    EXPECT_NE(result.find("AlignTrailingComments:"), std::string::npos);
-    EXPECT_NE(result.find("AlignConsecutiveDeclarations:"), std::string::npos);
-    EXPECT_NE(result.find("Enabled: false"), std::string::npos);
-    EXPECT_NE(result.find("Enabled: true"), std::string::npos);
-    EXPECT_NE(result.find("MaxPadding: 2"), std::string::npos);
-    EXPECT_NE(result.find("MinPadding: 2"), std::string::npos);
-    EXPECT_NE(result.find("AllowShortConstraintBlocksOnASingleLine: true"), std::string::npos);
-    EXPECT_NE(result.find("AllowShortCoverpointsOnASingleLine: true"), std::string::npos);
-    EXPECT_NE(result.find("BinPackArguments: true"), std::string::npos);
-    EXPECT_NE(result.find("BinPackParameters: true"), std::string::npos);
-    EXPECT_NE(result.find("BreakAfterAlways: OnlyMultiline"), std::string::npos);
-    EXPECT_NE(result.find("BreakAfterBegin: true"), std::string::npos);
-    EXPECT_NE(result.find("BreakAfterInitial: OnlyMultiline"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeAlways: Never"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeInitial: Never"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeEnd: true"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeFunction: false"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeSpecifyBlock: false"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeTask: false"), std::string::npos);
-    EXPECT_NE(result.find("CompactControlStatements: true"), std::string::npos);
-    EXPECT_NE(result.find("CompactTimeUnits: true"), std::string::npos);
-    EXPECT_NE(result.find("ContinuationIndentWidth: 4"), std::string::npos);
-    EXPECT_NE(result.find("EventSeparator: Preserve"), std::string::npos);
-    EXPECT_NE(result.find("IndentCaseItem: false"), std::string::npos);
-    EXPECT_NE(result.find("IndentWidth: 2"), std::string::npos);
-    EXPECT_NE(result.find("LineEnding: DeriveLF"), std::string::npos);
-    EXPECT_NE(result.find("MaxEmptyLinesToKeep: 1"), std::string::npos);
-    EXPECT_NE(result.find("OneLineFormatOffRegex: \"\""), std::string::npos);
-    EXPECT_NE(result.find("OneStatementPerLine: true"), std::string::npos);
-    EXPECT_NE(result.find("PackedDimensionBounds: Preserve"), std::string::npos);
-    EXPECT_NE(result.find("ParameterPortListIndentWidth: 4"), std::string::npos);
-    EXPECT_NE(result.find("RemoveEmptyLines: false"), std::string::npos);
-    EXPECT_NE(result.find("RangeSpacing: MatchSource"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterAlways: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterBrackets:"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterCaseColon: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterComma: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterParens:"), std::string::npos);
-    EXPECT_NE(result.find("EventControls: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterSemicolon: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforeBrackets:"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforeCaseColon: false"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforeParens:"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAroundOperators: true"), std::string::npos);
-    EXPECT_NE(result.find("SpacesBeforeTrailingComments: 2"), std::string::npos);
-    EXPECT_NE(result.find("SpacesInBraces: false"), std::string::npos);
-    EXPECT_NE(result.find("SpacesInBrackets: false"), std::string::npos);
-    EXPECT_NE(result.find("SpacesInParens: false"), std::string::npos);
-    EXPECT_NE(result.find("UnpackedDimensionBounds: Preserve"), std::string::npos);
-    EXPECT_NE(result.find("Enabled: false"), std::string::npos);
-    EXPECT_NE(result.find("AlignColon: false"), std::string::npos);
-    EXPECT_NE(result.find("InferFromSource: true"), std::string::npos);
-    EXPECT_NE(result.find("PadLeft: true"), std::string::npos);
-    EXPECT_NE(result.find("PadRight: false"), std::string::npos);
-    EXPECT_NE(result.find("ControlStatements: false"), std::string::npos);
-    EXPECT_NE(result.find("AlwaysStatements: false"), std::string::npos);
-    EXPECT_NE(result.find("InitialStatements: false"), std::string::npos);
-    EXPECT_NE(result.find("InsertParens:"), std::string::npos);
-    EXPECT_NE(result.find("Delays: false"), std::string::npos);
-    EXPECT_NE(result.find("ExpressionEvents: false"), std::string::npos);
-    EXPECT_NE(result.find("ImplicitEvents: false"), std::string::npos);
-    EXPECT_NE(result.find("NamedEvents: false"), std::string::npos);
-}
-
-TEST(DumpConfiguration, NonDefaultValues) {
-    Style style;
-    style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
-    style.AllowShortConstraintBlocksOnASingleLine = false;
-    style.AllowShortCoverpointsOnASingleLine = false;
-    style.BinPackArguments = false;
-    style.BinPackParameters = false;
-    style.IndentWidth = 4;
-    style.BreakAfterAlways = BlockBreakStyle::Always;
-    style.BreakBeforeAlways = BlockBreakStyle::Always;
-    style.BreakBeforeInitial = BlockBreakStyle::Always;
-    style.BreakBeforeFunction = true;
-    style.BreakBeforeSpecifyBlock = true;
-    style.BreakBeforeTask = true;
-    style.CompactControlStatements = false;
-    style.CompactTimeUnits = false;
-    style.EventSeparator = EventSeparatorStyle::Comma;
-    style.LineEnding = LineEndingStyle::CRLF;
-    style.InsertBeginEnd.Enabled = true;
-    style.InsertParens.Delays = true;
-    style.InsertParens.ExpressionEvents = true;
-    style.InsertParens.ImplicitEvents = true;
-    style.InsertParens.NamedEvents = true;
-    style.OneStatementPerLine = false;
-    style.PackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-    style.RangeSpacing = RangeSpacingStyle::Always;
-    style.RemoveEmptyLines = true;
-    style.SpaceAfterAlways = false;
-    style.SpaceAfterBrackets.PackedDimensions = false;
-    style.SpaceAfterBrackets.UnpackedDimensions = true;
-    style.SpaceAfterCaseColon = false;
-    style.SpaceAfterComma = false;
-    style.SpaceAfterParens.ControlStatements = false;
-    style.SpaceAfterParens.EventControls = false;
-    style.SpaceAfterSemicolon = false;
-    style.SpaceBeforeBrackets.PackedDimensions = false;
-    style.SpaceBeforeBrackets.UnpackedDimensions = true;
-    style.SpaceBeforeCaseColon = true;
-    style.SpaceBeforeParens.ControlStatements = false;
-    style.SpaceBeforeParens.ParameterList = false;
-    style.SpaceBeforeParens.PortList = false;
-    style.SpaceAroundOperators = false;
-    style.SpacesBeforeTrailingComments = 4;
-    style.SpacesInBraces = true;
-    style.SpacesInBrackets = true;
-    style.SpacesInParens = true;
-    style.UnpackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
-
-    auto const result = dumpConfiguration(style);
-    EXPECT_NE(result.find("AlignAfterOpenParen: AlwaysBreak"), std::string::npos);
-    EXPECT_NE(result.find("AllowShortConstraintBlocksOnASingleLine: false"), std::string::npos);
-    EXPECT_NE(result.find("AllowShortCoverpointsOnASingleLine: false"), std::string::npos);
-    EXPECT_NE(result.find("BinPackArguments: false"), std::string::npos);
-    EXPECT_NE(result.find("BinPackParameters: false"), std::string::npos);
-    EXPECT_NE(result.find("IndentWidth: 4"), std::string::npos);
-    EXPECT_NE(result.find("BreakAfterAlways: Always"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeAlways: Always"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeFunction: true"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeInitial: Always"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeSpecifyBlock: true"), std::string::npos);
-    EXPECT_NE(result.find("BreakBeforeTask: true"), std::string::npos);
-    EXPECT_NE(result.find("CompactControlStatements: false"), std::string::npos);
-    EXPECT_NE(result.find("CompactTimeUnits: false"), std::string::npos);
-    EXPECT_NE(result.find("EventSeparator: Comma"), std::string::npos);
-    EXPECT_NE(result.find("LineEnding: CRLF"), std::string::npos);
-    EXPECT_NE(result.find("Enabled: true"), std::string::npos);
-    EXPECT_NE(result.find("OneStatementPerLine: false"), std::string::npos);
-    EXPECT_NE(result.find("PackedDimensionBounds: MSBFirst"), std::string::npos);
-    EXPECT_NE(result.find("RangeSpacing: Always"), std::string::npos);
-    EXPECT_NE(result.find("RemoveEmptyLines: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterAlways: false"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterBrackets:"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterCaseColon: false"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterComma: false"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterParens:"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAfterSemicolon: false"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforeBrackets:"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforeCaseColon: true"), std::string::npos);
-    EXPECT_NE(result.find("SpaceBeforeParens:"), std::string::npos);
-    EXPECT_NE(result.find("SpaceAroundOperators: false"), std::string::npos);
-    EXPECT_NE(result.find("SpacesBeforeTrailingComments: 4"), std::string::npos);
-    EXPECT_NE(result.find("SpacesInBraces: true"), std::string::npos);
-    EXPECT_NE(result.find("SpacesInBrackets: true"), std::string::npos);
-    EXPECT_NE(result.find("SpacesInParens: true"), std::string::npos);
-    EXPECT_NE(result.find("UnpackedDimensionBounds: LSBFirst"), std::string::npos);
-}
-
-TEST(DumpConfiguration, RoundTrip) {
-    Style original;
-    original.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
-    original.AlignConsecutiveDeclarations.Enabled = true;
-    original.AlignConsecutiveDeclarations.AcrossEmptyLines = true;
-    original.AlignConsecutivePackedDimensions.AlignColon = true;
-    original.AlignConsecutivePackedDimensions.InferFromSource = true;
-    original.AlignConsecutivePackedDimensions.PadLeft = true;
-    original.AlignConsecutivePackedDimensions.PadRight = true;
-    original.AlignConsecutivePortConnections.Enabled = true;
-    original.AlignConsecutivePortConnections.MaxPadding = 3;
-    original.AlignConsecutivePortConnections.MinPadding = 1;
-    original.AlignConsecutiveTimingControls.Enabled = true;
-    original.AlignConsecutiveTimingControls.AcrossEmptyLines = true;
-    original.AlignTrailingComments.Enabled = true;
-    original.AlignTrailingComments.AcrossEmptyLines = true;
-    original.AllowShortConstraintBlocksOnASingleLine = false;
-    original.AllowShortCoverpointsOnASingleLine = false;
-    original.BinPackArguments = false;
-    original.BinPackParameters = false;
-    original.IndentWidth = 4;
-    original.ContinuationIndentWidth = 4;
-    original.ParameterPortListIndentWidth = 4;
-    original.MaxEmptyLinesToKeep = 3;
-    original.RemoveEmptyLines = true;
-    original.IndentCaseItem = true;
-    original.BreakAfterAlways = BlockBreakStyle::Never;
-    original.BreakAfterInitial = BlockBreakStyle::Always;
-    original.BreakBeforeAlways = BlockBreakStyle::Never;
-    original.BreakBeforeInitial = BlockBreakStyle::Never;
-    original.BreakAfterBegin = false;
-    original.BreakBeforeEnd = false;
-    original.BreakBeforeFunction = false;
-    original.BreakBeforeSpecifyBlock = false;
-    original.BreakBeforeTask = false;
-    original.CompactControlStatements = false;
-    original.CompactTimeUnits = false;
-    original.EventSeparator = EventSeparatorStyle::Or;
-    original.LineEnding = LineEndingStyle::LF;
-    original.OneLineFormatOffRegex = ".*test.*";
-    original.OneStatementPerLine = false;
-    original.PackedDimensionBounds = DimensionBoundsStyle::LSBFirst;
-    original.RangeSpacing = RangeSpacingStyle::Never;
-    original.SpaceAfterAlways = false;
-    original.SpaceAfterBrackets.PackedDimensions = false;
-    original.SpaceAfterBrackets.UnpackedDimensions = true;
-    original.SpaceAfterCaseColon = false;
-    original.SpaceAfterComma = true;
-    original.SpaceAfterParens.ControlStatements = false;
-    original.SpaceAfterParens.EventControls = false;
-    original.SpaceAfterSemicolon = true;
-    original.SpaceBeforeBrackets.PackedDimensions = false;
-    original.SpaceBeforeBrackets.UnpackedDimensions = true;
-    original.SpaceBeforeCaseColon = true;
-    original.SpaceBeforeParens.ControlStatements = false;
-    original.SpaceBeforeParens.ParameterList = false;
-    original.SpaceBeforeParens.PortList = false;
-    original.SpaceAroundOperators = false;
-    original.SpacesBeforeTrailingComments = 3;
-    original.SpacesInBraces = true;
-    original.SpacesInBrackets = true;
-    original.SpacesInParens = true;
-    original.UnpackedDimensionBounds = DimensionBoundsStyle::MSBFirst;
-    original.InsertBeginEnd.Enabled = true;
-    original.InsertBeginEnd.ControlStatements = false;
-    original.InsertBeginEnd.AlwaysStatements = false;
-    original.InsertBeginEnd.InitialStatements = false;
-    original.InsertParens.Delays = true;
-    original.InsertParens.ExpressionEvents = true;
-    original.InsertParens.ImplicitEvents = true;
-    original.InsertParens.NamedEvents = true;
-
-    auto const yaml = dumpConfiguration(original);
-    YAML::Node const node = YAML::Load(yaml);
-    Style parsed;
-    parseConfiguration(node, parsed);
-    EXPECT_EQ(parsed, original);
-}
-
-TEST(Style, DefaultStyle) {
-    Style const style = getDefaultStyle();
-    EXPECT_EQ(style, Style{});
 }

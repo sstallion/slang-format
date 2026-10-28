@@ -3,9 +3,15 @@
 
 #pragma once
 
+#include "FileLoader.h"
+
 #include <algorithm>
+#include <filesystem>
+#include <map>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 /// Strips a leading newline and the common leading whitespace prefix from all
@@ -61,4 +67,19 @@ inline std::string dedent(std::string_view s) {
     }
 
     return result;
+}
+
+/// Returns a FileLoader that serves the given path-to-contents map and reports every other path as
+/// missing.
+inline slang::format::FileLoader makeFileLoader(
+    std::map<std::filesystem::path, std::string> files) {
+    return
+        [files = std::move(files)](const std::filesystem::path& p) -> std::optional<std::string> {
+            const auto it = files.find(p);
+            if (it == files.end()) {
+                return std::nullopt;
+            }
+
+            return it->second;
+        };
 }

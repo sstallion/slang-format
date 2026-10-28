@@ -1,14 +1,7 @@
 # Copyright 2026 Steven Stallion
 # SPDX-License-Identifier: MIT
 
-execute_process(COMMAND ${SLANG_FORMAT} --no-config -i -
-                RESULT_VARIABLE result
-                OUTPUT_VARIABLE output)
+include(FixtureTest)
 
-if(NOT result EQUAL 0)
-  message(FATAL_ERROR "slang-format failed with exit code ${result}")
-endif()
-
-if(NOT output STREQUAL "")
-  message(FATAL_ERROR "slang-format produced unexpected output: ${output}")
-endif()
+fixture_run(output -i -)
+fixture_expect_empty("${output}")

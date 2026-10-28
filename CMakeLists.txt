@@ -71,7 +71,18 @@ if(BUILD_TESTING)
   add_subdirectory(${FIXTURES_DIR})
 
   add_executable(${PROJECT_NAME}-tests
-                 ${TESTS_DIR}/AlignTest.cpp
+                 ${TESTS_DIR}/AlignAssignmentTest.cpp
+                 ${TESTS_DIR}/AlignCommentTest.cpp
+                 ${TESTS_DIR}/AlignDeclarationTest.cpp
+                 ${TESTS_DIR}/AlignDimensionTest.cpp
+                 ${TESTS_DIR}/AlignInferenceTest.cpp
+                 ${TESTS_DIR}/FormatClassTest.cpp
+                 ${TESTS_DIR}/FormatDeclarationTest.cpp
+                 ${TESTS_DIR}/FormatExpressionTest.cpp
+                 ${TESTS_DIR}/FormatMemberTest.cpp
+                 ${TESTS_DIR}/FormatPortListTest.cpp
+                 ${TESTS_DIR}/FormatPrinterTest.cpp
+                 ${TESTS_DIR}/FormatStatementTest.cpp
                  ${TESTS_DIR}/FormatTest.cpp
                  ${TESTS_DIR}/IgnoreTest.cpp
                  ${TESTS_DIR}/RewriterTest.cpp
