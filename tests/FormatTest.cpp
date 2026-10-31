@@ -9,7 +9,6 @@
 #include <gtest/gtest.h>
 
 using namespace slang::format;
-using namespace slang::format::style;
 using slang::dedent;
 
 TEST(LineEnding, CRLF) {

@@ -24,17 +24,17 @@ struct InferContext {
     unsigned groupMaxExcess = 0;  ///< Maximum source-vs-output spacing excess in the group.
 };
 
-/// Decides whether a group with the given column \p displacement is aligned or flushed left.
+/// Decides whether a group with the given column @p displacement is aligned or flushed left.
 AlignPolicy inferAlignPolicy(unsigned displacement, const InferContext& ctx);
 
-/// Returns the maximum source-vs-output spacing excess recorded for \p meta.
+/// Returns the maximum source-vs-output spacing excess recorded for @p meta.
 unsigned computeMetaExcess(const LineMetadata& meta);
 
-/// Returns true if \p meta records a range colon with more than one space on either side.
+/// Returns true if @p meta records a range colon with more than one space on either side.
 bool hasMultiSpaceRange(const LineMetadata& meta);
 
-/// Returns the maximum spacing excess across output lines [\p start, \p end), including range
-/// excess for lines in \p rangeExcessLines.
+/// Returns the maximum spacing excess across output lines [@p start, @p end), including range
+/// excess for lines in @p rangeExcessLines.
 unsigned computeGroupMaxExcess(const std::vector<LineMetadata>& lineMetadata,
                                const std::unordered_map<size_t, size_t>& metaByLine,
                                const std::set<size_t>& rangeExcessLines, size_t start, size_t end);

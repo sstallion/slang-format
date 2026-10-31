@@ -9,15 +9,14 @@
 #include <gtest/gtest.h>
 
 using namespace slang::format;
-using namespace slang::format::style;
 using slang::dedent;
 
-// clang-format off
 TEST(BindDirective, Instantiation) {
     auto style = getDefaultStyle();
     style.AlignConsecutivePortConnections = {};
     style.BinPackPortConnections = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         bind foo bar u_bar (
         .clk(clk),
@@ -33,11 +32,13 @@ TEST(BindDirective, Instantiation) {
             .gnt(gnt_int)
         );
     )"));
+    // clang-format on
 }
 
 TEST(DPIImport, ExpandsPorts) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         package foo;
         import "DPI-C" context function int unsigned c_checksum(input int unsigned seed, input int unsigned len);
@@ -50,11 +51,13 @@ TEST(DPIImport, ExpandsPorts) {
           );
         endpackage
     )"));
+    // clang-format on
 }
 
 TEST(DPIImport, SinglePortFits) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         package foo;
         import "DPI-C" function void single_port(input int x);
@@ -64,11 +67,13 @@ TEST(DPIImport, SinglePortFits) {
           import "DPI-C" function void single_port(input int x);
         endpackage
     )"));
+    // clang-format on
 }
 
 TEST(EnumType, ExpandsMembers) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         typedef enum bit [3:0] {OP_A[4] = 4'd0, OP_B[2:3]} op_e;
@@ -81,11 +86,13 @@ TEST(EnumType, ExpandsMembers) {
           } op_e;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(EnumType, NormalizesSpacing) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         package foo;
         typedef enum bit [1:0]{
@@ -101,12 +108,14 @@ TEST(EnumType, NormalizesSpacing) {
           } state_e;
         endpackage
     )"));
+    // clang-format on
 }
 
 TEST(EnumType, PreservesNewlines) {
     auto style = getDefaultStyle();
     style.AlignConsecutiveAssignments = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         typedef enum logic [2:0] {
@@ -122,6 +131,7 @@ TEST(EnumType, PreservesNewlines) {
           } state_e;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(StructUnionType, Members) {
@@ -129,6 +139,7 @@ TEST(StructUnionType, Members) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         package foo;
         typedef struct packed{
@@ -144,11 +155,13 @@ TEST(StructUnionType, Members) {
           } beat_t;
         endpackage
     )"));
+    // clang-format on
 }
 
 TEST(TimeUnitsDeclaration, Divider) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           timeunit 1ns / 1ps;
@@ -158,5 +171,5 @@ TEST(TimeUnitsDeclaration, Divider) {
           timeunit 1ns/1ps;
         endmodule
     )"));
+    // clang-format on
 }
-// clang-format on

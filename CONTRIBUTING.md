@@ -12,19 +12,19 @@ not have time to contribute!
 To get started, [fork][3] this repository on GitHub and clone a working copy for
 development:
 
-```shell
+```
 git clone git@github.com:YOUR-USERNAME/slang-format.git
 ```
 
 To build using the default CMake generator, issue:
 
-```shell
+```
 cmake -B build && cmake --build build
 ```
 
 To run tests, issue:
 
-```shell
+```
 ctest --output-on-failure --test-dir build
 ```
 
@@ -45,27 +45,27 @@ To make a release, perform the following:
 
 2. To commit outstanding changes, issue:
 
-   ```shell
+   ```
    git commit -a -m "Release v<version>"
    ```
 
 3. Push changes to the remote repository and verify the results of the [CI][7]
    workflow:
 
-   ```shell
+   ```
    git push origin <default-branch>
    ```
 
 4. To create a release tag, issue:
 
-   ```shell
+   ```
    git tag -a -m "Release v<version>" v<version>
    ```
 
 5. Push the release tag to the remote repository and verify the results of the
    [Release][8] workflow:
 
-   ```shell
+   ```
    git push origin --tags
    ```
 
@@ -75,7 +75,7 @@ This repository adheres to the [LLVM AI Tool Use Policy][9]:
 
 Contributors may use AI tools, but a human must be in the loop. Submissions must
 be understood, reviewed, and owned by the contributor. Substantial AI-assisted
-content must be attributed using a `Co-authored-by` commit trailer and disclosed
+content must be attributed using a `Co-Authored-By` commit trailer and disclosed
 in pull request descriptions. Use of autonomous agents is not permitted.
 
 ## License
@@ -84,7 +84,7 @@ By contributing to this repository, you agree that your contributions will be
 licensed under its MIT License.
 
 [1]: https://github.com/sstallion/slang-format/issues
-[2]: https://github.com/sstallion/slang-format/blob/main/README.md#getting-started
+[2]: https://github.com/sstallion/slang-format?tab=readme-ov-file#getting-started
 [3]: https://docs.github.com/en/github/getting-started-with-github/fork-a-repo
 [4]: https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request
 [5]: https://docs.github.com/en/actions

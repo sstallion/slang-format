@@ -17,8 +17,10 @@ paths:
 - Use 7-bit ASCII when writing text; never use emojis.
 - Extended ASCII may be used when creating diagrams.
 - Use HTML character entities for special characters.
-- Use special characters only when an ASCII equivalent does not exist
-  (e.g. use `-` instead of `&ndash;` or `&mdash;`). If unsure, ask the user.
+- Use special characters only when an ASCII equivalent does not exist (e.g. use
+  `-` instead of `&ndash;` and `--` for `&mdash;`). If unsure, ask the user.
+- Files under `docs/` are processed by Doxygen and have additional conventions;
+  see `.claude/rules/docs.md`.
 
 [1]: https://github.github.com/gfm/
 [2]: https://google.github.io/styleguide/docguide/style.html

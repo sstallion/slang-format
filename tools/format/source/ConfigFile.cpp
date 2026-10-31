@@ -35,7 +35,7 @@ constexpr std::array<std::string_view, 2> ConfigFileNames{
 using StyleFactory = Style (*)();
 
 constexpr std::array PredefinedStyles{
-    std::pair<std::string_view, StyleFactory>{"Default"sv, &style::getDefaultStyle},
+    std::pair<std::string_view, StyleFactory>{"Default"sv, &getDefaultStyle},
 };
 
 bool equalsInsensitive(std::string_view lhs, std::string_view rhs) {
@@ -43,8 +43,7 @@ bool equalsInsensitive(std::string_view lhs, std::string_view rhs) {
     return std::ranges::equal(lhs, rhs, {}, toLower, toLower);
 }
 
-/// Returns the factory for the predefined style named \p name, or nullptr if no such style
-/// exists.
+/// Returns the factory for the predefined style named @p name, or nullptr if no such style exists.
 StyleFactory findPredefinedStyle(std::string_view name) {
     const auto it = std::ranges::find_if(PredefinedStyles, [&](const auto& entry) {
         return equalsInsensitive(entry.first, name);
@@ -52,15 +51,15 @@ StyleFactory findPredefinedStyle(std::string_view name) {
     return it != PredefinedStyles.end() ? it->second : nullptr;
 }
 
-constexpr std::string_view toString(BracketAlignmentStyle style) {
+constexpr std::string_view toString(ParenAlignmentStyle style) {
     switch (style) {
-        case BracketAlignmentStyle::Align:
+        case ParenAlignmentStyle::Align:
             return "Align";
-        case BracketAlignmentStyle::AlwaysBreak:
+        case ParenAlignmentStyle::AlwaysBreak:
             return "AlwaysBreak";
-        case BracketAlignmentStyle::BlockIndent:
+        case ParenAlignmentStyle::BlockIndent:
             return "BlockIndent";
-        case BracketAlignmentStyle::DontAlign:
+        case ParenAlignmentStyle::DontAlign:
             return "DontAlign";
     }
     return "Align";
@@ -132,10 +131,10 @@ constexpr std::string_view toString(RangeSpacingStyle style) {
 
 constexpr std::array AllBlockBreakStyles{BlockBreakStyle::Always, BlockBreakStyle::Never,
                                          BlockBreakStyle::OnlyMultiline};
-constexpr std::array AllBracketAlignmentStyles{BracketAlignmentStyle::Align,
-                                               BracketAlignmentStyle::AlwaysBreak,
-                                               BracketAlignmentStyle::BlockIndent,
-                                               BracketAlignmentStyle::DontAlign};
+constexpr std::array AllParenAlignmentStyles{ParenAlignmentStyle::Align,
+                                             ParenAlignmentStyle::AlwaysBreak,
+                                             ParenAlignmentStyle::BlockIndent,
+                                             ParenAlignmentStyle::DontAlign};
 constexpr std::array AllDimensionBoundsStyles{DimensionBoundsStyle::LSBFirst,
                                               DimensionBoundsStyle::MSBFirst,
                                               DimensionBoundsStyle::Preserve};
@@ -475,8 +474,8 @@ void parseConfig(const YAML::Node& node, Style& style) {
         style = factory();
     }
 
-    parseEnum(node, "AlignAfterOpenParen", style.AlignAfterOpenParen, AllBracketAlignmentStyles,
-              BracketAlignmentStyle::Align);
+    parseEnum(node, "AlignAfterOpenParen", style.AlignAfterOpenParen, AllParenAlignmentStyles,
+              ParenAlignmentStyle::Align);
     parseAlignConsecutive(node, "AlignConsecutiveAssignments", style.AlignConsecutiveAssignments);
     parseAlignConsecutive(node, "AlignConsecutiveDeclarations", style.AlignConsecutiveDeclarations);
     parseAlignConsecutive(node, "AlignConsecutivePackedDimensions",
@@ -563,13 +562,13 @@ Style loadConfig(const std::filesystem::path& searchDir, FileLoader loader) {
 
     auto result = findFileInHierarchy(searchDir, ConfigFileNames, loader);
     if (!result) {
-        return style::getDefaultStyle();
+        return getDefaultStyle();
     }
 
     auto& [path, content] = *result;
     try {
         const YAML::Node node = YAML::Load(content);
-        auto style = style::getDefaultStyle();
+        auto style = getDefaultStyle();
         parseConfig(node, style);
         return style;
     }

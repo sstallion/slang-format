@@ -3,7 +3,7 @@
 
 include(FetchContent)
 
-# Preserve normal variables in third-party projects:
+# Preserve normal variables in third-party projects.
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 block()
@@ -44,5 +44,20 @@ if(BUILD_TOOLS)
       SYSTEM
     )
     FetchContent_MakeAvailable(yaml-cpp)
+  endblock()
+endif()
+
+if(BUILD_DOCS)
+  block()
+    FetchContent_Declare(
+      mcss
+      GIT_REPOSITORY https://github.com/sstallion/m.css.git
+      GIT_TAG a23970673b6c22ac88ef0c32b279dc69e0257309 # comitted Oct 29, 2026
+      SYSTEM
+    )
+    FetchContent_MakeAvailable(mcss)
+
+    set(MCSS_DOXYGEN_SCRIPT ${mcss_SOURCE_DIR}/documentation/doxygen.py
+      CACHE FILEPATH "Path to the doxygen.py Python script." FORCE)
   endblock()
 endif()

@@ -1,12 +1,14 @@
 ---
 paths:
-  - 'tests/**/*.{cpp,h}'
+  - '**/tests/*.{cpp,h}'
 ---
 
 # Testing Rules
 
 - Use the [GoogleTest][1] testing framework.
-- Avoid mocks; this leads to unnecessary churn.
+- Command-line behavior is tested by CTest fixture scripts. Add a fixture script
+  when adding a command-line feature.
+- Do not use mocks; these lead to unnecessary churn.
 - Tests are intentionally simple and do not require comments.
 - Use test fixtures instead of local wrappers for excessive repetition.
 - Do not modify existing tests unless explicitly authorized by the user.

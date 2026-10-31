@@ -9,14 +9,13 @@
 #include <gtest/gtest.h>
 
 using namespace slang::format;
-using namespace slang::format::style;
 using slang::dedent;
 
-// clang-format off
 TEST(BreakAfterAlways, AlwaysBareStatement) {
     auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb x = y;
@@ -27,12 +26,14 @@ TEST(BreakAfterAlways, AlwaysBareStatement) {
             x = y;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterAlways, AlwaysInlineBlock) {
     auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always @(clk) begin x = 1; end
@@ -45,12 +46,14 @@ TEST(BreakAfterAlways, AlwaysInlineBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterAlways, AlwaysMultilineBlock) {
     auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb begin
@@ -64,12 +67,14 @@ TEST(BreakAfterAlways, AlwaysMultilineBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterAlways, AlwaysTimingControl) {
     auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always @(posedge clk) x <= y;
@@ -80,12 +85,14 @@ TEST(BreakAfterAlways, AlwaysTimingControl) {
             x <= y;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterAlways, Never) {
     auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::Never;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb begin x = 1;
@@ -100,12 +107,14 @@ TEST(BreakAfterAlways, Never) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterAlways, OnlyMultilineBlock) {
     auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb begin x = 1;
@@ -121,6 +130,7 @@ TEST(BreakAfterAlways, OnlyMultilineBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterAlways, OnlyMultilineConditional) {
@@ -128,6 +138,7 @@ TEST(BreakAfterAlways, OnlyMultilineConditional) {
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
     style.CompactControlStatements = false;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always @(posedge clk_i) if (!enable_i) state_cs <= STATE_RESET; else state_cs <= state_ns;
@@ -141,12 +152,14 @@ TEST(BreakAfterAlways, OnlyMultilineConditional) {
               state_cs <= state_ns;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterAlways, OnlyMultilineConditionalBlocks) {
     auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always @(posedge clk_i) if (a) begin x <= 1; end else begin y <= 2; end
@@ -161,6 +174,7 @@ TEST(BreakAfterAlways, OnlyMultilineConditionalBlocks) {
             end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterAlways, OnlyMultilineSingleLineBlock) {
@@ -168,6 +182,7 @@ TEST(BreakAfterAlways, OnlyMultilineSingleLineBlock) {
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
     style.OneStatementPerLine = false;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb begin x = 1; y = 2; end
@@ -179,6 +194,7 @@ TEST(BreakAfterAlways, OnlyMultilineSingleLineBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterAlways, OnlyMultilineSingleLineConditional) {
@@ -186,6 +202,7 @@ TEST(BreakAfterAlways, OnlyMultilineSingleLineConditional) {
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
     style.OneStatementPerLine = false;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb if (a) x = 1;
@@ -195,12 +212,14 @@ TEST(BreakAfterAlways, OnlyMultilineSingleLineConditional) {
           always_comb if (a) x = 1;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterAlways, OnlyMultilineSingleStatementBlock) {
     auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb begin x = y; end
@@ -212,12 +231,14 @@ TEST(BreakAfterAlways, OnlyMultilineSingleStatementBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterAlways, PreservesNewlines) {
     auto style = getDefaultStyle();
     style.BreakAfterAlways = BlockBreakStyle::OnlyMultiline;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always @(posedge clk)
@@ -229,12 +250,14 @@ TEST(BreakAfterAlways, PreservesNewlines) {
             x <= y;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterInitial, Never) {
     auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::Never;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         initial begin x = 1;
@@ -249,12 +272,14 @@ TEST(BreakAfterInitial, Never) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakAfterInitial, OnlyMultilineBlock) {
     auto style = getDefaultStyle();
     style.BreakAfterInitial = BlockBreakStyle::OnlyMultiline;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         initial begin x = 1;
@@ -270,6 +295,7 @@ TEST(BreakAfterInitial, OnlyMultilineBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeAlways, Always) {
@@ -277,6 +303,7 @@ TEST(BreakBeforeAlways, Always) {
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb begin
@@ -291,6 +318,7 @@ TEST(BreakBeforeAlways, Always) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeAlways, AlwaysPreservesBlankLine) {
@@ -298,6 +326,7 @@ TEST(BreakBeforeAlways, AlwaysPreservesBlankLine) {
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
 
@@ -313,6 +342,7 @@ TEST(BreakBeforeAlways, AlwaysPreservesBlankLine) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeAlways, AlwaysTimingControl) {
@@ -320,6 +350,7 @@ TEST(BreakBeforeAlways, AlwaysTimingControl) {
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always @(posedge clk) x <= y;
@@ -330,6 +361,7 @@ TEST(BreakBeforeAlways, AlwaysTimingControl) {
           always @(posedge clk) x <= y;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeAlways, AlwaysWithComment) {
@@ -337,6 +369,7 @@ TEST(BreakBeforeAlways, AlwaysWithComment) {
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         // comment
@@ -353,6 +386,7 @@ TEST(BreakBeforeAlways, AlwaysWithComment) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeAlways, AlwaysWithTrailingComment) {
@@ -360,6 +394,7 @@ TEST(BreakBeforeAlways, AlwaysWithTrailingComment) {
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always #5 clk = ~clk; // 100 MHz
@@ -377,6 +412,7 @@ TEST(BreakBeforeAlways, AlwaysWithTrailingComment) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeAlways, Never) {
@@ -384,6 +420,7 @@ TEST(BreakBeforeAlways, Never) {
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::Never;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb begin
@@ -399,6 +436,7 @@ TEST(BreakBeforeAlways, Never) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeAlways, OnlyMultilineBlock) {
@@ -406,6 +444,7 @@ TEST(BreakBeforeAlways, OnlyMultilineBlock) {
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb begin x = 1;
@@ -421,6 +460,7 @@ TEST(BreakBeforeAlways, OnlyMultilineBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeAlways, OnlyMultilineConditional) {
@@ -429,6 +469,7 @@ TEST(BreakBeforeAlways, OnlyMultilineConditional) {
     style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
     style.CompactControlStatements = false;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -444,6 +485,7 @@ TEST(BreakBeforeAlways, OnlyMultilineConditional) {
               state_cs <= state_ns;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeAlways, OnlyMultilineNestedBlock) {
@@ -451,6 +493,7 @@ TEST(BreakBeforeAlways, OnlyMultilineNestedBlock) {
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb begin
@@ -478,6 +521,7 @@ TEST(BreakBeforeAlways, OnlyMultilineNestedBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeAlways, OnlyMultilineSingleStatementBlock) {
@@ -485,6 +529,7 @@ TEST(BreakBeforeAlways, OnlyMultilineSingleStatementBlock) {
     style.BreakAfterAlways = BlockBreakStyle::Never;
     style.BreakBeforeAlways = BlockBreakStyle::OnlyMultiline;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb begin x = y; end
@@ -496,6 +541,7 @@ TEST(BreakBeforeAlways, OnlyMultilineSingleStatementBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeFunction, Disabled) {
@@ -503,6 +549,7 @@ TEST(BreakBeforeFunction, Disabled) {
     style.BreakBeforeFunction = false;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -518,6 +565,7 @@ TEST(BreakBeforeFunction, Disabled) {
           endfunction
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeFunction, Inserts) {
@@ -525,6 +573,7 @@ TEST(BreakBeforeFunction, Inserts) {
     style.BreakBeforeFunction = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -541,6 +590,7 @@ TEST(BreakBeforeFunction, Inserts) {
           endfunction
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeFunction, PreservesBlankLine) {
@@ -548,6 +598,7 @@ TEST(BreakBeforeFunction, PreservesBlankLine) {
     style.BreakBeforeFunction = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -565,6 +616,7 @@ TEST(BreakBeforeFunction, PreservesBlankLine) {
           endfunction
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeFunction, WithComment) {
@@ -572,6 +624,7 @@ TEST(BreakBeforeFunction, WithComment) {
     style.BreakBeforeFunction = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -590,6 +643,7 @@ TEST(BreakBeforeFunction, WithComment) {
           endfunction
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeFunction, WithTrailingComment) {
@@ -597,6 +651,7 @@ TEST(BreakBeforeFunction, WithTrailingComment) {
     style.BreakBeforeFunction = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1; // comment
@@ -613,6 +668,7 @@ TEST(BreakBeforeFunction, WithTrailingComment) {
           endfunction
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeInitial, Always) {
@@ -620,6 +676,7 @@ TEST(BreakBeforeInitial, Always) {
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         initial begin
@@ -634,6 +691,7 @@ TEST(BreakBeforeInitial, Always) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeInitial, AlwaysPreservesBlankLine) {
@@ -641,6 +699,7 @@ TEST(BreakBeforeInitial, AlwaysPreservesBlankLine) {
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
 
@@ -656,6 +715,7 @@ TEST(BreakBeforeInitial, AlwaysPreservesBlankLine) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeInitial, AlwaysTimingControl) {
@@ -663,6 +723,7 @@ TEST(BreakBeforeInitial, AlwaysTimingControl) {
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         initial #10 x = 1;
@@ -673,6 +734,7 @@ TEST(BreakBeforeInitial, AlwaysTimingControl) {
           initial #10 x = 1;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeInitial, AlwaysWithComment) {
@@ -680,6 +742,7 @@ TEST(BreakBeforeInitial, AlwaysWithComment) {
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         // comment
@@ -696,6 +759,7 @@ TEST(BreakBeforeInitial, AlwaysWithComment) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeInitial, AlwaysWithTrailingComment) {
@@ -703,6 +767,7 @@ TEST(BreakBeforeInitial, AlwaysWithTrailingComment) {
     style.BreakBeforeInitial = BlockBreakStyle::Always;
     style.BreakAfterInitial = BlockBreakStyle::Never;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always #20 dclk = ~dclk; //  25 MHz
@@ -719,6 +784,7 @@ TEST(BreakBeforeInitial, AlwaysWithTrailingComment) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeInitial, Never) {
@@ -726,6 +792,7 @@ TEST(BreakBeforeInitial, Never) {
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::Never;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         initial begin
@@ -741,6 +808,7 @@ TEST(BreakBeforeInitial, Never) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeInitial, OnlyMultilineBlock) {
@@ -748,6 +816,7 @@ TEST(BreakBeforeInitial, OnlyMultilineBlock) {
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         initial begin x = 1;
@@ -763,6 +832,7 @@ TEST(BreakBeforeInitial, OnlyMultilineBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeInitial, OnlyMultilineNestedBlock) {
@@ -770,6 +840,7 @@ TEST(BreakBeforeInitial, OnlyMultilineNestedBlock) {
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         initial begin
@@ -797,6 +868,7 @@ TEST(BreakBeforeInitial, OnlyMultilineNestedBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeInitial, OnlyMultilineSingleStatementBlock) {
@@ -804,6 +876,7 @@ TEST(BreakBeforeInitial, OnlyMultilineSingleStatementBlock) {
     style.BreakAfterInitial = BlockBreakStyle::Never;
     style.BreakBeforeInitial = BlockBreakStyle::OnlyMultiline;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         initial begin x = y; end
@@ -815,6 +888,7 @@ TEST(BreakBeforeInitial, OnlyMultilineSingleStatementBlock) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeSpecifyBlock, Disabled) {
@@ -822,6 +896,7 @@ TEST(BreakBeforeSpecifyBlock, Disabled) {
     style.BreakBeforeSpecifyBlock = false;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -837,6 +912,7 @@ TEST(BreakBeforeSpecifyBlock, Disabled) {
           endspecify
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeSpecifyBlock, Inserts) {
@@ -844,6 +920,7 @@ TEST(BreakBeforeSpecifyBlock, Inserts) {
     style.BreakBeforeSpecifyBlock = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -860,6 +937,7 @@ TEST(BreakBeforeSpecifyBlock, Inserts) {
           endspecify
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeSpecifyBlock, PreservesBlankLine) {
@@ -867,6 +945,7 @@ TEST(BreakBeforeSpecifyBlock, PreservesBlankLine) {
     style.BreakBeforeSpecifyBlock = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -884,6 +963,7 @@ TEST(BreakBeforeSpecifyBlock, PreservesBlankLine) {
           endspecify
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeSpecifyBlock, WithComment) {
@@ -891,6 +971,7 @@ TEST(BreakBeforeSpecifyBlock, WithComment) {
     style.BreakBeforeSpecifyBlock = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -909,6 +990,7 @@ TEST(BreakBeforeSpecifyBlock, WithComment) {
           endspecify
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeSpecifyBlock, WithTrailingComment) {
@@ -916,6 +998,7 @@ TEST(BreakBeforeSpecifyBlock, WithTrailingComment) {
     style.BreakBeforeSpecifyBlock = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1; // comment
@@ -932,6 +1015,7 @@ TEST(BreakBeforeSpecifyBlock, WithTrailingComment) {
           endspecify
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeTask, Disabled) {
@@ -939,6 +1023,7 @@ TEST(BreakBeforeTask, Disabled) {
     style.BreakBeforeTask = false;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -954,6 +1039,7 @@ TEST(BreakBeforeTask, Disabled) {
           endtask
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeTask, Inserts) {
@@ -961,6 +1047,7 @@ TEST(BreakBeforeTask, Inserts) {
     style.BreakBeforeTask = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -977,6 +1064,7 @@ TEST(BreakBeforeTask, Inserts) {
           endtask
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeTask, PreservesBlankLine) {
@@ -984,6 +1072,7 @@ TEST(BreakBeforeTask, PreservesBlankLine) {
     style.BreakBeforeTask = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -1001,6 +1090,7 @@ TEST(BreakBeforeTask, PreservesBlankLine) {
           endtask
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeTask, WithComment) {
@@ -1008,6 +1098,7 @@ TEST(BreakBeforeTask, WithComment) {
     style.BreakBeforeTask = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1;
@@ -1026,6 +1117,7 @@ TEST(BreakBeforeTask, WithComment) {
           endtask
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BreakBeforeTask, WithTrailingComment) {
@@ -1033,6 +1125,7 @@ TEST(BreakBeforeTask, WithTrailingComment) {
     style.BreakBeforeTask = true;
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign x = 1; // comment
@@ -1049,11 +1142,13 @@ TEST(BreakBeforeTask, WithTrailingComment) {
           endtask
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(CheckerDeclaration, Members) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         checker foo(logic clk, req, ack);
         a1: assert property(p);
@@ -1064,6 +1159,7 @@ TEST(CheckerDeclaration, Members) {
           assert property (p);
         endchecker
     )"));
+    // clang-format on
 }
 
 TEST(ClockingDeclaration, Members) {
@@ -1071,6 +1167,7 @@ TEST(ClockingDeclaration, Members) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         clocking cb@(posedge clk);
@@ -1088,11 +1185,13 @@ TEST(ClockingDeclaration, Members) {
           endclocking
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(CompactTimeUnits, CommentPreventsJoin) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           timeunit 1ns;
@@ -1106,6 +1205,7 @@ TEST(CompactTimeUnits, CommentPreventsJoin) {
           timeprecision 1ps;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(CompactTimeUnits, Disabled) {
@@ -1114,6 +1214,7 @@ TEST(CompactTimeUnits, Disabled) {
     style.AlignConsecutivePackedDimensions = {};
     style.CompactTimeUnits = false;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           timeunit 1ns; timeprecision 1ps;
@@ -1124,6 +1225,7 @@ TEST(CompactTimeUnits, Disabled) {
           timeprecision 1ps;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(CompactTimeUnits, Enabled) {
@@ -1132,6 +1234,7 @@ TEST(CompactTimeUnits, Enabled) {
     style.AlignConsecutivePackedDimensions = {};
     style.CompactTimeUnits = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           timeunit 1ns; timeprecision 1ps;
@@ -1141,6 +1244,7 @@ TEST(CompactTimeUnits, Enabled) {
           timeunit 1ns; timeprecision 1ps;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(CompactTimeUnits, JoinsAcrossBlankLine) {
@@ -1148,6 +1252,7 @@ TEST(CompactTimeUnits, JoinsAcrossBlankLine) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           timeunit 1ns;
@@ -1159,6 +1264,7 @@ TEST(CompactTimeUnits, JoinsAcrossBlankLine) {
           timeunit 1ns; timeprecision 1ps;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(CompactTimeUnits, JoinsSeparateLines) {
@@ -1166,6 +1272,7 @@ TEST(CompactTimeUnits, JoinsSeparateLines) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           timeunit 1ns;
@@ -1176,11 +1283,13 @@ TEST(CompactTimeUnits, JoinsSeparateLines) {
           timeunit 1ns; timeprecision 1ps;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(CompilationUnit, Members) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         endmodule
@@ -1196,11 +1305,13 @@ TEST(CompilationUnit, Members) {
         module bar;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(ConfigDeclaration, Members) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         config foo;
         design work.top;
@@ -1216,11 +1327,13 @@ TEST(ConfigDeclaration, Members) {
           cell dff use work.dff;
         endconfig
     )"));
+    // clang-format on
 }
 
 TEST(FunctionDeclaration, Body) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         package foo;
         function int add(int a, int b);
@@ -1234,11 +1347,13 @@ TEST(FunctionDeclaration, Body) {
           endfunction
         endpackage
     )"));
+    // clang-format on
 }
 
 TEST(PropertyDeclaration, SequenceMatchItem) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           property p;
@@ -1254,12 +1369,14 @@ TEST(PropertyDeclaration, SequenceMatchItem) {
           endproperty
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterAlways, Collapses) {
     auto style = getDefaultStyle();
     style.SpaceAfterAlways = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_ff   @(posedge clk)
@@ -1271,12 +1388,14 @@ TEST(SpaceAfterAlways, Collapses) {
             q <= d;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterAlways, Disabled) {
     auto style = getDefaultStyle();
     style.SpaceAfterAlways = false;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb begin
@@ -1290,12 +1409,14 @@ TEST(SpaceAfterAlways, Disabled) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterAlways, FormatOff) {
     auto style = getDefaultStyle();
     style.SpaceAfterAlways = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           // slang-format off
@@ -1311,12 +1432,14 @@ TEST(SpaceAfterAlways, FormatOff) {
           // slang-format on
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterAlways, Inserts) {
     auto style = getDefaultStyle();
     style.SpaceAfterAlways = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_ff@(posedge clk)
@@ -1328,12 +1451,14 @@ TEST(SpaceAfterAlways, Inserts) {
             q <= d;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterAlways, PreservesNewlines) {
     auto style = getDefaultStyle();
     style.SpaceAfterAlways = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_comb
@@ -1349,12 +1474,14 @@ TEST(SpaceAfterAlways, PreservesNewlines) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterAlways, Removes) {
     auto style = getDefaultStyle();
     style.SpaceAfterAlways = false;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         always_ff @(posedge clk)
@@ -1366,12 +1493,14 @@ TEST(SpaceAfterAlways, Removes) {
             q <= d;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterParensEventControls, Collapses) {
     auto style = getDefaultStyle();
     style.SpaceAfterParens.EventControls = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_ff @(posedge clk)   begin
@@ -1383,11 +1512,13 @@ TEST(SpaceAfterParensEventControls, Collapses) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterParensEventControls, FormatOff) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           // slang-format off
@@ -1403,11 +1534,13 @@ TEST(SpaceAfterParensEventControls, FormatOff) {
           // slang-format on
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterParensEventControls, IgnoresBareImplicitEvent) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always @* x = 1;
@@ -1417,11 +1550,13 @@ TEST(SpaceAfterParensEventControls, IgnoresBareImplicitEvent) {
           always @* x = 1;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterParensEventControls, IgnoresDelay) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial
@@ -1433,11 +1568,13 @@ TEST(SpaceAfterParensEventControls, IgnoresDelay) {
               #(5) x = 1;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterParensEventControls, Inserts) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_ff @(posedge clk)begin
@@ -1449,11 +1586,13 @@ TEST(SpaceAfterParensEventControls, Inserts) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterParensEventControls, InsertsStatement) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -1467,11 +1606,13 @@ TEST(SpaceAfterParensEventControls, InsertsStatement) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterParensEventControls, PreservesNewlines) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_ff @(posedge clk)
@@ -1483,12 +1624,14 @@ TEST(SpaceAfterParensEventControls, PreservesNewlines) {
             x <= 1;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterParensEventControls, Removes) {
     auto style = getDefaultStyle();
     style.SpaceAfterParens.EventControls = false;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_ff @(posedge clk) begin
@@ -1500,12 +1643,14 @@ TEST(SpaceAfterParensEventControls, Removes) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SpaceAfterParensEventControls, RemovesImplicitEvent) {
     auto style = getDefaultStyle();
     style.SpaceAfterParens.EventControls = false;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always @(*) x = 1;
@@ -1515,6 +1660,7 @@ TEST(SpaceAfterParensEventControls, RemovesImplicitEvent) {
           always @(*)x = 1;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(UdpDeclaration, Combinational) {
@@ -1522,6 +1668,7 @@ TEST(UdpDeclaration, Combinational) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         primitive foo(out, a, b, sel);
         output out;
@@ -1545,6 +1692,7 @@ TEST(UdpDeclaration, Combinational) {
           endtable
         endprimitive
     )"));
+    // clang-format on
 }
 
 TEST(UdpDeclaration, Sequential) {
@@ -1552,6 +1700,7 @@ TEST(UdpDeclaration, Sequential) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         primitive foo(q, clk, d);
         output q;
@@ -1577,5 +1726,5 @@ TEST(UdpDeclaration, Sequential) {
           endtable
         endprimitive
     )"));
+    // clang-format on
 }
-// clang-format on

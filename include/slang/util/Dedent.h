@@ -1,6 +1,9 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
+//! @file Dedent.h
+//! @brief Text dedenting utility functions.
+
 #pragma once
 
 #include <algorithm>
@@ -11,15 +14,14 @@
 
 namespace slang {
 
-/// Strips a leading newline and the common leading whitespace prefix from
-/// non-empty lines. Allows raw string literals to be indented at call level.
+/// Strips a leading newline and the common leading whitespace prefix from non-empty lines. Allows
+/// raw string literals to be indented at call level.
 inline std::string dedent(std::string_view s) {
     if (!s.empty() && s.front() == '\n') {
         s.remove_prefix(1);
     }
 
-    // Split on newlines, preserving empty segments produced by consecutive or
-    // trailing newlines.
+    // Split on newlines, preserving empty segments produced by consecutive or trailing newlines.
     std::vector<std::string_view> lines;
     while (true) {
         auto pos = s.find('\n');

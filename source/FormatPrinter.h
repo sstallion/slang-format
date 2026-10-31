@@ -33,7 +33,7 @@ public:
 
     explicit FormatPrinter(const Style& style) : style(style) {}
 
-    /// Formats \p tree and returns the output and line metadata.
+    /// Formats @p tree and returns the output and line metadata.
     Result print(const slang::syntax::SyntaxTree& tree);
 
     /// Emits a token reached through the default visitor traversal.
@@ -201,7 +201,7 @@ private:
     /// Finalizes the current line's metadata and advances to a new line.
     void finalizeLine();
 
-    /// Forces a statement break before \p tok when OneStatementPerLine is enabled.
+    /// Forces a statement break before @p tok when OneStatementPerLine is enabled.
     void forceStatementBreak(slang::parsing::Token tok);
 
     /// Returns true if a break should be inserted before a conditional body that is not a block
@@ -218,7 +218,7 @@ private:
     /// Strips trailing spaces from output and emits a newline.
     void forceNewline();
 
-    /// Inserts a blank line before \p firstToken unless one already exists.
+    /// Inserts a blank line before @p firstToken unless one already exists.
     void insertBlankLineBefore(slang::parsing::Token firstToken);
 
     /// Returns true if a blank line should be suppressed.
@@ -239,7 +239,7 @@ private:
     /// Returns true if operators should be padded with spaces.
     [[nodiscard]] bool shouldSpaceAroundOperator() const;
 
-    /// Returns true if trailing spaces should be stripped before \p kind.
+    /// Returns true if trailing spaces should be stripped before @p kind.
     [[nodiscard]] static bool needsStripBefore(slang::parsing::TokenKind kind);
 
     /// Normalizes whitespace before an opening bracket.
@@ -259,23 +259,23 @@ private:
     /// output is at the start of a line.
     void ensureSingleSpace();
 
-    /// Rewrites the whitespace before \p next to one space when \p wantSpace is true and to none
-    /// otherwise, optionally suppressing the automatic separator for \p next.
+    /// Rewrites the whitespace before @p next to one space when @p wantSpace is true and to none
+    /// otherwise, optionally suppressing the automatic separator for @p next.
     void normalizeSpaceBefore(slang::parsing::Token next, bool wantSpace,
                               bool suppressNextSeparator = false);
 
-    /// Forces a line break before \p closeTok unless formatting is disabled, the output is already
-    /// at the start of a line, or \p closeTok begins a new line in the source.
+    /// Forces a line break before @p closeTok unless formatting is disabled, the output is already
+    /// at the start of a line, or @p closeTok begins a new line in the source.
     void breakBeforeClose(slang::parsing::Token closeTok);
 
-    /// Emits the range operator \p op with spacing determined by RangeSpacing, where \p rightFirst
+    /// Emits the range operator @p op with spacing determined by RangeSpacing, where @p rightFirst
     /// is the first token of the right operand.
     void emitRangeOperator(slang::parsing::Token op, slang::parsing::Token rightFirst); // NOLINT
 
-    /// Emits standalone trivia of \p closeParen using port item indentation.
+    /// Emits standalone trivia of @p closeParen using port item indentation.
     void emitPortListEndTrivia(slang::parsing::Token closeParen);
 
-    /// Emits \p closeParen as a port list boundary line.
+    /// Emits @p closeParen as a port list boundary line.
     void emitPortListClose(slang::parsing::Token closeParen);
 
     /// Returns the indentation width for the current line.
@@ -302,10 +302,10 @@ private:
     /// Updates the after-token flags based on the just-emitted token.
     void updateAfterTokenFlags(slang::parsing::Token tok);
 
-    /// Returns true if \p node is inside a conditional predicate.
+    /// Returns true if @p node is inside a conditional predicate.
     static bool isInsideControlCondition(const slang::syntax::SyntaxNode& node);
 
-    /// Emits the leading trailing comment of \p tok, returning the number of trivia elements
+    /// Emits the leading trailing comment of @p tok, returning the number of trivia elements
     /// consumed.
     size_t emitLeadingTrailingComment(slang::parsing::Token tok);
 
@@ -363,7 +363,7 @@ private:
     /// Visits an argument list with optional wrapping.
     void visitArgumentList(const slang::syntax::ArgumentListSyntax& argList);
 
-    /// Returns true if a line break should be inserted before \p arg.
+    /// Returns true if a line break should be inserted before @p arg.
     [[nodiscard]] bool shouldBreakBeforeArg(const slang::syntax::ArgumentSyntax& arg,
                                             bool isLast) const;
 

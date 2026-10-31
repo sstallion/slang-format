@@ -3,7 +3,9 @@
 
 include(FixtureTest)
 
-fixture_run(output --list-ignored ${FIXTURES_DIR}/ignored.sv ${FIXTURES_DIR}/not_ignored.sv)
+fixture_run(output --list-ignored
+            ${FIXTURE_SOURCE_DIR}/ignored.sv
+            ${FIXTURE_SOURCE_DIR}/not_ignored.sv)
 
 string(FIND "${output}" "ignored.sv" pos)
 if(pos EQUAL -1)

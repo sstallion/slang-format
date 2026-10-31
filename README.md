@@ -13,20 +13,20 @@ systems are supported, including Linux, macOS, and Windows.
 
 > [!IMPORTANT]
 > CMake 3.31 is required to build this repository; minimum supported compilers
-> are GCC 11, Clang 14, and Visual Studio 2019.
+> are GCC 11, Clang 14, and Visual Studio 2022.
 
 Building release binaries differs slightly between platforms when using the
 default CMake generator.
 
 On Linux and macOS, issue:
 
-```shell
+```
 cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
 ```
 
 On Windows, issue:
 
-```shell
+```
 cmake -B build && cmake --build build --config Release
 ```
 
@@ -47,8 +47,8 @@ Source code in this repository is licensed under the MIT License. See
 
 [1]: https://github.com/sstallion/slang-format/actions/workflows/ci.yml
 [2]: https://github.com/sstallion/slang-format/releases/latest
-[3]: https://github.com/sstallion/slang-format/blob/main/LICENSE
+[3]: https://github.com/sstallion/slang-format?tab=MIT-1-ov-file
 [4]: https://sv-lang.com/
 [5]: https://clang.llvm.org/docs/ClangFormat.html
-[6]: https://github.com/sstallion/slang-format/blob/main/docs/usage.md
+[6]: https://slang-format.io/usage.html
 [7]: https://github.com/sstallion/slang-format/blob/main/CONTRIBUTING.md

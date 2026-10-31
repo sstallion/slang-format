@@ -9,14 +9,13 @@
 #include <gtest/gtest.h>
 
 using namespace slang::format;
-using namespace slang::format::style;
 using slang::dedent;
 
-// clang-format off
 TEST(AllowShortConstraintBlocksOnASingleLine, Disabled) {
     auto style = getDefaultStyle();
     style.AllowShortConstraintBlocksOnASingleLine = false;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
         constraint c {kind inside {[0:7]};}
@@ -28,12 +27,14 @@ TEST(AllowShortConstraintBlocksOnASingleLine, Disabled) {
           }
         endclass
     )"));
+    // clang-format on
 }
 
 TEST(AllowShortConstraintBlocksOnASingleLine, ExpandsMultipleItems) {
     auto style = getDefaultStyle();
     style.AllowShortConstraintBlocksOnASingleLine = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
         constraint c {len inside {[1:16]}; data.size() == len;}
@@ -46,12 +47,14 @@ TEST(AllowShortConstraintBlocksOnASingleLine, ExpandsMultipleItems) {
           }
         endclass
     )"));
+    // clang-format on
 }
 
 TEST(AllowShortConstraintBlocksOnASingleLine, JoinsSingleItem) {
     auto style = getDefaultStyle();
     style.AllowShortConstraintBlocksOnASingleLine = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
         constraint c {
@@ -63,12 +66,14 @@ TEST(AllowShortConstraintBlocksOnASingleLine, JoinsSingleItem) {
           constraint c {kind inside {[0:7]};}
         endclass
     )"));
+    // clang-format on
 }
 
 TEST(AllowShortConstraintBlocksOnASingleLine, RandomizeWithMultipleItems) {
     auto style = getDefaultStyle();
     style.AllowShortConstraintBlocksOnASingleLine = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         initial begin
@@ -92,12 +97,14 @@ TEST(AllowShortConstraintBlocksOnASingleLine, RandomizeWithMultipleItems) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AllowShortConstraintBlocksOnASingleLine, RandomizeWithSingleItem) {
     auto style = getDefaultStyle();
     style.AllowShortConstraintBlocksOnASingleLine = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         initial begin
@@ -113,12 +120,14 @@ TEST(AllowShortConstraintBlocksOnASingleLine, RandomizeWithSingleItem) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AllowShortCoverpointsOnASingleLine, Disabled) {
     auto style = getDefaultStyle();
     style.AllowShortCoverpointsOnASingleLine = false;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
         covergroup cg;
@@ -134,11 +143,13 @@ TEST(AllowShortCoverpointsOnASingleLine, Disabled) {
           endgroup
         endclass
     )"));
+    // clang-format on
 }
 
 TEST(AllowShortCoverpointsOnASingleLine, ExpandsWhenExceedingColumnLimit) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
         covergroup cg;
@@ -160,12 +171,14 @@ TEST(AllowShortCoverpointsOnASingleLine, ExpandsWhenExceedingColumnLimit) {
           endgroup
         endclass
     )"));
+    // clang-format on
 }
 
 TEST(AllowShortCoverpointsOnASingleLine, JoinsCoverCross) {
     auto style = getDefaultStyle();
     style.AllowShortCoverpointsOnASingleLine = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
           covergroup cg;
@@ -181,11 +194,13 @@ TEST(AllowShortCoverpointsOnASingleLine, JoinsCoverCross) {
           endgroup
         endclass
     )"));
+    // clang-format on
 }
 
 TEST(AllowShortCoverpointsOnASingleLine, JoinsWhenFits) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
         covergroup cg;
@@ -203,11 +218,13 @@ TEST(AllowShortCoverpointsOnASingleLine, JoinsWhenFits) {
           endgroup
         endclass
     )"));
+    // clang-format on
 }
 
 TEST(ClassDeclaration, Members) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
         int x;
@@ -217,11 +234,13 @@ TEST(ClassDeclaration, Members) {
           int x;
         endclass
     )"));
+    // clang-format on
 }
 
 TEST(CovergroupDeclaration, Members) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         class foo;
         covergroup cg;
@@ -235,11 +254,13 @@ TEST(CovergroupDeclaration, Members) {
           endgroup
         endclass
     )"));
+    // clang-format on
 }
 
 TEST(DistConstraintList, ExpandsItems) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         initial begin
@@ -261,5 +282,5 @@ TEST(DistConstraintList, ExpandsItems) {
           end
         endmodule
     )"));
+    // clang-format on
 }
-// clang-format on

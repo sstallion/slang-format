@@ -1,17 +1,19 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
+//! @file Default.h
+//! @brief Default formatting style.
+
 #pragma once
 
 #include "slang/format/Style.h"
 
-namespace slang::format::style {
+namespace slang::format {
 
-/// Returns the Default style, which is used when no configuration file is found and as the base
-/// for configuration files that do not specify BasedOnStyle.
+/// Returns the default style.
 inline Style getDefaultStyle() {
     return {
-        .AlignAfterOpenParen = BracketAlignmentStyle::Align,
+        .AlignAfterOpenParen = ParenAlignmentStyle::Align,
         .AlignConsecutiveAssignments = {.Enabled = true,
                                         .AcrossComments = false,
                                         .AcrossEmptyLines = false,
@@ -128,4 +130,4 @@ inline Style getDefaultStyle() {
     };
 }
 
-} // namespace slang::format::style
+} // namespace slang::format

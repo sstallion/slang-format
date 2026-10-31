@@ -15,8 +15,7 @@
 
 namespace slang::format {
 
-/// Returns true if \p info ends the current dimension alignment group under \p alignStyle and \p
-/// config.
+/// Returns true if @p info ends the current dimension group under @p alignStyle and @p config.
 bool shouldBreakDimGroup(const LineInfo& info, const AlignState& state,
                          const AlignConsecutiveStyle& alignStyle, const GroupBreakConfig& config);
 
