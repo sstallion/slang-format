@@ -1,0 +1,29 @@
+/**
+ * @dir include/slang
+ * @brief Root of the @ref slang library.
+ */
+
+/**
+ * @dir include/slang/format
+ * @brief Root of the @ref slang::format "format" library.
+ */
+
+/**
+ * @dir include/slang/format/styles
+ * @brief Predefined formatting styles.
+ */
+
+/**
+ * @dir include/slang/util
+ * @brief Various generic utility types.
+ */
+
+/**
+ * @namespace slang
+ * @brief Root namespace.
+ */
+
+/**
+ * @namespace slang::format
+ * @brief SystemVerilog code formatting.
+ */

@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "cmakeMinimumRequired": {
     "major": 3,
     "minor": 31,
@@ -33,6 +33,15 @@
       "name": "MSVC",
       "inherits": "default",
       "generator": "Visual Studio 18 2026"
+    },
+    {
+      "name": "Documentation",
+      "inherits": "GNU",
+      "cacheVariables": {
+        "BUILD_TESTING": false,
+        "BUILD_TOOLS": false,
+        "BUILD_DOCS": true
+      }
     }
   ],
   "buildPresets": [
@@ -65,6 +74,11 @@
       "name": "Release-MSVC",
       "configurePreset": "MSVC",
       "configuration": "Release"
+    },
+    {
+      "name": "Documentation",
+      "configurePreset": "Documentation",
+      "targets": "docs"
     }
   ],
   "testPresets": [
@@ -246,6 +260,19 @@
         {
           "type": "package",
           "name": "Release-MSVC"
+        }
+      ]
+    },
+    {
+      "name": "Documentation",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "Documentation"
+        },
+        {
+          "type": "build",
+          "name": "Documentation"
         }
       ]
     }

@@ -9,16 +9,15 @@
 #include <gtest/gtest.h>
 
 using namespace slang::format;
-using namespace slang::format::style;
 using slang::dedent;
 
-// clang-format off
 TEST(AlignTrailingComments, AcrossComments) {
     auto style = getDefaultStyle();
     style.AlignTrailingComments = {};
     style.AlignTrailingComments.Enabled = true;
     style.AlignTrailingComments.AcrossComments = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1; // first
@@ -34,6 +33,7 @@ TEST(AlignTrailingComments, AcrossComments) {
           assign a = 3;         // third
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignTrailingComments, AcrossEmptyLines) {
@@ -42,6 +42,7 @@ TEST(AlignTrailingComments, AcrossEmptyLines) {
     style.AlignTrailingComments.Enabled = true;
     style.AlignTrailingComments.AcrossEmptyLines = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1; // first
@@ -57,6 +58,7 @@ TEST(AlignTrailingComments, AcrossEmptyLines) {
           assign a = 3;         // third
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignTrailingComments, AcrossParameterPortList) {
@@ -94,6 +96,7 @@ TEST(AlignTrailingComments, Aligns) {
     style.AlignTrailingComments = {};
     style.AlignTrailingComments.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1; // first
@@ -107,6 +110,7 @@ TEST(AlignTrailingComments, Aligns) {
           assign longname = 2;  // second
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignTrailingComments, CommentBreaksGroup) {
@@ -115,6 +119,7 @@ TEST(AlignTrailingComments, CommentBreaksGroup) {
     style.AlignTrailingComments = {};
     style.AlignTrailingComments.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1; // first
@@ -134,11 +139,13 @@ TEST(AlignTrailingComments, CommentBreaksGroup) {
           assign bc = 4;  // fourth
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignTrailingComments, Disabled) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1; // first
@@ -152,6 +159,7 @@ TEST(AlignTrailingComments, Disabled) {
           assign longname = 2;  // second
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignTrailingComments, EmptyLineBreaksGroup) {
@@ -160,6 +168,7 @@ TEST(AlignTrailingComments, EmptyLineBreaksGroup) {
     style.AlignTrailingComments = {};
     style.AlignTrailingComments.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1; // first
@@ -179,6 +188,7 @@ TEST(AlignTrailingComments, EmptyLineBreaksGroup) {
           assign bc = 4;  // fourth
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignTrailingComments, FormatOff) {
@@ -186,6 +196,7 @@ TEST(AlignTrailingComments, FormatOff) {
     style.AlignTrailingComments = {};
     style.AlignTrailingComments.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           // slang-format off
@@ -203,6 +214,7 @@ TEST(AlignTrailingComments, FormatOff) {
           // slang-format on
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignTrailingComments, LineWithoutCommentBreaksGroup) {
@@ -210,6 +222,7 @@ TEST(AlignTrailingComments, LineWithoutCommentBreaksGroup) {
     style.AlignTrailingComments = {};
     style.AlignTrailingComments.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1; // first
@@ -225,6 +238,7 @@ TEST(AlignTrailingComments, LineWithoutCommentBreaksGroup) {
           assign a = 3;  // third
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignTrailingComments, MixedLineAndBlockComments) {
@@ -232,6 +246,7 @@ TEST(AlignTrailingComments, MixedLineAndBlockComments) {
     style.AlignTrailingComments = {};
     style.AlignTrailingComments.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1; // line comment
@@ -245,6 +260,7 @@ TEST(AlignTrailingComments, MixedLineAndBlockComments) {
           assign longname = 2;  /* block comment */
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignTrailingComments, SingleLine) {
@@ -252,6 +268,7 @@ TEST(AlignTrailingComments, SingleLine) {
     style.AlignTrailingComments = {};
     style.AlignTrailingComments.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1; // only one
@@ -263,6 +280,7 @@ TEST(AlignTrailingComments, SingleLine) {
           assign x = 1;  // only one
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignTrailingComments, WithAssignmentAlignment) {
@@ -274,6 +292,7 @@ TEST(AlignTrailingComments, WithAssignmentAlignment) {
     style.AlignTrailingComments = {};
     style.AlignTrailingComments.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1; // first
@@ -287,5 +306,5 @@ TEST(AlignTrailingComments, WithAssignmentAlignment) {
           assign longname = 2;  // second
         endmodule
     )"));
+    // clang-format on
 }
-// clang-format on

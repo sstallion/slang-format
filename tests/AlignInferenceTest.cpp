@@ -9,15 +9,14 @@
 #include <gtest/gtest.h>
 
 using namespace slang::format;
-using namespace slang::format::style;
 using slang::dedent;
 
-// clang-format off
 TEST(InferFromSource, Disabled) {
     auto style = getDefaultStyle();
     style.AlignConsecutiveAssignments = {};
     style.AlignConsecutiveAssignments.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1;
@@ -29,6 +28,7 @@ TEST(InferFromSource, Disabled) {
           assign longname = 2;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(InferFromSource, FlushLeftSource) {
@@ -38,6 +38,7 @@ TEST(InferFromSource, FlushLeftSource) {
     style.AlignConsecutiveAssignments.InferFromSource = true;
     style.AlignConsecutiveAssignments.MaxPadding = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1;
@@ -49,6 +50,7 @@ TEST(InferFromSource, FlushLeftSource) {
           assign longname = 2;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(InferFromSource, LargeExcessAligns) {
@@ -58,6 +60,7 @@ TEST(InferFromSource, LargeExcessAligns) {
     style.AlignConsecutiveAssignments.InferFromSource = true;
     style.AlignConsecutiveAssignments.MaxPadding = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x          = 1;
@@ -69,6 +72,7 @@ TEST(InferFromSource, LargeExcessAligns) {
           assign longname = 2;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(InferFromSource, SmallDisplacementAligns) {
@@ -78,6 +82,7 @@ TEST(InferFromSource, SmallDisplacementAligns) {
     style.AlignConsecutiveAssignments.InferFromSource = true;
     style.AlignConsecutiveAssignments.MaxPadding = 4;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign a = 1;
@@ -89,6 +94,7 @@ TEST(InferFromSource, SmallDisplacementAligns) {
           assign bb = 2;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(MaxPadding, Exceeded) {
@@ -97,6 +103,7 @@ TEST(MaxPadding, Exceeded) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveAssignments.MaxPadding = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign x = 1;
@@ -108,6 +115,7 @@ TEST(MaxPadding, Exceeded) {
           assign longname = 2;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(MaxPadding, MixedDepths) {
@@ -116,6 +124,7 @@ TEST(MaxPadding, MixedDepths) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveAssignments.MaxPadding = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_comb begin
@@ -139,6 +148,7 @@ TEST(MaxPadding, MixedDepths) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(MaxPadding, WithinLimit) {
@@ -149,6 +159,7 @@ TEST(MaxPadding, WithinLimit) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
             parameter CLKS_PER_BIT = 4,
@@ -166,6 +177,7 @@ TEST(MaxPadding, WithinLimit) {
         );
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(MinPadding, BypassesInference) {
@@ -176,6 +188,7 @@ TEST(MinPadding, BypassesInference) {
     style.AlignConsecutiveAssignments.MaxPadding = 2;
     style.AlignConsecutiveAssignments.MinPadding = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign state_d = state_q;
@@ -187,6 +200,7 @@ TEST(MinPadding, BypassesInference) {
           assign rdy_o   = 1'b0;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(MinPadding, ExceedsThreshold) {
@@ -197,6 +211,7 @@ TEST(MinPadding, ExceedsThreshold) {
     style.AlignConsecutiveAssignments.MaxPadding = 4;
     style.AlignConsecutiveAssignments.MinPadding = 1;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign a = 1;
@@ -208,6 +223,7 @@ TEST(MinPadding, ExceedsThreshold) {
           assign bbb = 2;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(MinPadding, InterveningStatementsBreakSubRun) {
@@ -218,6 +234,7 @@ TEST(MinPadding, InterveningStatementsBreakSubRun) {
     style.AlignConsecutiveAssignments.MaxPadding = 2;
     style.AlignConsecutiveAssignments.MinPadding = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           task automatic drive(input logic [7:0] a);
@@ -241,6 +258,7 @@ TEST(MinPadding, InterveningStatementsBreakSubRun) {
           endtask
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(MinPadding, PortConnections) {
@@ -251,6 +269,7 @@ TEST(MinPadding, PortConnections) {
     style.AlignConsecutivePortConnections.MaxPadding = 2;
     style.AlignConsecutivePortConnections.MinPadding = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           bar u_bar (
@@ -266,6 +285,7 @@ TEST(MinPadding, PortConnections) {
           );
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(MinPadding, Zero) {
@@ -275,6 +295,7 @@ TEST(MinPadding, Zero) {
     style.AlignConsecutiveAssignments.InferFromSource = true;
     style.AlignConsecutiveAssignments.MaxPadding = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           assign state_d = state_q;
@@ -286,5 +307,5 @@ TEST(MinPadding, Zero) {
           assign rdy_o = 1'b0;
         endmodule
     )"));
+    // clang-format on
 }
-// clang-format on

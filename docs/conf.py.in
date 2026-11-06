@@ -1,0 +1,43 @@
+DOXYFILE = 'Doxyfile'
+
+HTML_HEADER = '''
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=swap" /></noscript>
+<meta name="description" content="Documentation for the @PROJECT_NAME@ @PROJECT_DESCRIPTION@ library">
+'''
+
+LINKS_NAVBAR1 = [
+    (None, 'user-manual', [
+        (None, 'usage'),
+        (None, 'style-options'),
+        (None, 'compatibility'),
+        ('<a href="@PROJECT_HOMEPAGE_URL@/blob/main/CHANGELOG.md">Changelog</a>', ),
+    ]),
+    (None, 'developer-guide', [
+        (None, 'building'),
+        (None, 'architecture'),
+        ('<a href="@PROJECT_HOMEPAGE_URL@/blob/main/CONTRIBUTING.md">Contributing</a>', ),
+        ('<a href="@PROJECT_HOMEPAGE_URL@/blob/main/LICENSE">License</a>', ),
+    ]),
+]
+
+LINKS_NAVBAR2 = [
+    (None, 'api-reference', [
+        (None, 'namespaces'),
+        (None, 'annotated'),
+        (None, 'files'),
+    ]),
+    ('<a href="@PROJECT_HOMEPAGE_URL@">GitHub</a>', []),
+]
+
+FINE_PRINT = '''
+<p>@PROJECT_NAME@ version @PROJECT_VERSION@ @PROJECT_DESCRIPTION@. @PROJECT_COPYRIGHT@.<br>
+Code is <a href="@PROJECT_HOMEPAGE_URL@">available on GitHub</a> under the @PROJECT_SPDX_LICENSE@ license.</p>
+'''
+
+SEARCH_BASE_URL = '@PROJECT_DOCS_URL@'
+SEARCH_EXTERNAL_URL = 'https://google.com/search?q=site:@PROJECT_DOCS_SITE@+{query}'
+
+VERSION_LABELS = True

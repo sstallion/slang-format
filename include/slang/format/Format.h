@@ -1,6 +1,9 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
+//! @file Format.h
+//! @brief Interface for SystemVerilog code formatting.
+
 #pragma once
 
 #include "slang/format/Export.h"
@@ -12,10 +15,10 @@
 
 namespace slang::format {
 
-/// Reformats \p text according to \p style.
+/// Reformats @p text according to @p style.
 SLANG_FORMAT_EXPORT std::string reformat(std::string_view text, const Style& style);
 
-/// Reformats the contents of \p stream according to \p style.
+/// Reformats the contents of @p stream according to @p style.
 SLANG_FORMAT_EXPORT std::string reformat(std::istream& stream, const Style& style);
 
 } // namespace slang::format

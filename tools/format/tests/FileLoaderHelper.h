@@ -11,8 +11,7 @@
 #include <string>
 #include <utility>
 
-/// Returns a FileLoader that serves the given path-to-contents map and reports every other path as
-/// missing.
+/// Returns a FileLoader that provides the given path map and reports every other path as missing.
 inline slang::format::FileLoader makeFileLoader(
     std::map<std::filesystem::path, std::string> files) {
     return

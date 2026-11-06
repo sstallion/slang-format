@@ -251,7 +251,7 @@ void FormatPrinter::visitArgumentList(const ArgumentListSyntax& argList) {
         return;
     }
 
-    if (mode == BracketAlignmentStyle::DontAlign || !formatEnabled || style.ColumnLimit == 0) {
+    if (mode == ParenAlignmentStyle::DontAlign || !formatEnabled || style.ColumnLimit == 0) {
         visitDefault(params);
         parenAlignColumn = savedAlignColumn;
         emitToken(argList.closeParen);
@@ -266,7 +266,7 @@ void FormatPrinter::visitArgumentList(const ArgumentListSyntax& argList) {
         visitDefault(params);
     }
     else {
-        if (mode == BracketAlignmentStyle::Align) {
+        if (mode == ParenAlignmentStyle::Align) {
             parenAlignColumn = static_cast<unsigned>(output.size() - lineStart);
         }
         else {
@@ -276,7 +276,7 @@ void FormatPrinter::visitArgumentList(const ArgumentListSyntax& argList) {
         emitWrappedArgs(params);
     }
 
-    if (mode == BracketAlignmentStyle::BlockIndent && !fitsOneLine) {
+    if (mode == ParenAlignmentStyle::BlockIndent && !fitsOneLine) {
         forceNewline();
         nextIsPrimary = true;
         spaceBeforeCloseParenPending = false;

@@ -16,7 +16,6 @@
 #include <yaml-cpp/yaml.h>
 
 using namespace slang::format;
-using namespace slang::format::style;
 using slang::dedent;
 
 TEST(DumpConfig, DefaultStyle) {
@@ -135,7 +134,7 @@ TEST(DumpConfig, DefaultStyle) {
 
 TEST(DumpConfig, RoundTrip) {
     auto original = getDefaultStyle();
-    original.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
+    original.AlignAfterOpenParen = ParenAlignmentStyle::BlockIndent;
     original.AlignConsecutiveDeclarations.AcrossEmptyLines = true;
     original.AlignConsecutiveDeclarations.Enabled = true;
     original.AlignConsecutivePackedDimensions.AlignColon = true;
@@ -279,16 +278,16 @@ TEST(ParseConfig, AlignAfterOpenParen) {
     auto style = getDefaultStyle();
 
     parseConfig(YAML::Load("AlignAfterOpenParen: Align"), style);
-    EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::Align);
+    EXPECT_EQ(style.AlignAfterOpenParen, ParenAlignmentStyle::Align);
 
     parseConfig(YAML::Load("AlignAfterOpenParen: AlwaysBreak"), style);
-    EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::AlwaysBreak);
+    EXPECT_EQ(style.AlignAfterOpenParen, ParenAlignmentStyle::AlwaysBreak);
 
     parseConfig(YAML::Load("AlignAfterOpenParen: BlockIndent"), style);
-    EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::BlockIndent);
+    EXPECT_EQ(style.AlignAfterOpenParen, ParenAlignmentStyle::BlockIndent);
 
     parseConfig(YAML::Load("AlignAfterOpenParen: DontAlign"), style);
-    EXPECT_EQ(style.AlignAfterOpenParen, BracketAlignmentStyle::DontAlign);
+    EXPECT_EQ(style.AlignAfterOpenParen, ParenAlignmentStyle::DontAlign);
 }
 
 TEST(ParseConfig, AlignConsecutiveAssignments) {

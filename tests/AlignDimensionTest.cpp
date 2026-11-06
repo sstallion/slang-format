@@ -9,10 +9,8 @@
 #include <gtest/gtest.h>
 
 using namespace slang::format;
-using namespace slang::format::style;
 using slang::dedent;
 
-// clang-format off
 TEST(AlignConsecutivePackedDimensions, AcrossComments) {
     auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
@@ -20,6 +18,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossComments) {
     style.AlignConsecutivePackedDimensions.Enabled = true;
     style.AlignConsecutivePackedDimensions.AcrossComments = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           bit [7:0] a;
@@ -33,6 +32,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossComments) {
           logic [15:0] b;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, AcrossEmptyLines) {
@@ -42,6 +42,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossEmptyLines) {
     style.AlignConsecutivePackedDimensions.Enabled = true;
     style.AlignConsecutivePackedDimensions.AcrossEmptyLines = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           bit [7:0] a;
@@ -55,6 +56,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossEmptyLines) {
           logic [15:0] b;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, AcrossParameterPortList) {
@@ -66,6 +68,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossParameterPortList) {
     style.AlignConsecutivePackedDimensions.AcrossParameterPortList = true;
     style.ParameterPortListIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
           parameter bit [7:0] M = 8,
@@ -85,6 +88,7 @@ TEST(AlignConsecutivePackedDimensions, AcrossParameterPortList) {
         );
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, AlignColon) {
@@ -94,6 +98,7 @@ TEST(AlignConsecutivePackedDimensions, AlignColon) {
     style.AlignConsecutivePackedDimensions.Enabled = true;
     style.AlignConsecutivePackedDimensions.AlignColon = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -105,6 +110,7 @@ TEST(AlignConsecutivePackedDimensions, AlignColon) {
           logic [15:12] b;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, AlignColonPadLeft) {
@@ -115,6 +121,7 @@ TEST(AlignConsecutivePackedDimensions, AlignColonPadLeft) {
     style.AlignConsecutivePackedDimensions.AlignColon = true;
     style.AlignConsecutivePackedDimensions.PadLeft = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -126,6 +133,7 @@ TEST(AlignConsecutivePackedDimensions, AlignColonPadLeft) {
           logic [15:12] b;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, AlignColonPadRight) {
@@ -136,6 +144,7 @@ TEST(AlignConsecutivePackedDimensions, AlignColonPadRight) {
     style.AlignConsecutivePackedDimensions.AlignColon = true;
     style.AlignConsecutivePackedDimensions.PadRight = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -147,6 +156,7 @@ TEST(AlignConsecutivePackedDimensions, AlignColonPadRight) {
           logic [15:12] b;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, Aligns) {
@@ -155,6 +165,7 @@ TEST(AlignConsecutivePackedDimensions, Aligns) {
     style.AlignConsecutivePackedDimensions = {};
     style.AlignConsecutivePackedDimensions.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           bit [7:0] a;
@@ -166,6 +177,7 @@ TEST(AlignConsecutivePackedDimensions, Aligns) {
           logic [15:0] b;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, BareTypeNarrowerThanDimensions) {
@@ -174,6 +186,7 @@ TEST(AlignConsecutivePackedDimensions, BareTypeNarrowerThanDimensions) {
     style.AlignConsecutivePackedDimensions = {};
     style.AlignConsecutivePackedDimensions.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           bit b;
@@ -187,6 +200,7 @@ TEST(AlignConsecutivePackedDimensions, BareTypeNarrowerThanDimensions) {
           logic [15:0] c;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, BareTypeWiderThanDimensions) {
@@ -195,6 +209,7 @@ TEST(AlignConsecutivePackedDimensions, BareTypeWiderThanDimensions) {
     style.AlignConsecutivePackedDimensions = {};
     style.AlignConsecutivePackedDimensions.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           integer a;
@@ -208,6 +223,7 @@ TEST(AlignConsecutivePackedDimensions, BareTypeWiderThanDimensions) {
           reg     [3:0] c;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, CommentBreaksGroup) {
@@ -216,6 +232,7 @@ TEST(AlignConsecutivePackedDimensions, CommentBreaksGroup) {
     style.AlignConsecutivePackedDimensions = {};
     style.AlignConsecutivePackedDimensions.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -231,6 +248,7 @@ TEST(AlignConsecutivePackedDimensions, CommentBreaksGroup) {
           logic [31:0] c;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, DirectionKeywords) {
@@ -240,6 +258,7 @@ TEST(AlignConsecutivePackedDimensions, DirectionKeywords) {
     style.AlignConsecutivePackedDimensions.Enabled = true;
     style.ParameterPortListIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo(
           input bit [7:0] a,
@@ -253,6 +272,7 @@ TEST(AlignConsecutivePackedDimensions, DirectionKeywords) {
         );
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, Disabled) {
@@ -260,6 +280,7 @@ TEST(AlignConsecutivePackedDimensions, Disabled) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -273,6 +294,7 @@ TEST(AlignConsecutivePackedDimensions, Disabled) {
           logic [31:0] c;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, EmptyLineBreaksGroup) {
@@ -281,6 +303,7 @@ TEST(AlignConsecutivePackedDimensions, EmptyLineBreaksGroup) {
     style.AlignConsecutivePackedDimensions = {};
     style.AlignConsecutivePackedDimensions.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -296,6 +319,7 @@ TEST(AlignConsecutivePackedDimensions, EmptyLineBreaksGroup) {
           logic [31:0] c;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, FormatOff) {
@@ -304,6 +328,7 @@ TEST(AlignConsecutivePackedDimensions, FormatOff) {
     style.AlignConsecutivePackedDimensions = {};
     style.AlignConsecutivePackedDimensions.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           // slang-format off
@@ -323,6 +348,7 @@ TEST(AlignConsecutivePackedDimensions, FormatOff) {
           logic [31:0] d;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, MultipleDimensions) {
@@ -332,6 +358,7 @@ TEST(AlignConsecutivePackedDimensions, MultipleDimensions) {
     style.AlignConsecutivePackedDimensions.Enabled = true;
     style.AlignConsecutivePackedDimensions.PadLeft = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0][3:0] a;
@@ -343,6 +370,7 @@ TEST(AlignConsecutivePackedDimensions, MultipleDimensions) {
           logic [15:0] [15:0] b;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, PadLeft) {
@@ -352,6 +380,7 @@ TEST(AlignConsecutivePackedDimensions, PadLeft) {
     style.AlignConsecutivePackedDimensions.Enabled = true;
     style.AlignConsecutivePackedDimensions.PadLeft = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -365,6 +394,7 @@ TEST(AlignConsecutivePackedDimensions, PadLeft) {
           logic [127:0] c;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, PadLeftRequiresEnabled) {
@@ -373,6 +403,7 @@ TEST(AlignConsecutivePackedDimensions, PadLeftRequiresEnabled) {
     style.AlignConsecutivePackedDimensions = {};
     style.AlignConsecutivePackedDimensions.PadLeft = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -384,6 +415,7 @@ TEST(AlignConsecutivePackedDimensions, PadLeftRequiresEnabled) {
           logic [15:0] b;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, PadLeftTakesPrecedence) {
@@ -394,6 +426,7 @@ TEST(AlignConsecutivePackedDimensions, PadLeftTakesPrecedence) {
     style.AlignConsecutivePackedDimensions.PadLeft = true;
     style.AlignConsecutivePackedDimensions.PadRight = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -405,6 +438,7 @@ TEST(AlignConsecutivePackedDimensions, PadLeftTakesPrecedence) {
           logic [15:0] b;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, PadLeftWithDeclarationAlignment) {
@@ -415,6 +449,7 @@ TEST(AlignConsecutivePackedDimensions, PadLeftWithDeclarationAlignment) {
     style.AlignConsecutivePackedDimensions.Enabled = true;
     style.AlignConsecutivePackedDimensions.PadLeft = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -426,6 +461,7 @@ TEST(AlignConsecutivePackedDimensions, PadLeftWithDeclarationAlignment) {
           logic [15:0] b;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, PadRight) {
@@ -435,6 +471,7 @@ TEST(AlignConsecutivePackedDimensions, PadRight) {
     style.AlignConsecutivePackedDimensions.Enabled = true;
     style.AlignConsecutivePackedDimensions.PadRight = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -448,6 +485,7 @@ TEST(AlignConsecutivePackedDimensions, PadRight) {
           logic [127:0] c;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, SingleLine) {
@@ -456,6 +494,7 @@ TEST(AlignConsecutivePackedDimensions, SingleLine) {
     style.AlignConsecutivePackedDimensions = {};
     style.AlignConsecutivePackedDimensions.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -465,6 +504,7 @@ TEST(AlignConsecutivePackedDimensions, SingleLine) {
           logic [7:0] a;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, SingleNumberDimensions) {
@@ -474,6 +514,7 @@ TEST(AlignConsecutivePackedDimensions, SingleNumberDimensions) {
     style.AlignConsecutivePackedDimensions.Enabled = true;
     style.AlignConsecutivePackedDimensions.PadLeft = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [8] a;
@@ -485,6 +526,7 @@ TEST(AlignConsecutivePackedDimensions, SingleNumberDimensions) {
           logic [16] b;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, SkipsBareTypes) {
@@ -493,6 +535,7 @@ TEST(AlignConsecutivePackedDimensions, SkipsBareTypes) {
     style.AlignConsecutivePackedDimensions = {};
     style.AlignConsecutivePackedDimensions.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic [7:0] a;
@@ -506,6 +549,7 @@ TEST(AlignConsecutivePackedDimensions, SkipsBareTypes) {
           logic [15:0] c;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePackedDimensions, WithDeclarationAlignment) {
@@ -515,6 +559,7 @@ TEST(AlignConsecutivePackedDimensions, WithDeclarationAlignment) {
     style.AlignConsecutivePackedDimensions = {};
     style.AlignConsecutivePackedDimensions.Enabled = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           bit [7:0] a;
@@ -528,12 +573,14 @@ TEST(AlignConsecutivePackedDimensions, WithDeclarationAlignment) {
           logic        c;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, MatchSourceNormalizesMultiSpaceRange) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::MatchSource;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         logic [7   :   0] x;
@@ -545,12 +592,14 @@ TEST(RangeSpacing, MatchSourceNormalizesMultiSpaceRange) {
           logic [15 : 0] y;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, MatchSourcePreservesPortListAdjacentRange) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::MatchSource;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
             parameter int AW   = 12,
@@ -572,12 +621,14 @@ TEST(RangeSpacing, MatchSourcePreservesPortListAdjacentRange) {
         );
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, MatchSourceRangeExcessActivatesPadding) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::MatchSource;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
             parameter int W = 8
@@ -597,5 +648,5 @@ TEST(RangeSpacing, MatchSourceRangeExcessActivatesPadding) {
         );
         endmodule
     )"));
+    // clang-format on
 }
-// clang-format on

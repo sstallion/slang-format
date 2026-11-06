@@ -9,15 +9,14 @@
 #include <gtest/gtest.h>
 
 using namespace slang::format;
-using namespace slang::format::style;
 using slang::dedent;
 
-// clang-format off
 TEST(AlignAfterOpenParen, AlignBinPacked) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -32,13 +31,15 @@ TEST(AlignAfterOpenParen, AlignBinPacked) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, AlignEmptyArguments) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -52,12 +53,14 @@ TEST(AlignAfterOpenParen, AlignEmptyArguments) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, AlignExistingBreaks) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -73,13 +76,15 @@ TEST(AlignAfterOpenParen, AlignExistingBreaks) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, AlignFits) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -93,13 +98,15 @@ TEST(AlignAfterOpenParen, AlignFits) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, AlignLastArgumentOverflows) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -114,13 +121,15 @@ TEST(AlignAfterOpenParen, AlignLastArgumentOverflows) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, AlignMethodCall) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -135,13 +144,15 @@ TEST(AlignAfterOpenParen, AlignMethodCall) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, AlignNestedCalls) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
     style.ColumnLimit = 50; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -156,13 +167,15 @@ TEST(AlignAfterOpenParen, AlignNestedCalls) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, AlignSingleArgument) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -176,13 +189,15 @@ TEST(AlignAfterOpenParen, AlignSingleArgument) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, AlignSystemTask) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -197,13 +212,15 @@ TEST(AlignAfterOpenParen, AlignSystemTask) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, AlwaysBreakBinPacked) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::AlwaysBreak;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -219,13 +236,15 @@ TEST(AlignAfterOpenParen, AlwaysBreakBinPacked) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, AlwaysBreakFits) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::AlwaysBreak;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -239,13 +258,15 @@ TEST(AlignAfterOpenParen, AlwaysBreakFits) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, BlockIndentBinPacked) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::BlockIndent;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -262,13 +283,15 @@ TEST(AlignAfterOpenParen, BlockIndentBinPacked) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, BlockIndentFits) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::BlockIndent;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -282,13 +305,15 @@ TEST(AlignAfterOpenParen, BlockIndentFits) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, DontAlign) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::DontAlign;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::DontAlign;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -302,13 +327,15 @@ TEST(AlignAfterOpenParen, DontAlign) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, ElabSystemTask) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           $fatal(1, "some very long error message here");
@@ -319,13 +346,15 @@ TEST(AlignAfterOpenParen, ElabSystemTask) {
                  "some very long error message here");
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, NewClassExpression) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -340,13 +369,15 @@ TEST(AlignAfterOpenParen, NewClassExpression) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignAfterOpenParen, NoColumnLimit) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::Align;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::Align;
     style.ColumnLimit = 0;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -360,6 +391,7 @@ TEST(AlignAfterOpenParen, NoColumnLimit) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AttributeInstance, NormalizesSpacing) {
@@ -367,6 +399,7 @@ TEST(AttributeInstance, NormalizesSpacing) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           (*keep = "true", dont_touch*)
@@ -378,6 +411,7 @@ TEST(AttributeInstance, NormalizesSpacing) {
           logic [7:0] attr_sig;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BinPackArguments, Disabled) {
@@ -385,6 +419,7 @@ TEST(BinPackArguments, Disabled) {
     style.BinPackArguments = false;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -401,14 +436,16 @@ TEST(BinPackArguments, Disabled) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BinPackArguments, DisabledAlwaysBreak) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::AlwaysBreak;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::AlwaysBreak;
     style.BinPackArguments = false;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -426,14 +463,16 @@ TEST(BinPackArguments, DisabledAlwaysBreak) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(BinPackArguments, DisabledBlockIndent) {
     auto style = getDefaultStyle();
-    style.AlignAfterOpenParen = BracketAlignmentStyle::BlockIndent;
+    style.AlignAfterOpenParen = ParenAlignmentStyle::BlockIndent;
     style.BinPackArguments = false;
     style.ColumnLimit = 40; // NOLINT
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -452,11 +491,13 @@ TEST(BinPackArguments, DisabledBlockIndent) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(DelayedSequenceElement, BeforeParenthesizedExpression) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         property p;
@@ -470,11 +511,13 @@ TEST(DelayedSequenceElement, BeforeParenthesizedExpression) {
           endproperty
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(DelayedSequenceElement, BracketRange) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         property p;
@@ -488,12 +531,14 @@ TEST(DelayedSequenceElement, BracketRange) {
           endproperty
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, AlwaysBitSelect) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         assign y = x[7:0];
@@ -503,12 +548,14 @@ TEST(RangeSpacing, AlwaysBitSelect) {
           assign y = x[7 : 0];
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, AlwaysInserts) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         logic [3:0] x;
@@ -518,12 +565,14 @@ TEST(RangeSpacing, AlwaysInserts) {
           logic [3 : 0] x;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, AlwaysKeepsSpaces) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Always;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         logic [3 : 0] x;
@@ -533,12 +582,14 @@ TEST(RangeSpacing, AlwaysKeepsSpaces) {
           logic [3 : 0] x;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, MatchSourceKeepsCompact) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::MatchSource;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         logic [3:0] x;
@@ -548,12 +599,14 @@ TEST(RangeSpacing, MatchSourceKeepsCompact) {
           logic [3:0] x;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, MatchSourceKeepsSpaces) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::MatchSource;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         logic [3 : 0] x;
@@ -563,12 +616,14 @@ TEST(RangeSpacing, MatchSourceKeepsSpaces) {
           logic [3 : 0] x;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, MatchSourceValueRange) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::MatchSource;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -582,12 +637,14 @@ TEST(RangeSpacing, MatchSourceValueRange) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, NeverKeepsCompact) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Never;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         logic [3:0] x;
@@ -597,12 +654,14 @@ TEST(RangeSpacing, NeverKeepsCompact) {
           logic [3:0] x;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, NeverRemoves) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Never;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         logic [3 : 0] x;
@@ -612,12 +671,14 @@ TEST(RangeSpacing, NeverRemoves) {
           logic [3:0] x;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, PreserveCollapsesMultiSpace) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Preserve;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         logic [3   :   0] x;
@@ -627,12 +688,14 @@ TEST(RangeSpacing, PreserveCollapsesMultiSpace) {
           logic [3 : 0] x;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, PreserveKeepsCompact) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Preserve;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         logic [3:0] x;
@@ -642,12 +705,14 @@ TEST(RangeSpacing, PreserveKeepsCompact) {
           logic [3:0] x;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(RangeSpacing, PreserveKeepsSpaces) {
     auto style = getDefaultStyle();
     style.RangeSpacing = RangeSpacingStyle::Preserve;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         logic [3 : 0] x;
@@ -657,11 +722,13 @@ TEST(RangeSpacing, PreserveKeepsSpaces) {
           logic [3 : 0] x;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(SequenceRepetition, Consecutive) {
     const auto style = getDefaultStyle();
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         sequence s;
@@ -675,5 +742,5 @@ TEST(SequenceRepetition, Consecutive) {
           endsequence
         endmodule
     )"));
+    // clang-format on
 }
-// clang-format on

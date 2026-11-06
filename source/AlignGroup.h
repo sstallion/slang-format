@@ -60,12 +60,12 @@ using AlignGroupFn =
     slang::function_ref<void(std::string&, const std::vector<std::string_view>&,
                              const std::vector<LineInfo>&, GroupRange, const InferContext&)>;
 
-/// Returns true if \p info ends the current group under \p alignStyle and \p config.
+/// Returns true if @p info ends the current group under @p alignStyle and @p config.
 bool shouldBreakGroup(const LineInfo& info, const AlignState& state,
                       const AlignConsecutiveStyle& alignStyle, const GroupBreakConfig& config);
 
-/// Splits \p output into lines, forms consecutive groups according to \p breakPred, and emits each
-/// group through \p alignFn.
+/// Splits @p output into lines, forms consecutive groups according to @p breakPred, and emits each
+/// group through @p alignFn.
 std::string applyAlignConsecutive(const std::string& output,
                                   const AlignConsecutiveStyle& alignStyle,
                                   const GroupBreakConfig& config, BreakPred breakPred,

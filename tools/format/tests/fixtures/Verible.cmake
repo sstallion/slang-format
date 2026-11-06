@@ -3,5 +3,5 @@
 
 include(FixtureTest)
 
-fixture_run(output ${FIXTURES_DIR}/verible.sv)
-fixture_expect_output("${output}" ${FIXTURES_DIR}/verible.sv.expected)
+fixture_run(output ${FIXTURE_SOURCE_DIR}/verible.sv)
+fixture_expect_output("${output}" ${FIXTURE_SOURCE_DIR}/verible.sv.expected)

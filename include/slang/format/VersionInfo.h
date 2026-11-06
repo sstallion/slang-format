@@ -1,6 +1,9 @@
 // Copyright 2026 Steven Stallion
 // SPDX-License-Identifier: MIT
 
+//! @file VersionInfo.h
+//! @brief Library version information.
+
 #pragma once
 
 #include "slang/format/Export.h"
@@ -9,6 +12,7 @@
 
 namespace slang::format {
 
+/// Provides compile-time version information about the library.
 class SLANG_FORMAT_EXPORT VersionInfo {
 public:
     VersionInfo() = delete;
@@ -22,12 +26,12 @@ public:
     /// Gets the patch version of the library.
     static int getPatch();
 
-    /// Gets the prerelease version of library, or an empty string if
-    /// prerelease information is not available.
+    /// Gets the prerelease version of library, or an empty string if prerelease information is not
+    /// available.
     static std::string_view getPrerelease();
 
-    /// Gets the build metadata for the library, or an empty string if build
-    /// metadata is not available.
+    /// Gets the build metadata for the library, or an empty string if build metadata is not
+    /// available.
     static std::string_view getBuildMetadata();
 
     /// Gets the full version string of the library, formatted as

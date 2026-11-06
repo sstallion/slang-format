@@ -9,10 +9,8 @@
 #include <gtest/gtest.h>
 
 using namespace slang::format;
-using namespace slang::format::style;
 using slang::dedent;
 
-// clang-format off
 TEST(AlignConsecutiveAssignments, AcrossComments) {
     auto style = getDefaultStyle();
     style.AlignConsecutiveAssignments = {};
@@ -21,6 +19,7 @@ TEST(AlignConsecutiveAssignments, AcrossComments) {
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic a = 1;
@@ -36,6 +35,7 @@ TEST(AlignConsecutiveAssignments, AcrossComments) {
           logic [15:0] c = 3;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, AcrossEmptyLines) {
@@ -46,6 +46,7 @@ TEST(AlignConsecutiveAssignments, AcrossEmptyLines) {
     style.AlignConsecutiveAssignments.MaxPadding = 0;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic a = 1;
@@ -61,6 +62,7 @@ TEST(AlignConsecutiveAssignments, AcrossEmptyLines) {
           logic [15:0] c = 3;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, AcrossEmptyLinesAndComments) {
@@ -72,6 +74,7 @@ TEST(AlignConsecutiveAssignments, AcrossEmptyLinesAndComments) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic a = 1;
@@ -89,6 +92,7 @@ TEST(AlignConsecutiveAssignments, AcrossEmptyLinesAndComments) {
           logic [15:0] c = 3;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, AcrossParameterPortList) {
@@ -100,6 +104,7 @@ TEST(AlignConsecutiveAssignments, AcrossParameterPortList) {
     style.AlignConsecutivePackedDimensions = {};
     style.ParameterPortListIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo #(
           parameter N = 4,
@@ -123,6 +128,7 @@ TEST(AlignConsecutiveAssignments, AcrossParameterPortList) {
           logic [15:0] d          = 2;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, Aligns) {
@@ -132,6 +138,7 @@ TEST(AlignConsecutiveAssignments, Aligns) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic a = 1;
@@ -145,6 +152,7 @@ TEST(AlignConsecutiveAssignments, Aligns) {
           logic [15:0] c = 3;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, BeginEndBreaksGroup) {
@@ -155,6 +163,7 @@ TEST(AlignConsecutiveAssignments, BeginEndBreaksGroup) {
     style.AlignConsecutiveAssignments.AcrossEmptyLines = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_comb begin
@@ -180,6 +189,7 @@ TEST(AlignConsecutiveAssignments, BeginEndBreaksGroup) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, BitSelectLHS) {
@@ -188,6 +198,7 @@ TEST(AlignConsecutiveAssignments, BitSelectLHS) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_comb begin
@@ -203,6 +214,7 @@ TEST(AlignConsecutiveAssignments, BitSelectLHS) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, BlockingAssignments) {
@@ -211,6 +223,7 @@ TEST(AlignConsecutiveAssignments, BlockingAssignments) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_comb begin
@@ -226,6 +239,7 @@ TEST(AlignConsecutiveAssignments, BlockingAssignments) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, CaseStatementDoesNotBreakGroup) {
@@ -234,6 +248,7 @@ TEST(AlignConsecutiveAssignments, CaseStatementDoesNotBreakGroup) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_comb begin
@@ -257,6 +272,7 @@ TEST(AlignConsecutiveAssignments, CaseStatementDoesNotBreakGroup) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, CommentBreaksGroup) {
@@ -265,6 +281,7 @@ TEST(AlignConsecutiveAssignments, CommentBreaksGroup) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic a = 1;
@@ -282,6 +299,7 @@ TEST(AlignConsecutiveAssignments, CommentBreaksGroup) {
           logic d        = 4;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, CompoundAssignments) {
@@ -290,6 +308,7 @@ TEST(AlignConsecutiveAssignments, CompoundAssignments) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_comb begin
@@ -305,6 +324,7 @@ TEST(AlignConsecutiveAssignments, CompoundAssignments) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, ContinuationLines) {
@@ -314,6 +334,7 @@ TEST(AlignConsecutiveAssignments, ContinuationLines) {
     style.AlignConsecutiveDeclarations = {};
     style.ContinuationIndentWidth = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           localparam [1:0] A = 1,
@@ -327,6 +348,7 @@ TEST(AlignConsecutiveAssignments, ContinuationLines) {
             B                = 3;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, DeclarationWithoutInitializer) {
@@ -336,6 +358,7 @@ TEST(AlignConsecutiveAssignments, DeclarationWithoutInitializer) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic a = 1;
@@ -349,6 +372,7 @@ TEST(AlignConsecutiveAssignments, DeclarationWithoutInitializer) {
           logic [15:0] c = 3;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, DepthChangeBreaksGroup) {
@@ -392,6 +416,7 @@ TEST(AlignConsecutiveAssignments, Disabled) {
     style.AlignConsecutiveDeclarations = {};
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic a = 1;
@@ -407,6 +432,7 @@ TEST(AlignConsecutiveAssignments, Disabled) {
           logic [15:0] c = 3;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, EmptyLineBreaksGroup) {
@@ -415,6 +441,7 @@ TEST(AlignConsecutiveAssignments, EmptyLineBreaksGroup) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic a = 1;
@@ -434,6 +461,7 @@ TEST(AlignConsecutiveAssignments, EmptyLineBreaksGroup) {
           logic d        = 4;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, ForkJoinDoesNotCrossAlign) {
@@ -442,6 +470,7 @@ TEST(AlignConsecutiveAssignments, ForkJoinDoesNotCrossAlign) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           initial begin
@@ -475,6 +504,7 @@ TEST(AlignConsecutiveAssignments, ForkJoinDoesNotCrossAlign) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, FormatOff) {
@@ -483,6 +513,7 @@ TEST(AlignConsecutiveAssignments, FormatOff) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           // slang-format off
@@ -500,6 +531,7 @@ TEST(AlignConsecutiveAssignments, FormatOff) {
           // slang-format on
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, HierarchicalLHS) {
@@ -508,6 +540,7 @@ TEST(AlignConsecutiveAssignments, HierarchicalLHS) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_comb begin
@@ -525,6 +558,7 @@ TEST(AlignConsecutiveAssignments, HierarchicalLHS) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, IfStatementDoesNotBreakGroup) {
@@ -533,6 +567,7 @@ TEST(AlignConsecutiveAssignments, IfStatementDoesNotBreakGroup) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_comb begin
@@ -562,6 +597,7 @@ TEST(AlignConsecutiveAssignments, IfStatementDoesNotBreakGroup) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, MixedDeclarationsAndAssignments) {
@@ -570,6 +606,7 @@ TEST(AlignConsecutiveAssignments, MixedDeclarationsAndAssignments) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic a = 1;
@@ -585,6 +622,7 @@ TEST(AlignConsecutiveAssignments, MixedDeclarationsAndAssignments) {
           logic [7:0] b = 3;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, NonblockingAssignments) {
@@ -593,6 +631,7 @@ TEST(AlignConsecutiveAssignments, NonblockingAssignments) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_ff @(posedge clk) begin
@@ -610,6 +649,7 @@ TEST(AlignConsecutiveAssignments, NonblockingAssignments) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, ShiftAssignments) {
@@ -618,6 +658,7 @@ TEST(AlignConsecutiveAssignments, ShiftAssignments) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           always_comb begin
@@ -635,6 +676,7 @@ TEST(AlignConsecutiveAssignments, ShiftAssignments) {
           end
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, SingleLine) {
@@ -643,6 +685,7 @@ TEST(AlignConsecutiveAssignments, SingleLine) {
     style.AlignConsecutiveAssignments.Enabled = true;
     style.AlignConsecutiveDeclarations = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic a = 1;
@@ -654,6 +697,7 @@ TEST(AlignConsecutiveAssignments, SingleLine) {
           logic a = 1;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutiveAssignments, WithDeclarationAlignment) {
@@ -664,6 +708,7 @@ TEST(AlignConsecutiveAssignments, WithDeclarationAlignment) {
     style.AlignConsecutiveDeclarations.Enabled = true;
     style.AlignConsecutivePackedDimensions = {};
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
           logic a = 1;
@@ -679,6 +724,7 @@ TEST(AlignConsecutiveAssignments, WithDeclarationAlignment) {
           logic [15:0] c = 3;
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePortConnections, Aligns) {
@@ -688,6 +734,7 @@ TEST(AlignConsecutivePortConnections, Aligns) {
     style.AlignConsecutivePortConnections.MaxPadding = 0;
     style.BinPackPortConnections = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         bar u_bar (
@@ -707,6 +754,7 @@ TEST(AlignConsecutivePortConnections, Aligns) {
           );
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePortConnections, Disabled) {
@@ -714,6 +762,7 @@ TEST(AlignConsecutivePortConnections, Disabled) {
     style.AlignConsecutivePortConnections = {};
     style.BinPackPortConnections = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         bar u_bar (
@@ -735,6 +784,7 @@ TEST(AlignConsecutivePortConnections, Disabled) {
           );
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePortConnections, MaxPaddingExceeded) {
@@ -744,6 +794,7 @@ TEST(AlignConsecutivePortConnections, MaxPaddingExceeded) {
     style.AlignConsecutivePortConnections.MaxPadding = 2;
     style.BinPackPortConnections = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         bar u_bar (
@@ -763,6 +814,7 @@ TEST(AlignConsecutivePortConnections, MaxPaddingExceeded) {
           );
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePortConnections, PortListBoundaryBreaksGroup) {
@@ -772,6 +824,7 @@ TEST(AlignConsecutivePortConnections, PortListBoundaryBreaksGroup) {
     style.AlignConsecutivePortConnections.MaxPadding = 1;
     style.BinPackPortConnections = true;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         bar #(
@@ -795,6 +848,7 @@ TEST(AlignConsecutivePortConnections, PortListBoundaryBreaksGroup) {
           );
         endmodule
     )"));
+    // clang-format on
 }
 
 TEST(AlignConsecutivePortConnections, SingleLine) {
@@ -803,6 +857,7 @@ TEST(AlignConsecutivePortConnections, SingleLine) {
     style.AlignConsecutivePortConnections.Enabled = true;
     style.AlignConsecutivePortConnections.MaxPadding = 2;
 
+    // clang-format off
     EXPECT_EQ(reformat(dedent(R"(
         module foo;
         bar u_bar (
@@ -818,5 +873,5 @@ TEST(AlignConsecutivePortConnections, SingleLine) {
           );
         endmodule
     )"));
+    // clang-format on
 }
-// clang-format on

@@ -28,13 +28,13 @@ struct LineInfo {
     bool metadataKind = false;  ///< True when kind was set from tree-walk metadata.
 };
 
-/// Returns the position after any run of spaces starting at \p pos.
+/// Returns the position after any run of spaces starting at @p pos.
 size_t skipSpaces(std::string_view line, size_t pos);
 
-/// Returns the position before any run of spaces ending at \p pos.
+/// Returns the position before any run of spaces ending at @p pos.
 size_t trimTrailingSpaces(std::string_view line, size_t pos);
 
-/// Returns the position of a trailing comment in \p line, or npos if none is present.
+/// Returns the position of a trailing comment in @p line, or npos if none is present.
 size_t findTrailingComment(std::string_view line);
 
 /// Classifies every line of formatted output, combining text scanning with tree-walk metadata.
