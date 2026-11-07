@@ -1,0 +1,37 @@
+name: GitHub Pages
+on:
+  release:
+    types: [published]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DOXYGEN_VERSION: '1.18.0'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-tags: true
+      - name: Install Doxygen
+        uses: ssciwr/doxygen-install@v2
+        with:
+          version: ${{ env.DOXYGEN_VERSION }}
+      - name: Run workflow
+        run: cmake --workflow --preset Documentation
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/docs/html/
+  deploy:
+    permissions:
+      pages: write
+      id-token: write
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v5

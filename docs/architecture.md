@@ -206,7 +206,7 @@ statements with else clauses are also treated as inherently multiline, because
 the formatting pass unconditionally breaks between the if body and the else
 keyword.
 
-#### Column-Limit-Aware Layout
+#### Line Breaking
 
 Two features consume `ColumnLimit` for layout decisions during the formatting
 pass: compaction of control statement bodies and wrapping of argument lists.
@@ -289,7 +289,7 @@ code.
 #### CTest Fixtures
 
 Command-line features not covered by the unit test library are tested by CTest
-scripts under `tools/format/tests/fixtures/`.
+scripts under `tools/<tool>/tests/fixtures/`.
 
 [1]: https://sv-lang.com/
 [2]: https://clang.llvm.org/docs/ClangFormat.html
