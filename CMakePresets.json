@@ -35,11 +35,16 @@
       "generator": "Visual Studio 18 2026"
     },
     {
+      "name": "Coverage",
+      "inherits": "GNU",
+      "cacheVariables": {
+        "ENABLE_COVERAGE": true
+      }
+    },
+    {
       "name": "Documentation",
       "inherits": "GNU",
       "cacheVariables": {
-        "BUILD_TESTING": false,
-        "BUILD_TOOLS": false,
         "BUILD_DOCS": true
       }
     }
@@ -76,8 +81,14 @@
       "configuration": "Release"
     },
     {
+      "name": "Coverage",
+      "configurePreset": "Coverage",
+      "configuration": "Debug"
+    },
+    {
       "name": "Documentation",
       "configurePreset": "Documentation",
+      "configuration": "Debug",
       "targets": "docs"
     }
   ],
@@ -124,6 +135,12 @@
       "inherits": "default",
       "configurePreset": "MSVC",
       "configuration": "Release"
+    },
+    {
+      "name": "Coverage",
+      "inherits": "default",
+      "configurePreset": "Coverage",
+      "configuration": "Debug"
     }
   ],
   "packagePresets": [
@@ -260,6 +277,23 @@
         {
           "type": "package",
           "name": "Release-MSVC"
+        }
+      ]
+    },
+    {
+      "name": "Coverage",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "Coverage"
+        },
+        {
+          "type": "build",
+          "name": "Coverage"
+        },
+        {
+          "type": "test",
+          "name": "Coverage"
         }
       ]
     },

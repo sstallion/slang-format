@@ -1,11 +1,12 @@
 # slang-format
 
 [![](https://github.com/sstallion/slang-format/actions/workflows/ci.yml/badge.svg?branch=main)][1]
-[![](https://img.shields.io/github/v/release/sstallion/slang-format)][2]
-[![](https://img.shields.io/github/license/sstallion/slang-format.svg)][3]
+[![](https://codecov.io/github/sstallion/slang-format/graph/badge.svg?token=CX8I80Q0DU)][2]
+[![](https://img.shields.io/github/v/release/sstallion/slang-format)][3]
+[![](https://img.shields.io/github/license/sstallion/slang-format.svg)][4]
 
-slang-format is an experimental SystemVerilog code formatter based on [slang][4]
-and heavily inspired by [clang-format][5]. Verilog-2005 (IEEE 1364-2005) is
+slang-format is an experimental SystemVerilog code formatter based on [slang][5]
+and heavily inspired by [clang-format][6]. Verilog-2005 (IEEE 1364-2005) is
 fully supported as a subset of the SystemVerilog language. All major operating
 systems are supported, including Linux, macOS, and Windows.
 
@@ -33,22 +34,23 @@ cmake -B build && cmake --build build --config Release
 Once built, binaries can be found in the `build` directory.
 
 > [!TIP]
-> See [Usage][6] for command-line options, configuration, and supported file
+> See [Usage][7] for command-line options, configuration, and supported file
 > patterns.
 
 ## Contributing
 
-Pull requests are welcome! See [Contributing][7] for details.
+Pull requests are welcome! See [Contributing][8] for details.
 
 ## License
 
 Source code in this repository is licensed under the MIT License. See
-[LICENSE][3] for details.
+[LICENSE][4] for details.
 
 [1]: https://github.com/sstallion/slang-format/actions/workflows/ci.yml
-[2]: https://github.com/sstallion/slang-format/releases/latest
-[3]: https://github.com/sstallion/slang-format?tab=MIT-1-ov-file
-[4]: https://sv-lang.com/
-[5]: https://clang.llvm.org/docs/ClangFormat.html
-[6]: https://slang-format.io/usage.html
-[7]: https://github.com/sstallion/slang-format/blob/main/CONTRIBUTING.md
+[2]: https://codecov.io/github/sstallion/slang-format
+[3]: https://github.com/sstallion/slang-format/releases/latest
+[4]: https://github.com/sstallion/slang-format?tab=MIT-1-ov-file
+[5]: https://sv-lang.com/
+[6]: https://clang.llvm.org/docs/ClangFormat.html
+[7]: https://slang-format.io/usage.html
+[8]: https://github.com/sstallion/slang-format/blob/main/CONTRIBUTING.md

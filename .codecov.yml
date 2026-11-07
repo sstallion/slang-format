@@ -1,0 +1,10 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 90%
+        threshold: 5%
+parsers:
+  cobertura:
+    partials_as_hits: true
+    handle_missing_conditions: true

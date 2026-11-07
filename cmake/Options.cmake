@@ -12,4 +12,5 @@ option(BUILD_DOCS "Build documentation." OFF)
 cmake_dependent_option(BUILD_PACKAGING "Build packages." ON
                        "PROJECT_IS_TOP_LEVEL AND BUILD_TOOLS" OFF)
 
-option(USE_CLANG_TIDY "Run clang-tidy with the compiler." ${PROJECT_IS_TOP_LEVEL})
+option(ENABLE_CLANG_TIDY "Run clang-tidy with the compiler." ${PROJECT_IS_TOP_LEVEL})
+option(ENABLE_COVERAGE "Add coverage flags to the compiler and linker." OFF)

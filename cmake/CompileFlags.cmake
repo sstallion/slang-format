@@ -6,11 +6,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-add_compile_definitions(
-  "$<$<CONFIG:Debug>:DEBUG>"
-)
+add_compile_definitions("$<$<CONFIG:Debug>:DEBUG>")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  if(ENABLE_COVERAGE)
+    add_compile_options(--coverage)
+    add_link_options(--coverage)
+  endif()
   add_compile_options(
     -Wall
     -Wextra
@@ -24,3 +26,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+if(ENABLE_CLANG_TIDY)
+  find_package(ClangTidy)
+endif()

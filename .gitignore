@@ -1,3 +1,4 @@
 *.tar.gz
 *.zip
 /build/
+coverage.xml

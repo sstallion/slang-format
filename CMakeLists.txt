@@ -21,10 +21,6 @@ include(Options)
 include(Dependencies)
 include(CompileFlags)
 
-if(USE_CLANG_TIDY)
-  find_package(ClangTidy)
-endif()
-
 configure_file(source/VersionInfo.cpp.in source/VersionInfo.cpp)
 
 add_library(slang_format_lib

@@ -1,0 +1,29 @@
+name: Coverage
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install gcovr
+      - name: Run workflow
+        run: cmake --workflow --preset Coverage
+      - name: Generate coverage report
+        run: |
+          gcovr -r . --xml -o coverage.xml \
+            --filter 'include/' \
+            --filter 'source/'
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v7
+        with:
+          disable_search: true
+          files: coverage.xml
+          plugins: noop
+          token: ${{ secrets.CODECOV_TOKEN }}
