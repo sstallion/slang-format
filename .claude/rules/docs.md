@@ -23,11 +23,14 @@ and [ClangFormatStyleOptions][2].
 
 ### Main Page
 
-TODO.
+The Doxygen main page (`USE_MDFILE_AS_MAINPAGE`). Content TBD.
 
 ### User Manual
 
-TODO.
+An unnamed introduction with a one-line tagline describing slang-format for end
+users, followed by a paragraph framing the section's scope. A bulleted list of
+sub-pages with one-line descriptions follows. Changelog links to GitHub. Does
+not duplicate content from sub-pages; acts as a summary hub.
 
 #### Usage
 
@@ -86,7 +89,11 @@ TODO.
 
 ### Developer Guide
 
-TODO.
+An unnamed introduction with a one-line tagline, followed by a paragraph
+positioning slang-format as a library-first project with enumerated use cases, a
+second paragraph framing the section, and a bulleted list of sub-pages with
+one-line descriptions. Contributing and License link to GitHub. Does not
+duplicate content from sub-pages; acts as a summary hub.
 
 #### Building from Source
 
@@ -108,7 +115,11 @@ Sections, in order:
 
 ### API Reference
 
-TODO.
+An unnamed introduction with a one-line tagline, followed by a paragraph
+describing the `slang::format` namespace and the library's purpose. A bulleted
+list of key entry points follows, with fully qualified C++ names and one-sentence
+descriptions. A closing sentence points to the Developer Guide for integration
+guidance. Does not duplicate content from sub-pages; acts as a summary hub.
 
 [1]: https://clang.llvm.org/docs/ClangFormat.html
 [2]: https://clang.llvm.org/docs/ClangFormatStyleOptions.html

@@ -3,8 +3,8 @@
 @tableofcontents
 
 slang-format is a standalone tool that formats SystemVerilog source code. It can
-be used to format files in place, write formatted output to stdout, or read from
-stdin as part of a pipeline.
+be used to format files in place, write formatted output to standard output, or
+read from standard input as part of a pipeline.
 
 ```txt
 OVERVIEW: SystemVerilog code formatter
@@ -24,11 +24,13 @@ OPTIONS:
 ```
 
 When invoked with one or more file arguments, slang-format formats each file and
-writes the result to stdout unless `-i` is specified to edit files in place.
+writes the result to standard output unless `-i` is specified to edit files in
+place.
 
-If a file argument is prefixed with `@` is treated as a response file containing
-a list of paths to process, one per line. Blank lines and lines starting with
-`#` are ignored. A file argument of `-` causes slang-format to read from stdin.
+If a file argument is prefixed with `@`, it is treated as a response file
+containing a list of paths to process, one per line. Blank lines and lines
+starting with `#` are ignored. A file argument of `-` causes slang-format to
+read from standard input.
 
 ## Configuration
 

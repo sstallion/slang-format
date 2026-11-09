@@ -32,3 +32,5 @@ documents.
   alphabetical order.
 - List items begin with a capital letter, even when they are fragments.
 - Use title case when identifying headings and sections.
+- Do not abbreviate standard input, standard output, and standard error as
+  stdin, stdout, and stderr, respectively.

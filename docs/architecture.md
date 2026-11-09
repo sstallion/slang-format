@@ -113,15 +113,15 @@ any style header as an error under `-Wextra`, which keeps style headers complete
 as options are added.
 
 `parseConfig()` resolves `BasedOnStyle` first through a `constexpr` name table
-in `ConfigFile.cpp` that maps names to the style header functions. See [Style
-Options](@ref style-options) for the user-facing behavior. The table is the
-single registration point and is intended to back a future `--style` option.
+in `ConfigFile.cpp` that maps names to the style header functions. See
+[Style Options](@ref style-options) for the user-facing behavior. The table is
+the single registration point and is intended to back a future `--style` option.
 
 #### Configuration Dump
 
-The `--dump-config` option serializes the resolved style to stdout. When a
-shared struct contains fields that are unused by a particular option, those
-fields are not emitted.
+The `--dump-config` option serializes the resolved style to standard output.
+When a shared struct contains fields that are unused by a particular option,
+those fields are not emitted.
 
 #### Ignore File Lookup
 
