@@ -35,6 +35,72 @@ TEST(BindDirective, Instantiation) {
     // clang-format on
 }
 
+TEST(BindDirective, TargetInstances) {
+    auto style = getDefaultStyle();
+    style.AlignConsecutivePortConnections = {};
+    style.BinPackPortConnections = true;
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        bind foo : u_foo bar u_bar (
+        .clk(clk)
+        );
+    )"), style), dedent(R"(
+        bind foo:u_foo bar u_bar (
+            .clk(clk)
+        );
+    )"));
+    // clang-format on
+}
+
+TEST(ContinuousAssign, Delay) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign #5 x = y;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign #5 x = y;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(ContinuousAssign, DriveStrength) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        assign (strong1, weak0) x = y;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          assign (strong1, weak0) x = y;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(DPIExport, Function) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package foo;
+        export "DPI-C" c_fn = function fn;
+        endpackage
+    )"), style), dedent(R"(
+        package foo;
+          export "DPI-C"c_fn=function fn;
+        endpackage
+    )"));
+    // clang-format on
+}
+
 TEST(DPIImport, ExpandsPorts) {
     const auto style = getDefaultStyle();
 
@@ -66,6 +132,54 @@ TEST(DPIImport, SinglePortFits) {
         package foo;
           import "DPI-C" function void single_port(input int x);
         endpackage
+    )"));
+    // clang-format on
+}
+
+TEST(DefParam, Assignments) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        defparam bar.x = 1;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          defparam bar.x = 1;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(DefaultClockingReference, Declaration) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        default clocking cb;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          default clocking cb;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(DefaultDisableDeclaration, Declaration) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        default disable iff rst;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          default disable iff rst;
+        endmodule
     )"));
     // clang-format on
 }
@@ -134,6 +248,118 @@ TEST(EnumType, PreservesNewlines) {
     // clang-format on
 }
 
+TEST(ForwardTypedefDeclaration, Class) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package foo;
+        typedef class bar;
+        endpackage
+    )"), style), dedent(R"(
+        package foo;
+          typedef class bar;
+        endpackage
+    )"));
+    // clang-format on
+}
+
+TEST(GenvarDeclaration, Identifiers) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        genvar i, j;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          genvar i, j;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(NetDeclaration, Delay) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        wire #5 x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          wire #5 x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(NetDeclaration, DriveStrength) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        wire (strong0, pull1) x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          wire (strong0, pull1) x;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(NetTypeDeclaration, WithFunction) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        nettype real mynet with resolve;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          nettype real mynet with resolve;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(PackageExportAllDeclaration, Declaration) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package foo;
+        export *::*;
+        endpackage
+    )"), style), dedent(R"(
+        package foo;
+          export*::*;
+        endpackage
+    )"));
+    // clang-format on
+}
+
+TEST(PackageExportDeclaration, Items) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        package foo;
+        export bar::baz;
+        endpackage
+    )"), style), dedent(R"(
+        package foo;
+          export bar::baz;
+        endpackage
+    )"));
+    // clang-format on
+}
+
 TEST(StructUnionType, Members) {
     auto style = getDefaultStyle();
     style.AlignConsecutiveDeclarations = {};
@@ -169,6 +395,22 @@ TEST(TimeUnitsDeclaration, Divider) {
     )"), style), dedent(R"(
         module foo;
           timeunit 1ns/1ps;
+        endmodule
+    )"));
+    // clang-format on
+}
+
+TEST(UserDefinedNetDeclaration, Delay) {
+    const auto style = getDefaultStyle();
+
+    // clang-format off
+    EXPECT_EQ(reformat(dedent(R"(
+        module foo;
+        mynet #1 x;
+        endmodule
+    )"), style), dedent(R"(
+        module foo;
+          mynet#1 x;
         endmodule
     )"));
     // clang-format on
